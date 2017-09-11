@@ -1,0 +1,77 @@
+RESPONSIBILITY: compare available algorithms and choose (or create) best option for integrating into CLTK
+	> PAPER
+
+get CLTK set up on my computer to test various existing features
+	needs Python 3
+	> CAN DO BOTH 2.7 AND 3.X ON ONE COMPUTER?
+	
+test CLTK transliteration
+	special attention: "inherent-vowel" issues (Hindi vs Sanskrit?)
+
+study CLTK transliteration
+
+study SanskritLibrary transliteration
+
+study other transliteration implementations
+
+study CLTK object structures and assimilate my objects (e.g. Transliterable) to that
+
+add space-removal option to >DEV to make standard continuous text (with common exceptions)
+	CAUTION: TEXT MUST ALREADY HAVE PROPER SANDHI!
+		E.G., CANNOT SIMPLY JUXTAPOSE FINAL 't' AND INITIAL 'a', BUT SHOULD DO FOR 'd' AND 'a'
+		E.G., CANNOT SIMPLY JUXTAPOSE FINAL 't' AND INITIAL 'd', BUT SHOULD DO FOR 't' AND 'k'
+	(post-processing of completed >DEV transliteration)
+	if consonant is followed by virAma, then by space, then by consonant or initial-vowel
+	then
+		delete that space
+		if next letter is an initial-vowel
+	exceptions: 1) 
+	a user may also have used two subsequent virAmas to force the printing of one
+		result: one virAma is conserved by the nature of the DEV>SLP linear preprocessing, seems fine
+	otherwise, virAma followed by [space, punctuation...
+	DONE
+
+fix round-trip bug
+	(besides, of course, necessary data loss if below space-deletion implemented)
+	DONE
+
+add xml-style tags for mixed-language input
+	POSTPONED, should be handled separately, as early as possible in process
+
+add error-checking for input
+	e.g. virAmas should occur only after consonants
+	see e.g. Max Mehner's error-checking routines (?)
+	DON'T FEEL LIKE; IF USER HAS BAD INPUT DATA, IT'S ON THEM TO NOTICE AND UNDERSTAND THE BAD OUTPUT
+
+meter tool extension
+	basic function of basic scansion is nice
+	must be able to detect patterns automatically
+		HOW?
+	must be able handle faulty material WITHOUT manual removal of offending bit
+		HOW?
+
+columns thru latex
+	goal:
+		given input in one format,
+		transliterate it to a second format
+		and automatically produce a document aligning both with each other
+	details:
+		columns and so landscape probably best/necessary
+		font type, font size and margins should be user-determined options
+		keep verses intact (might be hard without xml markup, shoot for just lines at first)
+		output is latex code
+
+input format automatically detected
+	assess character profile
+	compare against fixed reference
+	guess (confident that it will usually be correct but always allow for correction anyway)
+
+create delegators
+	transliterate many files at once
+	scan many verses at once
+
+incorporate two GRETIL-specific encodings
+	REE
+	CSX
+
+finish decoding OAST
