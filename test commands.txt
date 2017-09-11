@@ -1,9 +1,0 @@
-import settings, transkrit
-s = settings.Settings(reset=True)
-s.activate()
-test = 'vidyāsyandanam unnayann iva namas tasmai parabrahmaṇe'
-t = transkrit.Transliterator(s)
-results = t.transliterate(test)
-print results
-
-विद्यास्यन्दनमुन्नयन्निव नमस्तस्मै परब्रह्मणे
