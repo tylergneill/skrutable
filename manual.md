@@ -69,4 +69,4 @@ Note also that only basic symbols important for Classical Sanskrit are used. If 
 
 A handy bonus feature in `transliteration.py` is `destroy_spaces`, but it can only be activated by changing the source code. Set this to `True` to get rid of spaces added in Romanization, i.e., those typically omitted in Devanagari in favor of ligatures. Details can be viewed and controlled in `tables.py`.
 
-For more detailed info on how all the parts work, see internal documentation.
+For more detailed info on how all the parts work, please see internal documentation.
