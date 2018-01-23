@@ -11,10 +11,12 @@
 import os.path
 import sys
 import pickle
+import re
 import tables
 import demo_io
 
 settings_filename = 'last_used.p'
+should_destroy_spaces = True
 
 class TransliterationSettings(object):
 
@@ -43,7 +45,6 @@ class TransliterationSettings(object):
 
 		self.initial_scheme = temp_S.initial_scheme
 		self.final_scheme = temp_S.final_scheme
-#		self.should_destroy_spaces = temp_S.should_destroy_spaces
 
 		settings_file.close()
 
@@ -62,7 +63,6 @@ class Transliterator():
 
 		self.contents = None
 		self.settings = TransliterationSettings(default_from, default_to)
-
 
 	def linear_preprocessing(self, from_scheme, to_scheme):
 		""" 
@@ -151,11 +151,19 @@ class Transliterator():
 		for (char_in, char_out) in map:
 			self.contents = self.contents.replace(char_in, char_out)
 
+	def destroy_spaces(self):
+		"""
+			Internal method.		
+			Performs global replacement according to simple mapping.
+			Returns results by updating object's internal .contents attribute.
+		"""
+		for pattern in tables.which_spaces_destroyed:
+			self.contents = re.sub(pattern, r'\1\2', self.contents)
 
 	def transliterate(self, cntnts, from_scheme=None, to_scheme=None):
 		"""
 			Primary method to be called on Transliteration object, needs no arguments.
-			Purpose: routes processing via SLP, with option of destroying spaces.
+			Purpose: routes processing via SLP, leaves open option of destroying spaces.
 			Calls other methods that update object's internal .contents attribute.
 			Return resulting text as a string.
 		"""
@@ -169,6 +177,10 @@ class Transliterator():
 		# transliterate first to SLP
 		self.linear_preprocessing(from_scheme = init_f, to_scheme = 'SLP')
 		self.map_replace(from_scheme = init_f, to_scheme = 'SLP')
+
+		# destroy spaces here
+		if should_destroy_spaces:
+			self.destroy_spaces()
 
 		# then transliterate to final desired scheme
 		self.linear_preprocessing(from_scheme = 'SLP', to_scheme = fin_f)
@@ -235,7 +247,10 @@ if __name__ == '__main__':
 	# these settings are saved
 
 	# for demo: command-line flag for menu prompt and replacement of settings
-	if len(sys.argv) > 1 and '--prompt' in sys.argv:
+	if	(
+		len(sys.argv) > 1 and '--prompt' in sys.argv or
+		T.settings.initial_scheme == None
+		):
 		T.settings.initial_scheme = prompt_for_choice('Input', tables.available_schemes)
 		T.settings.final_scheme = prompt_for_choice('Output', tables.available_schemes)
 		T.settings.save()
