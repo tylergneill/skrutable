@@ -24,8 +24,8 @@ result = T.transliterate(text, from_scheme='DEV', to_scheme='IAST')
 print result
 ~~~~
 5. Settings passed to the transliterate() method will not be saved. Experiment with saving them by passing them instead to the Transliterator() constructor or by specifying the `--prompt` flag at the command line to enter them manually.
-6. Now give some versified material as input and run scansion.py from the command line. For now, you must make sure that 4 pādas are on 4 separate lines. If you're not sure where the pāda breaks are, use the on-screen feedback to adjust your input until the lines are symmetrical and/or the meter is recognized. Settings are passed in as above.
-7. Try using the same as a library. For example:
+6. Now try out the scansion. Put some versified material in 'input.txt'. Run scansion.py from the command line. At the moment, if you want the meter to be identified, then you must make sure that the four pādas (verse quarters) are each on their own separate lines. If you're not sure where the pāda breaks are, use the on-screen feedback to adjust your input until the lines are symmetrical and/or the meter is recognized. Settings are passed in as above.
+7. Now try using the same as a library. For example:
 ~~~~
 from Skrutable import scansion as sc
 S = sc.Scanner()
@@ -35,6 +35,7 @@ print ScansionResult.summary()
 print ScansionResult.identify()
 ~~~~
 8. Read the code to understand more options (e.g., destroy_spaces).
+9. Send feedback!
 
 # Vocabulary
 
