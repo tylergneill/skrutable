@@ -64,7 +64,7 @@ Finally, fonts, the most superficial level of text representation at software ru
 
 For more information, please refer to "Transliteration of Devanagari" by D. Wujastyk and "Linguistic Issues in Encoding Sanskrit" by P. Scharf.
 
-# Guidelines
+# Further Guidelines
 
 The modules are designed primarily for importing as libraries, but they can themselves also be run at the command-line for demonstration purposes. The `__main__` section serves as a readable tutorial.
 
@@ -72,8 +72,6 @@ Mixed-language input is not yet supported, so everything in the input must be Sa
 
 Note also that only basic symbols important for Classical Sanskrit are used. If you need Vedic symbols or something similar, you can add this yourself.
 
-The last used scheme settings are remembered and loaded on subsequent runs. To override this from the command line, use the --prompt flag to get a user-friend menu. Otherwise, simply pass the proper parameters to the given constructor or method.
+A handy bonus feature in `transliteration.py` is `destroy_spaces`, but it can only be activated by changing the source code. Set this to `True` to get rid of spaces added in Romanization, i.e., those typically omitted in Devanagari in favor of ligatures. Details can be viewed and controlled in `tables.py`.
 
-A handy bonus feature in transliteration.py is "destroy spaces", but it can only be activated by changing the source code. Set this to True to destroy spaces added in Romanization, i.e., those typically omitted in Devanagari in favor of ligatures. Details can be controlled in tables.py.
-
-For more detailed info on how all the parts work, see the extensive internal documentation.
+For more detailed info on how all the parts work, see internal documentation.
