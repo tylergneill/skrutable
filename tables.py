@@ -8,7 +8,7 @@
 
 
 # summary of available transliteration formats as presented to user
-available_formats = ['IAST', 'SLP', 'HK', 'VH', 'DEV', 'OAST']
+available_formats = ['IAST', 'SLP', 'HK', 'VH', 'DEV', 'ITRANS', 'OAST']
 
 """
 	Character mappings, as ordered lists of tuples, for use with string.replace().
@@ -201,23 +201,27 @@ DEV_SLP = [
 
 OAST_SLP = [
 ('å','A'),
+('å','A'), # separable
 ('Å','A'), # uppercase
 ('ï','I'),
+('ï','I'), # separable
 ('÷','U'),
 ('ø','U'), # not sure why another one...
 ('ü','U'), # uppercase ??? just educated guess for now...
 ('Ÿ','f'),
 (chr(127),'f'), # uppercase
+('ÿ','f'), # separable
 ('&','E'),
 ('(','O'),
 ('§','K'),
 ('³','G'),
 ('¼','N'),
 ('+','C'),
-#	ñ...
+('ñ','Y'), # separable
 #	jh...
 ('¶','w'),
 ('–','w'), # uppercase
+('—','w'), # alternate uppercase?
 ('·','q'),
 ('®','W'),
 #	ḍh...
@@ -234,7 +238,57 @@ OAST_SLP = [
 ('µ','H'),
 ]
 
-# eventually also ITRANS, REE, CSX, etc.
+ITRANS_SLP = [
+('aa', 'A'),
+('ii', 'I'),
+('uu', 'U'),
+('ee', 'e'),
+('oo', 'o'),
+('E', 'e'),
+('ai', 'E'),
+('O', 'o'),
+('au', 'O'),
+
+('RRi', 'f'),
+('RRI', 'F'),
+('LLi', 'x'),
+('LLI', 'X'),
+('Ri', 'f'),
+('R^i', 'f'),
+('RI', 'F'),
+('R^I', 'F'),
+('Li', 'x'),
+('L^i', 'x'),
+('LI', 'X'),
+('L^I', 'X'),
+
+('w', 'v'),
+('T', 'w'),
+('Th', 'W'),
+('D', 'q'),
+('Dh', 'Q'),
+('th', 'T'),
+('dh', 'D'),
+
+('N', 'R'),
+('~N', 'N'),
+
+('.m', 'M'),
+('kh', 'K'),
+('gh', 'G'),
+('ch', 'c'),
+('Ch', 'C'),
+('jh', 'J'),
+('~n', 'Y'),
+('ph', 'P'),
+('bh', 'B'),
+('sh', 'S'),
+('Sh', 'z'),
+('.h', ''),
+('.a', "'"),
+]
+
+# eventually also REE, CSX, etc.
 
 SLP_IAST = [
 # precomposed IAST only, under-dots instead of under-circles
@@ -414,6 +468,7 @@ maps_by_name = {
 'VH_SLP' : VH_SLP,
 'SLP_VH' : SLP_VH,
 'SLP_SLP' : SLP_SLP,
+'ITRANS_SLP' : ITRANS_SLP,
 'OAST_SLP' : OAST_SLP,
 }
 
@@ -521,6 +576,7 @@ samavfttas_by_gaRas = {
 # most frequent, taking small personal collection as proxy
 'ttjg(g|l)' : 'indravajrA',
 'jtjg(g|l)' : 'upendravajrA',
+# '(t|j)tjg(g|l)' : 'upajāti', # how to detect when so flexible?
 'sss(s|n)' : 'towakam',
 'nBB(r|B)' : 'drUtavilambitam',
 'mnjr(g|l)' : 'praharziRI',
@@ -549,6 +605,10 @@ samavfttas_by_gaRas = {
 # more from Apte (added as found in the wild)
 'ttj(r|B)' : 'indravaMSA',
 'sssl(g|l)' : 'upacitra',
+
+# more from Sadananda
+'jrl(g|l)' : 'pramARikA',
+'jrjrj(g|l)' : 'paYcacAmaram',
 }
 
 

@@ -1,80 +1,48 @@
-# -*- coding: utf-8 -*-
-
 import os.path
 import sys
 import pickle
-import re
 import tables
-import io
+import demo_io
 
 """
 	TRANSKRIT  (< 'transliterate Sanskrit')
 
-	The following Sanskrit transliteration/encoding formats are supported:
-		IAST (Unicode), SLP, HK, VH, DEV(anāgarī Unicode), "OAST" (Oliver Hellwig's, incomplete)
-	All formats (including new additions) can be managed in "tables" module.
+	The following Sanskrit transliteration formats are supported:
+		ASCII: SLP, HK, VH, "OAST" (Oliver's, for DCS);
+		Unicode: IAST, DEV(anagari).
+	Formats are managed in "tables" module.
 	Utilizes SLP under-the-hood for convenience of one-sign-per-phoneme.
-	Handles issue of Devanāgarī 'inherent vowel' with linear pre-processing (relatively slow).
+	Handles issue of Devanagari 'inherent vowel' with linear pre-processing (slow).
+	For how-to, see "__main__" below.
 """
 
-settings_filename = 'settings.p'
-
-def prompt_for_choice(header, menu_choices):
-	"""
-		Given a introductory header and a list of strings to choose from,
-			presents a numbered list and prompts for user choice.
-		Choice can be either the number in the list or the exact string.
-		Returns chosen string.
-	"""
-
-	print header
-
-	possible_choices = []
-	for n, mc in enumerate(menu_choices):
-		print "%d) %s" % (n+1, mc)
-		possible_choices.append(str(n+1))
-		possible_choices.append(mc)
-
-	valid_final_choice = None
-	while not valid_final_choice:
-
-		curr_choice = raw_input("(Choose by number or exact text) > ")
-
-		for i, possible_choice in enumerate(possible_choices):
-			if curr_choice == possible_choice:
-				valid_final_choice = menu_choices[i // 2] # always returns the string, not the number
-				break
-		else:				
-			print "Not a valid option. Try again."
-			continue
-
-	print valid_final_choice
-	print
-
-	return valid_final_choice
-
+settings_filename = 'last_used.p'
 
 class TransliterationSettings(object):
 
-	def __init__(self, reset_flag=False):
-		
-		self.initial_format = None
-		self.final_format = None
+	def __init__(self, default_initial=None, default_final=None):
 
-		if reset_flag == False and os.path.isfile(settings_filename):
-			# no signal NOT to look for previous settings, so load from file
+		self.initial_format = self.final_format = None
+
+		# load whatever previous settings available from file
+		if	(
+			(default_initial == None or default_final == None) and
+			os.path.isfile(settings_filename)
+			):
 			self.load()
 
-# 		self.should_destroy_spaces = False
-# 
-# 		self.update(initializing=True)
+		# but then also override with any newly specified choices
+		if default_initial != None: self.initial_format = default_initial
+		if default_final != None: self.final_format = default_final
+
+		self.save()
 
 
 	def load(self):
 
 		settings_file = open(settings_filename, 'r')
-
 		temp_S = pickle.load(settings_file) # TransliterationSettings() object
+
 		self.initial_format = temp_S.initial_format
 		self.final_format = temp_S.final_format
 #		self.should_destroy_spaces = temp_S.should_destroy_spaces
@@ -87,58 +55,15 @@ class TransliterationSettings(object):
 		settings_file = open(settings_filename, 'w')
 		P = pickle.Pickler(settings_file)
 		P.dump(self)
-
-
-	def update(self):
-
-		if self.initial_format == None:
-			self.initial_format = prompt_for_choice("Input", tables.available_formats)
-
-		if self.final_format == None:
-			self.final_format = prompt_for_choice("Output", tables.available_formats)
-
-# 	def update(self, initializing=False, init_frmt=None, fin_frmt=None):
-# 		"""
-# 			Either loads transliteration settings from file
-# 				or prompts user for same
-# 				and saves choices to file as defaults for next time.
-# 			Returns transliteration settings as four separate variables.
-# 		"""
-# 
-# 		if initializing and os.path.isfile(settings_filename):
-# 
-# 			# load previous choices from file
-# 			self.load()
-# 
-# 		else:
-# 
-# 			if init_frmt == None:
-# 				self.initial_format = prompt_for_choice("Input", tables.available_formats)
-# 
-# 			if fin_frmt == None:
-# 				self.final_format = prompt_for_choice("Output", tables.available_formats)
-# 
-# 			# save new choices
-#			self.save()
-# 
-# 
-# 	def destroy_spaces(self, decision=True):
-# 
-# 		if decision in [True, False]: self.should_destroy_spaces = decision
-# 		# by default: the maximum conventional number of spaces are removed
-# 		# could here give option to instead specify exactly which ones to remove
-# 		# easiest: use prompt_for_choice() to suggest common configurations
-# 		# 	final configuration option (most comprehensive): y/n on every possible option
-# 		# advanced users: can modify tables.py
+		settings_file.close()
 
 
 class Transliterator():
 
-	def __init__(self, reset_flag=False):
+	def __init__(self, default_from=None, default_to=None):
 
 		self.contents = None
-		self.contents_original = None
-		self.settings = TransliterationSettings(reset_flag)
+		self.settings = TransliterationSettings(default_from, default_to)
 
 
 	def linear_preprocessing(self, from_format, to_format):
@@ -156,22 +81,26 @@ class Transliterator():
 				When transliterating from SLP > DEV, after consonants, 
 					one must IGNORE explicit short 'a' vowels
 					and ADD a virAma if no vowel follows.
-					(and also, other vowels following consonants are replaced with their mAtrA forms).
+					(Also replace other vowels following consonants with their mAtrA forms).
 			Returns results by updating object's internal .contents attribute
-				which here will contain a temporary, unnatural mix of Devanāgarī and Roman.
+				which here will contain a temporary, unnatural mix of Devanagari and Roman.
 		"""
 
-		if (from_format, to_format) == ('DEV', 'SLP') :		char_to_ignore = tables.virAma_unicode; char_to_add = 'a'
-		elif (from_format, to_format) == ('SLP', 'DEV') :	char_to_ignore = 'a'; char_to_add = tables.virAma_unicode
+		if (from_format, to_format) == ('DEV', 'SLP'):
+			char_to_ignore = tables.virAma_unicode; char_to_add = 'a'
+		elif (from_format, to_format) == ('SLP', 'DEV'):
+			char_to_add = tables.virAma_unicode; char_to_ignore = 'a'
 		else: return
 
 		text_unicode = self.contents.decode('utf-8') # from UTF-8-encoded hex strings > Unicode objects
 
 		# buffers
 		prev_char = ''
-		hybrid_text_unicode_all_lines = [] # will build "temporary, unnatural mix of Devanāgarī and Roman"
+		hybrid_text_unicode_all_lines = [] # builds "temporary, unnatural mix"
 
+		# have your newlines and eat them too
 		text_unicode = text_unicode.replace('\n', '\n\r')
+		text_unicode = text_unicode.replace('\r\r', '\r') # in case of Windows CRLF
 		text_unicode_lines = text_unicode.split('\r')
 
 		total_length = len(text_unicode_lines)
@@ -179,7 +108,7 @@ class Transliterator():
 		for i, line in enumerate(text_unicode_lines):
 
 			if total_length > 10000:
-				# display progress at this, the slowest point
+				# visually display progress at this, the slowest point
 				progress = (i*1.0/total_length)*10000//1/100
 				sys.stdout.write("\rprogress: %d%%" % progress)
 				sys.stdout.flush()
@@ -225,22 +154,7 @@ class Transliterator():
 			self.contents = self.contents.replace(char_in, char_out)
 
 
-# 	def destroy_spaces(self):
-# 		"""
-# 			Internal method.
-# 			Transliteration format: SLP only.
-# 			Purpose: Maximizes legal and preferred combination of akṣaras.
-# 			Caveat: Assumes proper sandhi application,
-# 			takes no responsibility for any non-trivial inconsistencies already present in data itself,
-# 			(e.g. -n j- being written as such and not changed to -ñ j-).
-# 			Returns results by updating object's internal .contents attribute.
-# 		"""
-# 		for	pattern in tables.which_spaces_destroyed:
-# 			regex = re.compile(pattern) # of form "([X]) ([Y])", notice space excluded from parentheses
-# 			self.contents = regex.sub("\\1\\2", self.contents)
-
-
-	def transliterate(self, cntnts, initial_override=None, final_override=None):
+	def transliterate(self, cntnts, from_format=None, to_format=None):
 		"""
 			Primary method to be called on Transliteration object, needs no arguments.
 			Purpose: routes processing via SLP, with option of destroying spaces.
@@ -248,100 +162,99 @@ class Transliterator():
 			Return resulting text as a string.
 		"""
 		self.contents = cntnts
-		self.contents_original = cntnts
 
-		# arbitrate among three potential sources for settings
+		if from_format != None: init_f = from_format
+		else: init_f = self.settings.initial_format
+		if to_format != None: fin_f = to_format
+		else: fin_f = self.settings.final_format
 		
-		initial_format = final_format = ''
+		# transliterate first to SLP
+		self.linear_preprocessing(from_format = init_f, to_format = 'SLP')
+		self.map_replace(from_format = init_f, to_format = 'SLP')
 
-		if not (initial_override == final_override == None):
-
-			# temporary overrides, not stored for later
-
-			initial_format = initial_override
-			final_format = final_override
-
-		else: 
-
-			# ensure that not empty, fetch from file if necessary
-			self.settings.update()
-
-			# store settings for later; can disable saving of settings by removing this line
-			self.settings.save()
-
-			initial_format = self.settings.initial_format
-			final_format = self.settings.final_format
-
-
-		# transliterate to SLP temporarily for further processing
-		self.linear_preprocessing(from_format = initial_format, to_format = 'SLP')
-		self.map_replace(from_format = initial_format, to_format = 'SLP')
-
-# 
-# 		# destroy space information as desired
-# 		if self.settings.should_destroy_spaces: self.destroy_spaces()
-
-		# transliterate to final desired format
-		self.linear_preprocessing(from_format = 'SLP', to_format = final_format)
-		self.map_replace(from_format = 'SLP', to_format = final_format)
+		# then transliterate to final desired format
+		self.linear_preprocessing(from_format = 'SLP', to_format = fin_f)
+		self.map_replace(from_format = 'SLP', to_format = fin_f)
 
 		return self.contents
 
 
+def prompt_for_choice(header, menu_choices):
+	"""
+		For demo use only.
+		Given a introductory header and a list of strings to choose from,
+			presents a numbered list and prompts for user choice.
+		Choice can be either the number in the list or the exact string.
+		Returns chosen string.
+	"""
+
+	print header
+
+	possible_choices = []
+	for n, mc in enumerate(menu_choices):
+		print "%d) %s" % (n+1, mc)
+		possible_choices.append(str(n+1))
+		possible_choices.append(mc)
+
+	valid_final_choice = None
+	while not valid_final_choice:
+
+		curr_choice = raw_input("(Choose by number or exact text) > ")
+
+		for i, possible_choice in enumerate(possible_choices):
+			if curr_choice == possible_choice:
+				valid_final_choice = menu_choices[i // 2] # always returns the string, not the number
+				break
+		else:				
+			print "Not a valid option. Try again."
+			continue
+
+	print valid_final_choice
+	print
+
+	return valid_final_choice
+
+
 if __name__ == '__main__':
 	"""
-		Demonstrate basic use of objects.
+		Demo of basic use of objects.
+		Takes input from file. Command-line flag resets transliteration settings.
+		Outputs to screen and to file.
 	"""
 
-	# just for demo run, grab from file, status update
-	io.clear_screen()
-	contents = io.load()
+	# for demo
+	demo_io.clear_screen()
+	contents = demo_io.load() # see module for filenames
 	print '\n' + "Input: \n%s" % (contents) + '\n'
 
-# 	S = Settings()
+	T = Transliterator()
+	# default settings are loaded from file
 
-	# optional
-	# also accepts decision=False; or can just modify S.should_destroy_spaces directly
-#	S.destroy_spaces()
+	# other constructor options
+# 	T = Transliterator(default_from='IAST', default_to='SLP')
+# 	T = Transliterator('DEV', 'IAST')
+# 	T = Transliterator(default_to='SLP')
+	# these settings are saved
 
-# 	
-# 	# just for demo run, convenient to be able to pass command-line argument
-# 	if len(sys.argv) > 1 and '--reset' in sys.argv:
-# 		S.update()	# also can use to override at any point
-	reset_flag = False
-	if len(sys.argv) > 1 and '--reset' in sys.argv:
-		reset_flag = True
+	# for demo: command-line flag for menu prompt and replacement of settings
+	if len(sys.argv) > 1 and '--prompt' in sys.argv:
+		T.settings.initial_format = prompt_for_choice('Input', tables.available_formats)
+		T.settings.final_format = prompt_for_choice('Output', tables.available_formats)
+		T.settings.save()
 
-	T = Transliterator(reset_flag)
-#	T = Transliterator()	# or just this, if no attention paid to resetting
+	transliterated_contents = T.transliterate(contents)
+	# returned as string
 
+	# other method options
+# 	T.transliterate(content, from_format='DEV', to_format='IAST')
+# 	T.transliterate(content, 'DEV', 'IAST')
+# 	T.transliterate(content, from_format='PROMPT', to_format='SLP')
+# 	T.transliterate(content, to_format='SLP')
+	# similar to above, but these settings are NOT saved
 
-# # 	if S.should_destroy_spaces == True:
-# # 		print "Destroy spaces: %s" % S.should_destroy_spaces
-# # 	print
-
-
- 
- 	transliterated_contents = T.transliterate(contents)
-
-	# just for demo run, status update, save to file
- 	print "Transliterating %s > %s..." % (T.settings.initial_format, T.settings.final_format)
+	# for demo
+ 	print "%s > %s..." % (T.settings.initial_format, T.settings.final_format)
  	print
 	print "Output: \n%s" % (transliterated_contents)
 	print
-	
-
-	io.save(transliterated_contents)
-
-# 	
-# 	# demo second run
-# 	
-# 	new_initial_format = T.settings.initial_format
-# 	new_final_format = 'DEV'
-#  	transliterated_contents = T.transliterate(contents, new_initial_format, new_final_format)
-# 
-# 	# just for demo run, status update, save to file
-#  	print "Transliterating %s > %s..." % (new_initial_format, new_final_format)
-#  	print
-# 	print "Output: \n%s" % (transliterated_contents)
-# 	print
+	demo_io.save(transliterated_contents)
