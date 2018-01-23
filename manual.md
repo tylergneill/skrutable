@@ -8,9 +8,7 @@ These tools are meant to promote both amateur and scholarly exploration of the S
 
 Written in and for use with Python 2.7.
 
-Feedback welcome! And please share and share-alike:
-
-This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](href="https://creativecommons.org/licenses/by-sa/4.0/).
+Feedback welcome! And please share and share-alike: work licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](href="https://creativecommons.org/licenses/by-sa/4.0/).
 
 # Vocabulary:
 
