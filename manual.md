@@ -16,8 +16,8 @@ Currently Python 2.7 only.
 
 1. Clone or download repository.
 2. Create file `input.txt` with some input and place in same directory.
-3. Run `transliteration.py` from the command line and follow directions. The result can be found in `output.txt`.
-4. Then try using the same as a library. For example:
+3. Run `transliteration.py` from the command line and follow the instructions. The result can be found in `output.txt`.
+4. Then try using it as a library. For example:
 ~~~~
 from Skrutable import transliteration as tr
 T = tr.Transliterator()
@@ -25,9 +25,9 @@ text = 'रामः'
 result = T.transliterate(text, from_scheme='DEV', to_scheme='IAST')
 print result
 ~~~~
-5. Settings passed to the `transliterate()` method will not be saved. Experiment with saving them by passing them instead to the `Transliterator()` constructor or by specifying the `--prompt` flag at the command line to enter them manually.
-6. Now try out the scansion. Put some versified material in `input.txt`. Run `scansion.py` from the command line. At the moment, if you want the meter to be identified, then you must make sure that the four pādas (verse quarters) are each on their own separate lines. If you're not sure where the pāda breaks are, use the on-screen feedback to adjust your input until the lines are symmetrical and/or the meter is recognized. Settings are passed in as above.
-7. Now try using the same as a library. For example:
+5. Settings passed to the `transliterate()` method will not be saved. Experiment with saving by passing them instead to the `Transliterator()` constructor, or by specifying the `--prompt` flag at the command line and entering them at run-time.
+6. Now try out the scansion. Put some versified material in `input.txt`. Run `scansion.py` from the command line and follow the instructions as with transliteration. (NB: At the moment, if you want the meter to be identified, then you must make sure that the four pādas, i.e., verse quarters, are each on their own separate lines. If you're not sure where the pāda breaks are, use the on-screen feedback to adjust your input until the lines are symmetrical and/or the meter is recognized.) Settings are passed in as above.
+7. Now try using this one as a library too. For example:
 ~~~~
 from Skrutable import scansion as sc
 S = sc.Scanner()
@@ -36,13 +36,11 @@ ScansionResult = S.scan(text)
 print ScansionResult.summary()
 print ScansionResult.identify()
 ~~~~
-8. Read the code to understand more options (e.g., `destroy_spaces`).
-9. Send feedback!
+8. Read the code to learn about further options (e.g., `destroy_spaces`). Recommended starting places are the `__main__` sections and the class definitions (e.g. `Transliterator`).
 
 # Terminology
 
-By 'transliteration' is meant the movement between one or another character scheme used to represent Sanskrit sounds, such as can also be done by hand with pencil and paper. Included in these tools are one Indian script (Devanagari) and numerous Romanizations:
-
+By 'transliteration' is meant the movement between different character schemes used to represent Sanskrit sounds, such as can also be done by hand with pencil and paper. Included in these tools are one Indian script (Devanagari) and numerous Romanizations:
 * International Alphabet of Sanskrit Transliteration (IAST), paṭhāmaḥ
 * Devanagari Unicode (DEV), पठामः
 * Sanskrit Library Protocol 1 (SLP), paWAmaH
@@ -51,24 +49,21 @@ By 'transliteration' is meant the movement between one or another character sche
 * Scheme used by Oliver Hellwig ("OAST"), pa®åmaµ (incomplete)
 
 Also still in use in the academic community but not yet supported here are:
-
-* Indian languages Transliteration (ITRANS), paThaamaH
+* Indian Languages Transliteration (ITRANS), paThaamaH
 * Scheme used by Ronald E. Emmerick (REE), paèÃma÷
 * Classical Sanskrit eXtended, (CSX), paòâmaþ
 
 Within the code, I speak of all of these as as 'schemes'.
 
-Separate from this is the technical 'encoding' of the text data itself on the computer. Some transliteration schemes, such as Harvard-Kyoto and SLP, by design use only very simple characters falling within the first 127 codepoints (i.e., ASCII characters), namely, the upper- and lowercase Roman letters. Other schemes, however, use other, more complex characters and thus require use of higher Unicode codepoints. For example, IAST uses combining diacritics, whereas a non-Roman script like Devanagari constitutes an entirely new set of characters. In this way, I use the word 'encoding' here exclusively to refer to the specification (in particular, UTF-8) according to which textual data is stored and manipulated by the computer.
+Separate from this is the technical 'encoding' of the text data itself on the computer. To explain: Some transliteration schemes, such as Harvard-Kyoto and SLP, use by design only very simple characters falling within the primordial 127 code-points (i.e., ASCII characters), namely, the upper- and lowercase Roman letters, punctuation, and certain other symbols. Other schemes, however, use other, more complex characters in order to acheive a more elegant appearance and thus require use of higher Unicode code-points. For example, IAST uses combining diacritics, whereas a non-Roman script like Devanagari constitutes an entirely new set of characters. In this way, I use the word 'encoding' here exclusively to refer to the specification (in particular, UTF-8) according to which textual data is stored and processed by the computer, as opposed to the human-reader-oriented 'schemes' discussed above.
 
 Finally, fonts, the most superficial level of text representation at software run-time, are ignored here.
 
-For more information, please refer to "Transliteration of Devanagari" by D. Wujastyk and "Linguistic Issues in Encoding Sanskrit" by P. Scharf.
+For more information, please refer to ["Transliteration of Devanagari" by D. Wujastyk](http://indology.info/email/members/wujastyk/) and ["Linguistic Issues in Encoding Sanskrit" by P. Scharf](sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).
 
-# Further Guidelines
+# Further Tips
 
-The modules are designed primarily for importing as libraries, but they can themselves also be run at the command-line for demonstration purposes. The `__main__` section serves as a readable tutorial.
-
-Mixed-language input is not yet supported, so everything in the input must be Sanskrit. It must also be either in ASCII or UTF-8 encoding. (If input is encoded in any other scheme (e.g., 'mac-roman'), you can make a manual adjustment for this in the file `demo_io.py` with the variable `text_file_encoding`, at least for demonstration purposes, but best is simply to re-save the input file with UTF-8 encoding.)
+Mixed-language input is not yet supported, so everything in the input must be Sanskrit. It must also be either in ASCII or UTF-8 encoding. If input is encoded in any other scheme (e.g., 'mac-roman'), you can make a manual adjustment for this in the file `demo_io.py` with the variable `text_file_encoding`, at least for demonstration purposes, but best is simply to re-save the input file with UTF-8 encoding.
 
 Note also that only basic symbols important for Classical Sanskrit are used. If you need Vedic symbols or something similar, you can add this yourself.
 
