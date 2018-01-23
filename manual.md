@@ -20,7 +20,7 @@ Currently Python 2.7 only.
 from Skrutable import transliteration as tr
 T = tr.Transliterator()
 text = 'रामः'
-result = T.transliterate(text, from\_scheme='DEV', to\_scheme='IAST')
+result = T.transliterate(text, from_scheme='DEV', to_scheme='IAST')
 print result
 ~~~~
 5. Settings passed to the transliterate() method will not be saved. Experiment with saving them by passing them instead to the Transliterator() constructor or by specifying the --prompt flag at the command line to enter them manually.
