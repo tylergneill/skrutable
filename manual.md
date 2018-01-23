@@ -15,8 +15,8 @@ Feedback welcome! And please share and share-alike: licensed under a [Creative C
 Currently Python 2.7 only.
 
 1. Clone or download repository.
-2. Create file 'input.txt' with some input and place in same directory.
-3. Run transliteration.py from the command line and follow directions. Look at output.txt.
+2. Create file `input.txt` with some input and place in same directory.
+3. Run `transliteration.py` from the command line and follow directions. The result can be found in `output.txt`.
 4. Then try using the same as a library. For example:
 ~~~~
 from Skrutable import transliteration as tr
@@ -25,8 +25,8 @@ text = 'रामः'
 result = T.transliterate(text, from_scheme='DEV', to_scheme='IAST')
 print result
 ~~~~
-5. Settings passed to the transliterate() method will not be saved. Experiment with saving them by passing them instead to the Transliterator() constructor or by specifying the `--prompt` flag at the command line to enter them manually.
-6. Now try out the scansion. Put some versified material in 'input.txt'. Run scansion.py from the command line. At the moment, if you want the meter to be identified, then you must make sure that the four pādas (verse quarters) are each on their own separate lines. If you're not sure where the pāda breaks are, use the on-screen feedback to adjust your input until the lines are symmetrical and/or the meter is recognized. Settings are passed in as above.
+5. Settings passed to the `transliterate()` method will not be saved. Experiment with saving them by passing them instead to the `Transliterator()` constructor or by specifying the `--prompt` flag at the command line to enter them manually.
+6. Now try out the scansion. Put some versified material in `input.txt`. Run `scansion.py` from the command line. At the moment, if you want the meter to be identified, then you must make sure that the four pādas (verse quarters) are each on their own separate lines. If you're not sure where the pāda breaks are, use the on-screen feedback to adjust your input until the lines are symmetrical and/or the meter is recognized. Settings are passed in as above.
 7. Now try using the same as a library. For example:
 ~~~~
 from Skrutable import scansion as sc
@@ -36,10 +36,10 @@ ScansionResult = S.scan(text)
 print ScansionResult.summary()
 print ScansionResult.identify()
 ~~~~
-8. Read the code to understand more options (e.g., destroy_spaces).
+8. Read the code to understand more options (e.g., `destroy_spaces`).
 9. Send feedback!
 
-# Vocabulary
+# Terminology
 
 By 'transliteration' is meant the movement between one or another character scheme used to represent Sanskrit sounds, such as can also be done by hand with pencil and paper. Included in these tools are one Indian script (Devanagari) and numerous Romanizations:
 
