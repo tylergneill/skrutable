@@ -1,22 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+	Syllabifies and metrically scans Sanskrit text.
+	Determines moraic quantities of all syllables.
+	Identifies name of meter when known.
+	Accepts text of any shape and size.
+	Uses SLP under-the-hood.
+"""
+
 import sys
 import demo_io
 import re
-import transkrit as tr
+import transliteration as tr
+from transliteration import TransliterationSettings # pickle bug workaround
 import tables
-
-from transkrit import TransliterationSettings
-
-"""
-	SCANSKRIT  (< 'scan Sanskrit')
-
-	Syllabifies and metrically scans Sanskrit text,
-		determining moraic quantities of all syllables
-		in text selection of any shape and size.
-	All internal processing performed via SLP transliteration format.
-"""
 
 syllable_separator = ' ' # | '.'
 light = 'l' # | '̆' | 'ल'
@@ -25,7 +23,7 @@ heavy = 'g' # | '¯' | 'ग'
 
 class ScansionResults(object):
 
-	def __init__(self, Scanner, final_format=None):
+	def __init__(self, Scanner, final_scheme=None):
 	
 		self.original_text = None
 		self.text_in_SLP = None
@@ -33,7 +31,7 @@ class ScansionResults(object):
 		self.syllable_weights = None
 	 	self.morae_per_line = None # list
 		self.Scanner = Scanner # parent
-		self.final_format = fin_f
+		self.final_scheme = fin_f
 
 	def summary(self):
 		"""
@@ -60,7 +58,7 @@ class ScansionResults(object):
 			out_buffer += buffer_line % (line, self.morae_per_line[i])
 		out_buffer += '\n'
 
-		transl_syll_txt = self.Scanner.Transliterator.transliterate(self.syllabified_text, from_format='SLP')
+		transl_syll_txt = self.Scanner.Transliterator.transliterate(self.syllabified_text, from_scheme='SLP')
 
 		line_max = []
 		for syllabified_line in transl_syll_txt.split('\n'):
@@ -276,11 +274,11 @@ class ScansionResults(object):
 
 class Scanner(object):
 
-	def __init__(self, initial_format=None, final_format=None):
+	def __init__(self, initial_scheme=None, final_scheme=None):
 
 		self.contents = None
-		self.Transliterator = tr.Transliterator(default_from=initial_format, default_to=final_format)
-		self.ScansionResults = ScansionResults(self, final_format=final_format)
+		self.Transliterator = tr.Transliterator(default_from=initial_scheme, default_to=final_scheme)
+		self.ScansionResults = ScansionResults(self, final_scheme=final_scheme)
 
 
 	def syllabify_text(self):
@@ -406,7 +404,7 @@ class Scanner(object):
 
 		self.ScansionResults.original_text = cntnts
 
-		self.text_in_SLP = self.Transliterator.transliterate(cntnts, to_format='SLP')
+		self.text_in_SLP = self.Transliterator.transliterate(cntnts, to_scheme='SLP')
 		
 		self.syllabify_text()
 		self.scan_syllables()
@@ -529,7 +527,7 @@ def test_anuzwuB_half_line(odd_pAda_weights, even_pAda_weights):
 
 if __name__ == '__main__':
 	"""
-		Demo of basic use of objects.
+		Demos basic use of objects.
 		Takes input from file. Command-line flag resets transliteration settings.
 		Outputs to screen and to file.
 	"""
@@ -545,21 +543,21 @@ if __name__ == '__main__':
 	init_f = None
 	fin_f = None
 	if len(sys.argv) > 1 and '--prompt' in sys.argv:
-		init_f = tr.prompt_for_choice('Input', tables.available_formats)
-		fin_f = tr.prompt_for_choice('Output', tables.available_formats)
+		init_f = tr.prompt_for_choice('Input', tables.available_schemes)
+		fin_f = tr.prompt_for_choice('Output', tables.available_schemes)
 
 	Sc = Scanner(init_f, fin_f)	# loads previous settings from file
 
 	# other constructor option
 #	Sc = Scanner()
-# 	Sc = Scanner(initial_format='HK')
-# 	Sc = Scanner(initial_format='HK', final_format='IAST')
+# 	Sc = Scanner(initial_scheme='HK')
+# 	Sc = Scanner(initial_scheme='HK', final_scheme='IAST')
 
 	# for demo (other half of command-line flag part above)
 	if init_f != None: Sc.Transliterator.settings.save()
 
 	# for demo
-	print "%s > %s..." % (Sc.Transliterator.settings.initial_format, Sc.Transliterator.settings.final_format)
+	print "%s > %s..." % (Sc.Transliterator.settings.initial_scheme, Sc.Transliterator.settings.final_scheme)
 	print
 
 	ScansionResult = Sc.scan(contents)
