@@ -14,18 +14,18 @@ Feedback welcome! And please share and share-alike: work licensed under a [Creat
 
 By 'transliteration' is meant the movement between one or another character scheme used to represent Sanskrit sounds, such as can also be done by hand with pencil and paper. Included in these tools are one Indian script (Devanagari) and numerous Romanizations:
 
-International Alphabet of Sanskrit Transliteration (IAST), paṭhāmaḥ
-Devanagari Unicode (DEV), पठामः
-Sanskrit Library Protocol 1 (SLP), paWAmaH
-Harvard-Kyoto (HK), paThAmaH
-Velthuis (VH), pa.thaama.h
-Scheme used by Oliver Hellwig ("OAST"), pa®åmaµ (incomplete)
+* International Alphabet of Sanskrit Transliteration (IAST), paṭhāmaḥ
+* Devanagari Unicode (DEV), पठामः
+* Sanskrit Library Protocol 1 (SLP), paWAmaH
+* Harvard-Kyoto (HK), paThAmaH
+* Velthuis (VH), pa.thaama.h
+* Scheme used by Oliver Hellwig ("OAST"), pa®åmaµ (incomplete)
 
 Also still in use in the academic community but not yet supported here are:
 
-Indian languages Transliteration (ITRANS), paThaamaH
-Scheme used by Ronald E. Emmerick (REE), paèÃma÷
-Classical Sanskrit eXtended, (CSX), paòâmaþ
+* Indian languages Transliteration (ITRANS), paThaamaH
+* Scheme used by Ronald E. Emmerick (REE), paèÃma÷
+* Classical Sanskrit eXtended, (CSX), paòâmaþ
 
 Within the code, I speak of all of these as as 'schemes'.
 
