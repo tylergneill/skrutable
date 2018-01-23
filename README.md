@@ -1,4 +1,4 @@
-# SkritHub
+# Skrutable
 
 A small library of practical, integrated tools for working with Sanskrit text.
 
