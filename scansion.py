@@ -542,7 +542,10 @@ if __name__ == '__main__':
 	# for demo: command-line flag for menu prompt and replacement of settings
 	init_f = None
 	fin_f = None
-	if len(sys.argv) > 1 and '--prompt' in sys.argv:
+	if 	(
+		len(sys.argv) > 1 and '--prompt' in sys.argv or
+		T.settings.initial_scheme == None
+		):
 		init_f = tr.prompt_for_choice('Input', tables.available_schemes)
 		fin_f = tr.prompt_for_choice('Output', tables.available_schemes)
 
