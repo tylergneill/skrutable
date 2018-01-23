@@ -1,8 +1,8 @@
-# Skrutable:
+# Skrutable
 
 A small library of practical, integrated tools for working with Sanskrit text.
 
-# About:
+# About
 
 These tools are meant to promote both amateur and scholarly exploration of the Sanskrit language through easier processing of machine-readable text. They are designed to be easy both to use and understand. Hopefully a substantively new contribution is the transparent presentation of how mechanical scansion is, in order to enable students to also do it by hand.
 
@@ -10,7 +10,7 @@ Written in and for use with Python 2.7.
 
 Feedback welcome! And please share and share-alike: work licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](href="https://creativecommons.org/licenses/by-sa/4.0/).
 
-# Vocabulary:
+# Vocabulary
 
 By 'transliteration' is meant the movement between one or another character scheme used to represent Sanskrit sounds, such as can also be done by hand with pencil and paper. Included in these tools are one Indian script (Devanagari) and numerous Romanizations:
 
@@ -35,7 +35,7 @@ Finally, fonts, the most superficial level of text representation at software ru
 
 For more information, please refer to "Transliteration of Devanagari" by D. Wujastyk and "Linguistic Issues in Encoding Sanskrit" by P. Scharf.
 
-# Guidelines:
+# Guidelines
 
 The modules are designed primarily for importing as libraries, but they can themselves also be run at the command-line for demonstration purposes. The "\_\_main\_\_" section serves as a readable tutorial.
 
