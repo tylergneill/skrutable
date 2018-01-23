@@ -58,7 +58,7 @@ Also still in use in the academic community but not yet supported here are:
 
 Within the code, I speak of all of these as as 'schemes'.
 
-Separate from this is the technical 'encoding' of the text data itself on the computer. Some transliteration schemes, such as Harvard-Kyoto and SLP, by design use only very simple characters falling within the first 127 codepoints (i.e., ASCII characters), namely, the upper- and lowercase Roman letters. Other schemes, however, use other, more complex characters and thus require use of higher Unicode codepoints. For example, IAST uses combining diacritics, whereas a non-Roman script like Devanagari constitutes an entirely new set of characters. In this way, Iused the word 'encoding' here exclusively to refer to the specification (in particular, UTF-8) according to which textual data is stored and manipulated by the computer.
+Separate from this is the technical 'encoding' of the text data itself on the computer. Some transliteration schemes, such as Harvard-Kyoto and SLP, by design use only very simple characters falling within the first 127 codepoints (i.e., ASCII characters), namely, the upper- and lowercase Roman letters. Other schemes, however, use other, more complex characters and thus require use of higher Unicode codepoints. For example, IAST uses combining diacritics, whereas a non-Roman script like Devanagari constitutes an entirely new set of characters. In this way, I use the word 'encoding' here exclusively to refer to the specification (in particular, UTF-8) according to which textual data is stored and manipulated by the computer.
 
 Finally, fonts, the most superficial level of text representation at software run-time, are ignored here.
 
@@ -66,9 +66,9 @@ For more information, please refer to "Transliteration of Devanagari" by D. Wuja
 
 # Guidelines
 
-The modules are designed primarily for importing as libraries, but they can themselves also be run at the command-line for demonstration purposes. The "\_\_main\_\_" section serves as a readable tutorial.
+The modules are designed primarily for importing as libraries, but they can themselves also be run at the command-line for demonstration purposes. The `__main__` section serves as a readable tutorial.
 
-Mixed-language input is not yet supported, so everything in the input must be Sanskrit. It must also be either in ASCII or UTF-8 encoding. (If input is encoded in any other scheme (e.g., 'mac-roman'), you can make a manual adjustment for this in the file "demo\_io.py" with the variable "text\_file\_encoding", at least for demonstration purposes, but best is simply to re-save the input file with UTF-8 encoding.)
+Mixed-language input is not yet supported, so everything in the input must be Sanskrit. It must also be either in ASCII or UTF-8 encoding. (If input is encoded in any other scheme (e.g., 'mac-roman'), you can make a manual adjustment for this in the file `demo_io.py` with the variable `text_file_encoding`, at least for demonstration purposes, but best is simply to re-save the input file with UTF-8 encoding.)
 
 Note also that only basic symbols important for Classical Sanskrit are used. If you need Vedic symbols or something similar, you can add this yourself.
 
