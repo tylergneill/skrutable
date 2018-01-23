@@ -7,8 +7,8 @@
 """
 
 
-# summary of available transliteration formats as presented to user
-available_formats = ['IAST', 'SLP', 'HK', 'VH', 'DEV', 'ITRANS', 'OAST']
+# summary of available transliteration schemes as presented to user
+available_schemes = ['IAST', 'SLP', 'HK', 'VH', 'DEV', 'ITRANS', 'OAST']
 
 """
 	Character mappings, as ordered lists of tuples, for use with string.replace().
@@ -95,7 +95,7 @@ HK_SLP = [
 ('J','Y'),
 ('jh','J'),
 # Group 2: "Duke of York gambit" to avoid feeding in direct swap
-('z','Z'), # Z not used in either format
+('z','Z'), # Z not used in either scheme
 ('S','z'), 
 ('Z','S'),
 # Group 3: simpler remaining mappings
@@ -340,7 +340,7 @@ SLP_HK = [
 ('J','jh'),
 ('Y','J'),
 # Group 2: "Duke of York gambit" to avoid feeding in direct swap
-('S','Z'), # Z not used in either format
+('S','Z'), # Z not used in either scheme
 ('z','S'),
 ('Z','z'),
 # Group 3: simpler remaining mappings
@@ -557,7 +557,7 @@ which_spaces_destroyed = [
 	SCANSION
 """
 
-# traditional trisyllable abbreviation format
+# traditional trisyllable abbreviation scheme
 gaRas_by_weights = {
 'lgg' : 'y', # bacchius
 'ggg' : 'm', # molossus
