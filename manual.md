@@ -45,4 +45,6 @@ Note also that only basic symbols important for Classical Sanskrit are used. If 
 
 The last used scheme settings are remembered and loaded on subsequent runs. To override this from the command line, use the --prompt flag to get a user-friend menu. Otherwise, simply pass the proper parameters to the given constructor or method.
 
+A handy bonus feature in transliteration.py is "destroy spaces", but it can only be activated by changing the source code. Set this to True to destroy spaces added in Romanization, i.e., those typically omitted in Devanagari in favor of ligatures. Details can be controlled in tables.py.
+
 For more detailed info on how all the parts work, see the extensive internal documentation.
