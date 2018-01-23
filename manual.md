@@ -6,10 +6,32 @@ A small library of practical, integrated tools for working with Sanskrit text.
 
 These tools are meant to promote both amateur and scholarly exploration of the Sanskrit language through easier processing of machine-readable text. They are designed to be easy both to use and understand. Hopefully a substantively new contribution is the transparent presentation of how mechanical scansion is, in order to enable students to also do it by hand.
 
-Written in and for use with Python 2.7.
-
 Feedback welcome! And please share and share-alike: work licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/).
 
+# Getting Started
+
+Currently Python 2.7 only.
+
+1. Clone or download repository.
+2. Create file 'input.txt' with some input and place in same directory.
+3. Run transliteration.py from the command line and follow directions. Look at output.txt.
+4. Then try using the same as a library. For example:
+	from Skrutable import transliteration as tr
+	T = tr.Transliterator()
+	text = 'रामः'
+	result = T.transliterate(text, from\_scheme='DEV', to\_scheme='IAST')
+	print result
+5. Settings passed to the transliterate() method will not be saved. Experiment with saving them by passing them instead to the Transliterator() constructor or by specifying the --prompt flag at the command line to enter them manually.
+6. Now give some versified material as input and run scansion.py from the command line. For now, you must make sure that 4 pādas are on 4 separate lines. If you're not sure where the pāda breaks are, use the on-screen feedback to adjust your input until the lines are symmetrical and/or the meter is recognized. Settings are passed in as above.
+7. Try using the same as a library. For example:
+	from Skrutable import scansion as sc
+	S = sc.Scanner()
+	text = 'sampūrṇakumbho na karoti śabdam\nardho ghaṭo ghoṣam upaiti nūnam\nvidvān kulīno na karoti garvaṃ\njalpanti mūḍhās tu guṇair vihīnāḥ'
+	ScansionResult = S.scan(text)
+	print ScansionResult.summary()
+	print ScansionResult.identify()
+8. Read the code to understand more options (e.g., destroy_spaces).
+	
 # Vocabulary
 
 By 'transliteration' is meant the movement between one or another character scheme used to represent Sanskrit sounds, such as can also be done by hand with pencil and paper. Included in these tools are one Indian script (Devanagari) and numerous Romanizations:
