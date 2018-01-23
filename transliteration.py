@@ -20,7 +20,7 @@ settings_filename = 'last_used.p'
 abs_dir = os.path.split(os.path.abspath(__file__))[0] # absolute dir of transliteration.py
 settings_file_path = os.path.join(abs_dir, settings_filename) # same absolute dir
 
-should_destroy_spaces = True
+destroy_spaces = False
 
 class TransliterationSettings(object):
 
@@ -34,11 +34,6 @@ class TransliterationSettings(object):
 			os.path.isfile(settings_file_path)
 			):
 			self.load()
-
-		print "HERE"
-		print 'self.initial_scheme', self.initial_scheme
-		print 'self.final_scheme', self.final_scheme
-		raw_input()
 
 		# but then also override with any newly specified choices
 		if default_initial != None: self.initial_scheme = default_initial
@@ -188,7 +183,7 @@ class Transliterator():
 		self.map_replace(from_scheme = init_f, to_scheme = 'SLP')
 
 		# destroy spaces here
-		if should_destroy_spaces:
+		if destroy_spaces:
 			self.destroy_spaces()
 
 		# then transliterate to final desired scheme
