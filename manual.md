@@ -4,7 +4,9 @@ A small library of practical, integrated tools for working with Sanskrit text.
 
 # About
 
-These tools are meant to promote both amateur and scholarly exploration of the Sanskrit language through easier processing of machine-readable text. They are designed to be easy both to use and understand. Hopefully a substantively new contribution is the transparent presentation of how mechanical scansion is, in order to enable students to also do it by hand.
+These tools are meant to promote both amateur and scholarly exploration of the Sanskrit language through easier processing of machine-readable text. In particular, I hope that the scansion tool will be both of practical use to working scholars and of pedagogical use to students.
+
+'Skrutable', both so as to make these processes less inscrutable, and as a nod to Maharashtrian pronunciation.
 
 Feedback welcome! And please share and share-alike: work licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/).
 
