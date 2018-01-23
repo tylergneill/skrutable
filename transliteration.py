@@ -16,6 +16,10 @@ import tables
 import demo_io
 
 settings_filename = 'last_used.p'
+# make sure settings file will be co-located with modules
+abs_dir = os.path.split(os.path.abspath(__file__))[0] # absolute dir of transliteration.py
+settings_file_path = os.path.join(abs_dir, settings_filename) # same absolute dir
+
 should_destroy_spaces = True
 
 class TransliterationSettings(object):
@@ -27,9 +31,14 @@ class TransliterationSettings(object):
 		# load whatever previous settings available from file
 		if	(
 			(default_initial == None or default_final == None) and
-			os.path.isfile(settings_filename)
+			os.path.isfile(settings_file_path)
 			):
 			self.load()
+
+		print "HERE"
+		print 'self.initial_scheme', self.initial_scheme
+		print 'self.final_scheme', self.final_scheme
+		raw_input()
 
 		# but then also override with any newly specified choices
 		if default_initial != None: self.initial_scheme = default_initial
@@ -40,7 +49,7 @@ class TransliterationSettings(object):
 
 	def load(self):
 
-		settings_file = open(settings_filename, 'r')
+		settings_file = open(settings_file_path, 'r')
 		temp_S = pickle.load(settings_file) # TransliterationSettings() object
 
 		self.initial_scheme = temp_S.initial_scheme
@@ -51,7 +60,7 @@ class TransliterationSettings(object):
 
 	def save(self):
 
-		settings_file = open(settings_filename, 'w')
+		settings_file = open(settings_file_path, 'w')
 		P = pickle.Pickler(settings_file)
 		P.dump(self)
 		settings_file.close()

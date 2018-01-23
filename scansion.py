@@ -23,15 +23,15 @@ heavy = 'g' # | '¯' | 'ग'
 
 class ScansionResults(object):
 
-	def __init__(self, Scanner, final_scheme=None):
+	def __init__(self, Transliterator, final_scheme=None):
 	
 		self.original_text = None
 		self.text_in_SLP = None
 		self.syllabified_text = None
 		self.syllable_weights = None
 	 	self.morae_per_line = None # list
-		self.Scanner = Scanner # parent
-		self.final_scheme = fin_f
+		self.Transliterator = Transliterator # parent
+		self.final_scheme = final_scheme
 
 	def summary(self):
 		"""
@@ -58,7 +58,7 @@ class ScansionResults(object):
 			out_buffer += buffer_line % (line, self.morae_per_line[i])
 		out_buffer += '\n'
 
-		transl_syll_txt = self.Scanner.Transliterator.transliterate(self.syllabified_text, from_scheme='SLP')
+		transl_syll_txt = self.Transliterator.transliterate(self.syllabified_text, from_scheme='SLP')
 
 		line_max = []
 		for syllabified_line in transl_syll_txt.split('\n'):
@@ -278,7 +278,7 @@ class Scanner(object):
 
 		self.contents = None
 		self.Transliterator = tr.Transliterator(default_from=initial_scheme, default_to=final_scheme)
-		self.ScansionResults = ScansionResults(self, final_scheme=final_scheme)
+		self.ScansionResults = ScansionResults(self.Transliterator, final_scheme=final_scheme)
 
 
 	def syllabify_text(self):
