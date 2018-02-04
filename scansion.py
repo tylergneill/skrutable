@@ -127,7 +127,7 @@ class ScansionResults(object):
 	def test_as_anuzwuB(self):
 		"""
 			Accepts as arugment a list of strings detailing light/heavy (l/g) patterns.
-			Determines whether verse (first four lines) is of 'anuzwuB' type.
+			Determines whether verse (first four lines) is of 'anuṣṭubh' type.
 			Returns string detailing results if identified as such, or None if not.
 			Tests halves ab and cd independently, reports if either half found to be valid.
 		"""
@@ -135,7 +135,7 @@ class ScansionResults(object):
 		weights_by_pAda = self.syllable_weights.split('\n')
 
 
-		print "Testing halves ab and cd independently as anuzwuB... " + '\n'
+		print "Testing halves ab and cd independently as anuṣṭubh... " + '\n'
 
 		# test
 		pAdas_ab = test_anuzwuB_half_line(weights_by_pAda[0], weights_by_pAda[1])
@@ -143,11 +143,11 @@ class ScansionResults(object):
 
 		# report results
 		if pAdas_ab != None and pAdas_cd != None:
-			return "anuzwuB (ab: " + pAdas_ab + ", cd: " + pAdas_cd + ")"
+			return "anuṣṭubh (ab: " + pAdas_ab + ", cd: " + pAdas_cd + ")"
 		elif pAdas_ab == None and pAdas_cd != None:
-			return "anuzwuB (ab: invalid, cd: " + pAdas_cd + ")"
+			return "anuṣṭubh (ab: invalid, cd: " + pAdas_cd + ")"
 		elif pAdas_ab != None and pAdas_cd == None:
-			return "anuzwuB (ab: " + pAdas_ab + ", cd: invalid)"
+			return "anuṣṭubh (ab: " + pAdas_ab + ", cd: invalid)"
 		else:
 			return None
 
@@ -155,7 +155,7 @@ class ScansionResults(object):
 	def test_as_samavftta(self):
 		"""
 			Accepts as arugment a list of strings detailing light/heavy (l/g) patterns.
-			Determines whether verse (first four lines) is of 'samavftta' type.
+			Determines whether verse (first four lines) is of 'samavṛtta' type.
 			Returns string detailing results if identified as such, or None if not.
 			Tolerates one incorrect quarter out of four, notes when applicable.
 		"""
@@ -163,7 +163,7 @@ class ScansionResults(object):
 		weights_by_pAda = self.syllable_weights.split('\n')
 
 
-		print "Testing entire stanza as samavftta... " + '\n'
+		print "Testing entire stanza as samavṛtta... " + '\n'
 		samatva_results = self.test_pAdasamatva()
 
 		if samatva_results in ['4/4', '3/4', '2/4']:
@@ -192,7 +192,7 @@ class ScansionResults(object):
 					return tables.samavfttas_by_gaRas[gaRa_pattern] + gaRa_note
 
 			else: # if all patterns tested and no match found and returned
-				return "(unclassified samavftta)"
+				return "(unclassified samavṛtta)"
 	#
 	# 	# eventually: also test as ardhasamavftta
 	# 	elif stanza_weights[0] == stanza_weights[2]
@@ -206,7 +206,7 @@ class ScansionResults(object):
 		"""
 			Accepts as arguments two lists, one of strings, the other of numbers.
 			First argument details light/heavy (l/g) patterns, second reports total morae.
-			Determines whether verse (first four lines) is of 'jAti' type.
+			Determines whether verse (first four lines) is of 'jāti' type.
 			Returns string detailing results if identified as such, or None if not.
 		"""
 
@@ -218,12 +218,12 @@ class ScansionResults(object):
 		# here manipulate as such but also as a single string
 		morae_by_pAda_string = str(morae_by_pAda)
 
-		print "Testing entire stanza as jAti..." + '\n'
+		print "Testing entire stanza as jāti..." + '\n'
 		print "Morae: %s" % morae_by_pAda_string + '\n'
 
 		"""
 			Test whether morae match patterns, with allowance on last syllable:
-				final light syllable of a jAti quarter CAN be counted as heavy,
+				final light syllable of a jāti quarter CAN be counted as heavy,
 				but ONLY if absolutely necessary
 				and NOT otherwise.
 		"""
@@ -248,7 +248,7 @@ class ScansionResults(object):
 						break
 
 				else: # if all four pAdas proven valid, i.e., if no breaks
-					return jAti_name + " (jAti)"
+					return jAti_name + " (jāti)"
 
 		else: # if all patterns tested and nothing returned
 			return None
@@ -442,7 +442,7 @@ def test_anuzwuB_half_line(odd_pAda_weights, even_pAda_weights):
 		Accepts as arguments two strings detailing light/heavy (l/g) patterns.
 		Determines whether a single half-line,
 			which is comprised of one odd and one even quarter ('pAda'),
-			is of 'anuzwuB' type.
+			is of 'anuṣṭubh' type.
 		Returns string detailing results if identified as such, or None if not.
 	"""
 
@@ -497,7 +497,7 @@ def test_anuzwuB_half_line(odd_pAda_weights, even_pAda_weights):
 		Accepts as arguments two strings detailing light/heavy (l/g) patterns.
 		Determines whether a single half-line,
 			which is comprised of one odd and one even quarter ('pAda'),
-			is of 'anuzwuB' type.
+			is of 'anuṣṭubh' type.
 		Returns string detailing results if identified as such, or None if not.
 	"""
 
@@ -542,10 +542,7 @@ if __name__ == '__main__':
 	# for demo: command-line flag for menu prompt and replacement of settings
 	init_f = None
 	fin_f = None
-	if 	(
-		len(sys.argv) > 1 and '--prompt' in sys.argv or
-		T.settings.initial_scheme == None
-		):
+	if 	len(sys.argv) > 1 and '--prompt' in sys.argv:
 		init_f = tr.prompt_for_choice('Input', tables.available_schemes)
 		fin_f = tr.prompt_for_choice('Output', tables.available_schemes)
 
