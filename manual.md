@@ -1,6 +1,6 @@
 # Skrutable
 
-A small library of practical, integrated tools for working with Sanskrit text.
+A small library of practical tools for Sanskrit text processing in Python, including modules for transliteration and scansion.
 
 # About
 
