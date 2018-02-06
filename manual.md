@@ -27,15 +27,7 @@ print result
 ~~~~
 5. Settings passed to the `transliterate()` method will not be saved. Experiment with saving by passing them instead to the `Transliterator()` constructor, or by specifying the `--prompt` flag at the command line and entering them at run-time.
 6. Now try out the scansion. Put some versified material in `input.txt`. Run `scansion.py` from the command line and follow the instructions as with transliteration. (NB: At the moment, if you want the meter to be identified, then you must make sure that the four pādas, i.e., verse quarters, are each on their own separate lines. If you're not sure where the pāda breaks are, use the on-screen feedback to adjust your input until the lines are symmetrical and/or the meter is recognized.) Settings are passed in as above.
-7. Now try using this one as a library too. For example:
-~~~~
-from Skrutable import scansion as sc
-S = sc.Scanner()
-text = 'sampūrṇakumbho na karoti śabdam\nardho ghaṭo ghoṣam upaiti nūnam\nvidvān kulīno na karoti garvaṃ\njalpanti mūḍhās tu guṇair vihīnāḥ'
-ScansionResult = S.scan(text)
-print ScansionResult.summary()
-print ScansionResult.identify()
-~~~~
+
 Example #1:
 ~~~~
 Input: 
@@ -92,55 +84,37 @@ Morae: [12, 18, 12, 15]
 
 āryā (=gāhā) (jāti)
 ~~~~
-Example #2:
+7. Now try using this one as a library too. For example:
 ~~~~
-Input: 
-sampUrNakumbho na karoti zabdam
-ardho ghaTo ghoSamupaiti nUnam |
-vidvAnkulIno na karoti garvaM
-jalpanti mUDhAstu guNairvihInAH ||
-
-Input
-1) IAST
-2) SLP
-3) HK
-4) VH
-5) DEV
-6) ITRANS
-(Choose by number or exact text) > 3
-HK
-
-Output
-1) IAST
-2) SLP
-3) HK
-4) VH
-5) DEV
-6) ITRANS
-(Choose by number or exact text) > 5
-DEV
-
-HK > DEV...
-
-gglggllglgg   [18]
-gglggllglgg   [18]
-gglggllglgg   [18]
-gglggllglgg   [18]
-
-      स   म्पू    र्ण     कु   म्भो      न      क     रो     ति      श  ब्दम्       
-      g      g      l      g      g      l      l      g      l      g      g
-      अ   र्धो      घ     टो     घो      ष     मु     पै     ति     नू    नम्       
-      g      g      l      g      g      l      l      g      l      g      g
-     वि   द्वा   न्कु     ली     नो      न      क     रो     ति      ग   र्वं       
-      g      g      l      g      g      l      l      g      l      g      g
-      ज    ल्प   न्ति     मू     ढा   स्तु     गु     णै   र्वि     ही    नाः       
-      g      g      l      g      g      l      l      g      l      g      g
-
-Testing halves ab and cd independently as anuṣṭubh... 
-
-Testing entire stanza as samavṛtta... 
-
-indravajrā (ttjgg)
+from Skrutable import scansion as sc
+S = sc.Scanner()
+input = 'sampūrṇakumbho na karoti śabdam\nardho ghaṭo ghoṣam upaiti nūnam\nvidvān kulīno na karoti garvaṃ\njalpanti mūḍhās tu guṇair vihīnāḥ'
+print input
+# sampUrNakumbho na karoti zabdam
+# ardho ghaTo ghoSamupaiti nUnam |
+# vidvAnkulIno na karoti garvaM
+# jalpanti mUDhAstu guNairvihInAH ||
+ScansionResult = S.scan(input, from_scheme='HK', to_scheme='DEV')
+print ScansionResult.summary()
+# gglggllglgg   [18]
+# gglggllglgg   [18]
+# gglggllglgg   [18]
+# gglggllglgg   [18]
+# 
+#       स   म्पू    र्ण     कु   म्भो      न      क     रो     ति      श  ब्दम्       
+#       g      g      l      g      g      l      l      g      l      g      g
+#       अ   र्धो      घ     टो     घो      ष     मु     पै     ति     नू    नम्       
+#       g      g      l      g      g      l      l      g      l      g      g
+#      वि   द्वा   न्कु     ली     नो      न      क     रो     ति      ग   र्वं       
+#       g      g      l      g      g      l      l      g      l      g      g
+#       ज    ल्प   न्ति     मू     ढा   स्तु     गु     णै   र्वि     ही    नाः       
+#       g      g      l      g      g      l      l      g      l      g      g
+print ScansionResult.identify()
+# Testing halves ab and cd independently as anuṣṭubh... 
+# 
+# Testing entire stanza as samavṛtta... 
+# 
+# indravajrā (ttjgg)
 ~~~~
 8. Read the code to learn about further options (e.g., `destroy_spaces`). Recommended starting places are the `__main__` sections and the class definitions (e.g. `Transliterator`).
 
