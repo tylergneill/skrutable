@@ -89,13 +89,14 @@ Morae: [12, 18, 12, 15]
 7. Now try using this one as a library too. For example:
 ~~~~
 import scansion as sc
-S = sc.Scanner(initial_scheme='HK',final_scheme='DEV')
+S = sc.Scanner(initial_scheme='HK',final_scheme='IAST')
 text = "sampUrNakumbho na karoti zabdam\nardho ghaTo ghoSamupaiti nUnam |\nvidvAnkulIno na karoti garvaM\njalpanti mUDhAstu guNairvihInAH ||"
 print text
 # sampUrNakumbho na karoti zabdam
 # ardho ghaTo ghoSamupaiti nUnam |
 # vidvAnkulIno na karoti garvaM
 # jalpanti mUDhAstu guNairvihInAH ||
+
 result = S.scan(text)
 print result.summary()
 # gglggllglgg   [18]
@@ -103,14 +104,15 @@ print result.summary()
 # gglggllglgg   [18]
 # gglggllglgg   [18]
 # 
-#       स   म्पू    र्ण     कु   म्भो      न      क     रो     ति      श  ब्दम्       
-#       g      g      l      g      g      l      l      g      l      g      g
-#       अ   र्धो      घ     टो     घो      ष     मु     पै     ति     नू    नम्       
-#       g      g      l      g      g      l      l      g      l      g      g
-#      वि   द्वा   न्कु     ली     नो      न      क     रो     ति      ग   र्वं       
-#       g      g      l      g      g      l      l      g      l      g      g
-#       ज    ल्प   न्ति     मू     ढा   स्तु     गु     णै   र्वि     ही    नाः       
-#       g      g      l      g      g      l      l      g      l      g      g
+#   sa   mpū   rṇa    ku  mbho    na    ka    ro    ti    śa  bdam      
+#    g     g     l     g     g     l     l     g     l     g     g
+#    a  rdho   gha    ṭo   gho    ṣa    mu   pai    ti    nū   nam      
+#    g     g     l     g     g     l     l     g     l     g     g
+#   vi   dvā   nku    lī    no    na    ka    ro    ti    ga  rvaṃ      
+#    g     g     l     g     g     l     l     g     l     g     g
+#   ja   lpa   nti    mū   ḍhā   stu    gu   ṇai   rvi    hī   nāḥ      
+#    g     g     l     g     g     l     l     g     l     g     g
+
 print result.identify()
 # Testing halves ab and cd independently as anuṣṭubh... 
 # 
