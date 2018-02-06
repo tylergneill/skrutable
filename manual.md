@@ -28,8 +28,10 @@ print result
 5. Settings passed to the `transliterate()` method will not be saved. Experiment with saving by passing them instead to the `Transliterator()` constructor, or by specifying the `--prompt` flag at the command line and entering them at run-time.
 6. Now try out the scansion. Put some versified material in `input.txt`. Run `scansion.py` from the command line and follow the instructions as with transliteration. (NB: At the moment, if you want the meter to be identified, then you must make sure that the four pādas, i.e., verse quarters, are each on their own separate lines. If you're not sure where the pāda breaks are, use the on-screen feedback to adjust your input until the lines are symmetrical and/or the meter is recognized.) Settings are passed in as above.
 
-Example #1:
+Example:
 ~~~~
+>>> python scansion.py --prompt
+
 Input: 
 सत्यात्मनि परसंज्ञा
 स्वपरविभागात् परिग्रहद्वेषौ
@@ -86,16 +88,16 @@ Morae: [12, 18, 12, 15]
 ~~~~
 7. Now try using this one as a library too. For example:
 ~~~~
-from Skrutable import scansion as sc
-S = sc.Scanner()
-input = 'sampūrṇakumbho na karoti śabdam\nardho ghaṭo ghoṣam upaiti nūnam\nvidvān kulīno na karoti garvaṃ\njalpanti mūḍhās tu guṇair vihīnāḥ'
-print input
+import scansion as sc
+S = sc.Scanner(initial_scheme='HK',final_scheme='DEV')
+text = "sampUrNakumbho na karoti zabdam\nardho ghaTo ghoSamupaiti nUnam |\nvidvAnkulIno na karoti garvaM\njalpanti mUDhAstu guNairvihInAH ||"
+print text
 # sampUrNakumbho na karoti zabdam
 # ardho ghaTo ghoSamupaiti nUnam |
 # vidvAnkulIno na karoti garvaM
 # jalpanti mUDhAstu guNairvihInAH ||
-ScansionResult = S.scan(input, from_scheme='HK', to_scheme='DEV')
-print ScansionResult.summary()
+result = S.scan(text)
+print result.summary()
 # gglggllglgg   [18]
 # gglggllglgg   [18]
 # gglggllglgg   [18]
@@ -109,7 +111,7 @@ print ScansionResult.summary()
 #       g      g      l      g      g      l      l      g      l      g      g
 #       ज    ल्प   न्ति     मू     ढा   स्तु     गु     णै   र्वि     ही    नाः       
 #       g      g      l      g      g      l      l      g      l      g      g
-print ScansionResult.identify()
+print result.identify()
 # Testing halves ab and cd independently as anuṣṭubh... 
 # 
 # Testing entire stanza as samavṛtta... 
