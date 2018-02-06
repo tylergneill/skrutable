@@ -143,7 +143,7 @@ Separate from this is the technical 'encoding' of the text data itself on the co
 
 Finally, fonts, the most superficial level of text representation at software run-time, are ignored here.
 
-For more information, please refer to ["Transliteration of Devanagari" by D. Wujastyk](http://indology.info/email/members/wujastyk/) and ["Linguistic Issues in Encoding Sanskrit" by P. Scharf](sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).
+For more information, please refer to ["Transliteration of Devanagari" by D. Wujastyk](http://indology.info/email/members/wujastyk/) and ["Linguistic Issues in Encoding Sanskrit" by P. Scharf](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).
 
 # Further Tips
 
