@@ -39,12 +39,34 @@ print ScansionResult.identify()
 Example:
 ~~~~
 Input: 
-satyātmani parasaṃjñā
-svaparavibhāgāt parigrahadveṣau
-anayoḥ sampratibaddhāḥ
-sarve doṣāḥ prajāyante
+सत्यात्मनि परसंज्ञा
+स्वपरविभागात् परिग्रहद्वेषौ
+अनयोः सम्प्रतिबद्धाः
+सर्वे दोषाः प्रजायन्ते
 
-IAST > IAST...
+Input
+1) IAST
+2) SLP
+3) HK
+4) VH
+5) DEV
+6) ITRANS
+7) OAST
+(Choose by number or exact text) > 5
+DEV
+
+Output
+1) IAST
+2) SLP
+3) HK
+4) VH
+5) DEV
+6) ITRANS
+7) OAST
+(Choose by number or exact text) > 1
+IAST
+
+DEV > IAST...
 
     ggllllgg   [12]
 llllgglglggg   [18]
