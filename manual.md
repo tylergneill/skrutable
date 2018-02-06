@@ -36,7 +36,7 @@ ScansionResult = S.scan(text)
 print ScansionResult.summary()
 print ScansionResult.identify()
 ~~~~
-Example:
+Example #1:
 ~~~~
 Input: 
 सत्यात्मनि परसंज्ञा
@@ -92,7 +92,56 @@ Morae: [12, 18, 12, 15]
 
 āryā (=gāhā) (jāti)
 ~~~~
+Example #2:
+~~~~
+Input: 
+sampUrNakumbho na karoti zabdam
+ardho ghaTo ghoSamupaiti nUnam |
+vidvAnkulIno na karoti garvaM
+jalpanti mUDhAstu guNairvihInAH ||
 
+Input
+1) IAST
+2) SLP
+3) HK
+4) VH
+5) DEV
+6) ITRANS
+(Choose by number or exact text) > 3
+HK
+
+Output
+1) IAST
+2) SLP
+3) HK
+4) VH
+5) DEV
+6) ITRANS
+(Choose by number or exact text) > 5
+DEV
+
+HK > DEV...
+
+gglggllglgg   [18]
+gglggllglgg   [18]
+gglggllglgg   [18]
+gglggllglgg   [18]
+
+      स   म्पू    र्ण     कु   म्भो      न      क     रो     ति      श  ब्दम्       
+      g      g      l      g      g      l      l      g      l      g      g
+      अ   र्धो      घ     टो     घो      ष     मु     पै     ति     नू    नम्       
+      g      g      l      g      g      l      l      g      l      g      g
+     वि   द्वा   न्कु     ली     नो      न      क     रो     ति      ग   र्वं       
+      g      g      l      g      g      l      l      g      l      g      g
+      ज    ल्प   न्ति     मू     ढा   स्तु     गु     णै   र्वि     ही    नाः       
+      g      g      l      g      g      l      l      g      l      g      g
+
+Testing halves ab and cd independently as anuṣṭubh... 
+
+Testing entire stanza as samavṛtta... 
+
+indravajrā (ttjgg)
+~~~~
 8. Read the code to learn about further options (e.g., `destroy_spaces`). Recommended starting places are the `__main__` sections and the class definitions (e.g. `Transliterator`).
 
 # Terminology
