@@ -8,7 +8,8 @@
 
 
 # summary of available transliteration schemes as presented to user
-available_schemes = ['IAST', 'SLP', 'HK', 'VH', 'DEV', 'ITRANS', 'OAST']
+available_schemes = ['IAST', 'SLP', 'HK', 'VH', 'DEV', 'ITRANS']
+# held out: 'OAST'
 
 """
 	Character mappings, as ordered lists of tuples, for use with string.replace().
