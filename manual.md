@@ -36,6 +36,41 @@ ScansionResult = S.scan(text)
 print ScansionResult.summary()
 print ScansionResult.identify()
 ~~~~
+Example:
+~~~~
+Input: 
+satyātmani parasaṃjñā
+svaparavibhāgāt parigrahadveṣau
+anayoḥ sampratibaddhāḥ
+sarve doṣāḥ prajāyante
+
+IAST > IAST...
+
+    ggllllgg   [12]
+llllgglglggg   [18]
+    llggllgg   [12]
+    gggglggg   [15]
+
+     sa    tyā    tma     ni     pa     ra     sa   ṃjñā       
+      g      g      l      l      l      l      g      g
+    sva     pa     ra     vi    bhā     gā    tpa     ri    gra     ha    dve    ṣau       
+      l      l      l      l      g      g      l      g      l      g      g      g
+      a     na     yo    ḥsa   mpra     ti     ba  ddhāḥ       
+      l      l      g      g      l      l      g      g
+     sa    rve     do     ṣā   ḥpra     jā     ya    nte       
+      g      g      g      g      l      g      g      g
+
+Testing halves ab and cd independently as anuṣṭubh... 
+
+Testing entire stanza as samavṛtta... 
+
+Testing entire stanza as jāti...
+
+Morae: [12, 18, 12, 15]
+
+āryā (=gāhā) (jāti)
+~~~~
+
 8. Read the code to learn about further options (e.g., `destroy_spaces`). Recommended starting places are the `__main__` sections and the class definitions (e.g. `Transliterator`).
 
 # Terminology
