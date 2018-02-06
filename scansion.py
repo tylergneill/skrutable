@@ -292,14 +292,14 @@ class Scanner(object):
 
 		# eliminate irrelevant horizontal white space, punctuation, and numbers (expand set as needed)
 		white_space = ' \t';	punctuation = ".,\/|-'’";	numbers ="0123456789०१२३४५६७८९"
-		for c in (white_space + punctuation + numbers): self.text_in_SLP = self.text_in_SLP.replace(c,'')
+		for c in (white_space + punctuation + numbers): self.ScansionResults.text_in_SLP = self.ScansionResults.text_in_SLP.replace(c,'')
 
 		# e.g. 'yadAyadAhiDarmasyaglAnirBavatiBArata\naByutTAnamaDarmasya...'
 
 		syllabified_text = '' # buffer
 
 		# syllabify one line at a time
-		text_lines = self.text_in_SLP.split('\n')
+		text_lines = self.ScansionResults.text_in_SLP.split('\n')
 
 		for line in text_lines:
 
@@ -404,7 +404,7 @@ class Scanner(object):
 
 		self.ScansionResults.original_text = cntnts
 
-		self.text_in_SLP = self.Transliterator.transliterate(cntnts, to_scheme='SLP')
+		self.ScansionResults.text_in_SLP = self.Transliterator.transliterate(cntnts, to_scheme='SLP')
 		
 		self.syllabify_text()
 		self.scan_syllables()
