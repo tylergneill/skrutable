@@ -8,7 +8,7 @@
 
 
 # summary of available transliteration schemes as presented to user
-available_schemes = ['IAST', 'SLP', 'HK', 'VH', 'DEV', 'ITRANS']
+available_schemes = ['IAST', 'SLP', 'HK', 'VH', 'DEV', 'ITRANS', 'IASTreduced']
 # held out: 'OAST'
 
 """
@@ -18,32 +18,38 @@ available_schemes = ['IAST', 'SLP', 'HK', 'VH', 'DEV', 'ITRANS']
 """
 
 IAST_SLP = [
-# Group 0: clean IAST by replacing back-combining diacritic combinations with precomposed equivalents
-('ā','ā'),
-('ī','ī'),
-('ū','ū'),
-('ṛ','ṛ'),
-('ṝ','ṝ'),
-('ṝ','ṝ'),
-('ḷ','ḷ'),
-('ḹ','ḹ'),
-('ḹ','ḹ'),
-('ṅ','ṅ'),
-('ñ','ñ'),
-('ṭ','ṭ'),
-('ḍ','ḍ'),
-('ṇ','ṇ'),
-('ś','ś'),
-('ṣ','ṣ'),
-('ḥ','ḥ'),
-('ṃ','ṃ'),
+# Group 0: clean IAST by replacing back-combining diacritic combinations with lowercase precomposed equivalents (uppercase too, also precomposed)
+('ā','ā'),('Ā','ā'),('Ā','ā'),
+('ī','ī'),('Ī','ī'),('Ī','ī'),
+('ū','ū'),('Ū','ū'),('Ū','ū'),
+('ṛ','ṛ'),('Ṛ','ṛ'),('Ṛ','ṛ'),
+('ṝ','ṝ'),('Ṝ','ṝ'),
+('ṝ','ṝ'),('Ṝ','ṝ'),('Ṝ','F'), # Ṛ plus ̄, no precomposed
+('ḷ','ḷ'),('Ḷ','ḷ'),('Ḷ','ḷ'),
+('ḹ','ḹ'),('Ḹ','ḹ'),
+('ḹ','ḹ'),('Ḹ','ḹ'),('Ḹ','ḹ'), # Ḷ plus ̄, no precomposed
+('ṅ','ṅ'),('Ṅ','ṅ'),('Ṅ','ṅ'),
+('ñ','ñ'),('Ñ','ñ'),('Ñ','ñ'),
+('ṭ','ṭ'),('Ṭ','ṭ'),('Ṭ','ṭ'),
+('ḍ','ḍ'),('Ḍ','ḍ'),('Ḍ','ḍ'),
+('ṇ','ṇ'),('Ṇ','ṇ'),('Ṇ','ṇ'),
+('ś','ś'),('Ś','ś'),('Ś','ś'),
+('ṣ','ṣ'),('Ṣ','ṣ'),('Ṣ','ṣ'),
+('ḥ','ḥ'),('Ḥ','ḥ'),('Ḥ','ḥ'),
+('ṃ','ṃ'),('Ṃ','ṃ'),('Ṃ','ṃ'),
 # theoretically preferred under-circles exchanged for more common under-dots
-('r̥','ṛ'),
-('r̥̄','ṝ'),
-('r̥̄','ṝ'),
-('l̥','ḷ'),
-('l̥̄','ḹ'),
-('l̥̄','ḹ'),
+('r̥','ṛ'),('R̥','ṛ'),
+('r̥̄','ṝ'),('R̥̄','ṝ'),
+('r̥̄','ṝ'),('R̥̄','ṝ'),
+('l̥','ḷ'),('L̥','ḷ'),
+('l̥̄','ḹ'),('L̥̄','ḹ'),
+('l̥̄','ḹ'),('L̥̄','ḹ'),
+# reduce remaining ASCII uppercase to lowercase
+('A','a'),('B','b'),('C','c'),('D','d'),('E','e'),
+('F','f'),('G','g'),('H','h'),('I','i'),('J','j'),
+('K','k'),('L','l'),('M','m'),('N','n'),('O','o'),
+('P','p'),('Q','q'),('R','r'),('S','s'),('T','t'),
+('U','u'),('V','v'),('W','w'),('X','x'),('Y','y'),('Z','z'),
 # Group 1: ordered mappings to avoid bleeding/feeding
 ('ṭh','W'),
 ('ṭ','w'),
@@ -198,6 +204,17 @@ DEV_SLP = [
 ('ै', 'E'), 
 ('ो', 'o'), 
 ('ौ', 'O'),
+# numbers too
+('१', '1'),
+('२', '2'),
+('३', '3'),
+('४', '4'),
+('५', '5'),
+('६', '6'),
+('७', '7'),
+('८', '8'),
+('९', '9'),
+('०', '0'),
 ]
 
 OAST_SLP = [
@@ -458,6 +475,37 @@ SLP_OAST = [ # OUT OF DATE, DON'T USE YET
 ('H','µ'),
 ]
 
+SLP_IASTreduced = [
+('A','a'),
+('I','i'),
+('U','u'),
+('f','r'),
+('F','r'),
+('x','l'),
+('X','l'),
+('E','ai'),
+('O','au'),
+('M','m'),
+('H','h'),
+('K','kh'),
+('G','gh'),
+('N','n'),
+('C','ch'),
+('J','jh'),
+('Y','n'),
+('w','t'),
+('W','th'),
+('q','d'),
+('Q','dh'),
+('R','n'),
+('T','th'),
+('D','dh'),
+('P','ph'),
+('B','bh'),
+('S','s'),
+('z','s'),
+]
+
 # dictionary facilitating easy use of above mapping lists via text strings
 maps_by_name = {
 'SLP_DEV' : SLP_DEV,
@@ -471,6 +519,7 @@ maps_by_name = {
 'SLP_SLP' : SLP_SLP,
 'ITRANS_SLP' : ITRANS_SLP,
 'OAST_SLP' : OAST_SLP,
+'SLP_IASTreduced' : SLP_IASTreduced,
 }
 
 
@@ -640,6 +689,7 @@ jAtis_by_morae = [
 ['\[(12|11), (18|17), (12|11), (18|17)\]', [12, 18, 12, 18], 'gīti'],
 ['\[(12|11), (15|14), (12|11), (18|17)\]', [12, 15, 12, 18], 'udgīti'],
 ['\[(12|11), (15|14), (12|11), (15|14)\]', [12, 15, 12, 15], 'upagīti'],
+['\[(16|15), (16|15), (16|15), (16|15)\]', [16, 16, 16, 16], 'mātrāsamaka'],
 ]
 
 
