@@ -13,31 +13,30 @@ import sys
 import pickle
 import re
 import tables
-import demo_io
 
 settings_filename = 'last_used.p'
 # make sure settings file will be co-located with modules
 abs_dir = os.path.split(os.path.abspath(__file__))[0] # absolute dir of transliteration.py
 settings_file_path = os.path.join(abs_dir, settings_filename) # same absolute dir
 
-destroy_spaces = False
-
 class TransliterationSettings(object):
 
-	def __init__(self, default_initial=None, default_final=None):
+	def __init__(self, default_from_scheme=None, default_to_scheme=None, default_destroy_spaces=None):
 
-		self.initial_scheme = self.final_scheme = None
+		self.from_scheme = self.to_scheme = self.destroy_spaces = None
 
 		# load whatever previous settings available from file
 		if	(
-			(default_initial == None or default_final == None) and
+			(default_from_scheme == None or default_to_scheme == None or default_destroy_spaces==None) and
 			os.path.isfile(settings_file_path)
 			):
 			self.load()
 
 		# but then also override with any newly specified choices
-		if default_initial != None: self.initial_scheme = default_initial
-		if default_final != None: self.final_scheme = default_final
+		if default_from_scheme != None: self.from_scheme = default_from_scheme
+		if default_to_scheme != None: self.to_scheme = default_to_scheme
+
+		if default_destroy_spaces != None: self.destroy_spaces = default_destroy_spaces
 
 		self.save()
 
@@ -45,10 +44,12 @@ class TransliterationSettings(object):
 	def load(self):
 
 		settings_file = open(settings_file_path, 'r')
+		
 		temp_S = pickle.load(settings_file) # TransliterationSettings() object
 
-		self.initial_scheme = temp_S.initial_scheme
-		self.final_scheme = temp_S.final_scheme
+		self.from_scheme = temp_S.from_scheme
+		self.to_scheme = temp_S.to_scheme
+		self.destroy_spaces = temp_S.destroy_spaces
 
 		settings_file.close()
 
@@ -63,10 +64,10 @@ class TransliterationSettings(object):
 
 class Transliterator():
 
-	def __init__(self, default_from=None, default_to=None):
+	def __init__(self, default_from_scheme=None, default_to_scheme=None, default_destroy_spaces=None):
 
 		self.contents = None
-		self.settings = TransliterationSettings(default_from, default_to)
+		self.settings = TransliterationSettings(default_from_scheme, default_to_scheme, default_destroy_spaces)
 
 	def linear_preprocessing(self, from_scheme, to_scheme):
 		""" 
@@ -164,7 +165,7 @@ class Transliterator():
 		for pattern in tables.which_spaces_destroyed:
 			self.contents = re.sub(pattern, r'\1\2', self.contents)
 
-	def transliterate(self, cntnts, from_scheme=None, to_scheme=None):
+	def transliterate(self, cntnts, from_scheme=None, to_scheme=None, destroy_spaces=None):
 		"""
 			Primary method to be called on Transliteration object, needs no arguments.
 			Purpose: routes processing via SLP, leaves open option of destroying spaces.
@@ -173,21 +174,25 @@ class Transliterator():
 		"""
 		self.contents = cntnts
 
-		if from_scheme != None: init_f = from_scheme
-		else: init_f = self.settings.initial_scheme
-		if to_scheme != None: fin_f = to_scheme
-		else: fin_f = self.settings.final_scheme
+		if from_scheme != None: initial_from_scheme = from_scheme
+		else: initial_from_scheme = self.settings.from_scheme
+		if to_scheme != None: final_to_scheme = to_scheme
+		else: final_to_scheme = self.settings.to_scheme
+
+		if destroy_spaces != None: self.settings.destroy_spaces = destroy_spaces
 		
 		# transliterate first to SLP
-		self.linear_preprocessing(from_scheme = init_f, to_scheme = 'SLP')
-		self.map_replace(from_scheme = init_f, to_scheme = 'SLP')
+		self.linear_preprocessing(from_scheme = initial_from_scheme, to_scheme = 'SLP')
+		self.map_replace(from_scheme = initial_from_scheme, to_scheme = 'SLP')
 
 		# destroy spaces here
-		if destroy_spaces:
+		if self.settings.destroy_spaces == True:
 			self.destroy_spaces()
 
 		# then transliterate to final desired scheme
-		self.linear_preprocessing(from_scheme = 'SLP', to_scheme = fin_f)
-		self.map_replace(from_scheme = 'SLP', to_scheme = fin_f)
+		self.linear_preprocessing(from_scheme = 'SLP', to_scheme = final_to_scheme)
+		self.map_replace(from_scheme = 'SLP', to_scheme = final_to_scheme)
 
 		return self.contents
+
+
