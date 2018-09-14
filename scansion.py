@@ -277,7 +277,7 @@ class Scanner(object):
 	def __init__(self, initial_scheme=None, final_scheme=None):
 
 		self.contents = None
-		self.Transliterator = tr.Transliterator(default_from=initial_scheme, default_to=final_scheme)
+		self.Transliterator = tr.Transliterator(default_from_scheme=initial_scheme, default_to_scheme=final_scheme)
 		self.ScansionResults = ScansionResults(self.Transliterator, final_scheme=final_scheme)
 
 
@@ -557,7 +557,7 @@ if __name__ == '__main__':
 	if init_f != None: Sc.Transliterator.settings.save()
 
 	# for demo
-	print "%s > %s..." % (Sc.Transliterator.settings.initial_scheme, Sc.Transliterator.settings.final_scheme)
+	print "%s > %s..." % (Sc.Transliterator.settings.from_scheme, Sc.Transliterator.settings.to_scheme)
 	print
 
 	ScansionResult = Sc.scan(contents)
