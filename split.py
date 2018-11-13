@@ -12,12 +12,15 @@ def wiggle_iterator(start_pos, quarter_length):
 	return iter_list
 
 from skrutable.scansion import *
+from skrutable import transliteration as trnsl
 import time
 
-def split_and_identify(str):
+def split_and_identify(str, output_scheme='IAST'):
+
+	T = trnsl.Transliterator()
 
 	S1 = Scanner('IAST','IAST')
-	Result = S1.scan(str)
+	Result = S1.scan(str.replace('\n',''))
 	syllables = Result.syllabified_text.split(' ')
 
 	total_syllable_count = len(syllables)
@@ -38,7 +41,8 @@ def split_and_identify(str):
 			out_buffer = ''
 			for pos_cd in cd_wiggle_iterator:
 				curr_str = ''.join(syllables[:pos_ab]) + '\n' + ''.join(syllables[pos_ab:pos_bc]) + '\n' + ''.join(syllables[pos_bc:pos_cd]) + '\n' + ''.join(syllables[pos_cd:])
-				out_buffer += curr_str
+				out_buffer += T.transliterate(
+					curr_str, from_scheme='SLP', to_scheme=output_scheme) + '\n\n'
 				Result = S2.scan(curr_str)
 				if Result.identify() != None:
 # 					out_buffer += '\n\n' + Result.summary() + '\n\n'
