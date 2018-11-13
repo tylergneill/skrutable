@@ -192,7 +192,8 @@ class ScansionResults(object):
 					return tables.samavfttas_by_gaRas[gaRa_pattern] + gaRa_note
 
 			else: # if all patterns tested and no match found and returned
-				return "(unclassified samavṛtta)"
+				return "(unclassified samavṛtta) (%d: %s)" % (len(pAda_for_id), pAda_gaRas)
+				
 	#
 	# 	# eventually: also test as ardhasamavftta
 	# 	elif stanza_weights[0] == stanza_weights[2]
@@ -277,7 +278,7 @@ class Scanner(object):
 	def __init__(self, initial_scheme=None, final_scheme=None):
 
 		self.contents = None
-		self.Transliterator = tr.Transliterator(default_from_scheme=initial_scheme, default_to_scheme=final_scheme)
+		self.Transliterator = tr.Transliterator(set_from_scheme=initial_scheme, set_to_scheme=final_scheme)
 		self.ScansionResults = ScansionResults(self.Transliterator, final_scheme=final_scheme)
 
 
@@ -405,6 +406,7 @@ class Scanner(object):
 		self.ScansionResults.original_text = cntnts
 
 		self.ScansionResults.text_in_SLP = self.Transliterator.transliterate(cntnts, to_scheme='SLP')
+		print self.ScansionResults.text_in_SLP
 		
 		self.syllabify_text()
 		self.scan_syllables()
@@ -546,10 +548,11 @@ if __name__ == '__main__':
 		init_f = tr.prompt_for_choice('Input', tables.available_schemes)
 		fin_f = tr.prompt_for_choice('Output', tables.available_schemes)
 
-	Sc = Scanner(init_f, fin_f)	# loads previous settings from file
+	Sc = Scanner('IAST', 'DEV')	# loads previous settings from file
+	# WHY IS THIS NECESSARY???
 
 	# other constructor option
-#	Sc = Scanner()
+#	Sc = Scanner() 	# WHY IS THIS NOT WORKING???
 # 	Sc = Scanner(initial_scheme='HK')
 # 	Sc = Scanner(initial_scheme='HK', final_scheme='IAST')
 

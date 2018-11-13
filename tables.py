@@ -589,17 +589,19 @@ which_spaces_destroyed = [
 '(r) ([%s])' % regx_voiced_consonants,
 # rare in mss, sometimes used for clarity among modern scholars
 '(Y) ([cCjJ])',
-'([gḍb]) ([%s])' % regx_voiced_consonants,
+'([kwp]) ([%s])' % regx_unvoiced_consonants,
+'([gqb]) ([%s])' % regx_voiced_consonants,
 '(d) ([%s])' % regx_voiced_consonants,
 '(l) (l)',
 '(S) ([cCS])',
 '(s) ([tTs])',
 # optional in mss, use very  much depends on scribe/editor
+'(d) ([%s])' % regx_vowels,
 '(m) ([%s])' % regx_vowels,
 '(n) ([%s])' % regx_vowels,
-'(n) ([%s])' % regx_voiced_consonants, # this is wrong, e.g. n+s, but beware sometimes also n+ś
-'(t) ([%s])' % regx_unvoiced_consonants,
-'([kṭp]) ([%s])' % regx_unvoiced_consonants,
+'([gqb]) ([%s])' % regx_vowels,
+'(n) ([%s])' % regx_voiced_consonants,
+'(t) ([%s])' % regx_unvoiced_consonants, # beware! this is wrong bc e.g. n+s ok but n+ś not
 ]
 
 
@@ -659,6 +661,7 @@ samavfttas_by_gaRas = {
 # more from Sadananda
 'jrl(g|l)' : 'pramāṇikā',
 'jrjrj(g|l)' : 'pañcacāmaram',
+'rrr(r|B)' : 'sragviṇī',
 }
 
 

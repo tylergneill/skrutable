@@ -14,7 +14,7 @@ def wiggle_iterator(start_pos, quarter_length):
 from skrutable.scansion import *
 import time
 
-def split_and_identify(string_list):
+def split_and_identify(str):
 
 	S1 = Scanner('IAST','IAST')
 	Result = S1.scan(str)
@@ -41,9 +41,10 @@ def split_and_identify(string_list):
 				out_buffer += curr_str
 				Result = S2.scan(curr_str)
 				if Result.identify() != None:
-					out_buffer += '\n\n' + Result.summary()
+# 					out_buffer += '\n\n' + Result.summary() + '\n\n'
 					id = Result.identify()
-					out_buffer += '\n\n' + id
+					out_buffer += id
+					print out_buffer
 					return out_buffer
 # 					time.sleep(1)
 # 					if id[:12] != "unclassified":
@@ -52,9 +53,9 @@ def split_and_identify(string_list):
 # 					
 # 				else: time.sleep(0.005)
 
-verses_to_test = [
-"dhīraṃ vāridharasya vāri kirataḥ śrutvā niśīthe dhvaniṃ dīrghocchvāsamudaśruṇā virahiṇīṃ bālāṃ ciraṃ dhyāyatā | adhvanyena vimuktakaṇṭhamakhilāṃ rātriṃ tathā kranditaṃ grāmīṇairvrajato janasya vasatirgrāme niṣiddhā yathā ||"
-]
-
-for str in verses_to_test:
-	split_and_identify(str)
+# verses_to_test = [
+# "dhīraṃ vāridharasya vāri kirataḥ śrutvā niśīthe dhvaniṃ dīrghocchvāsamudaśruṇā virahiṇīṃ bālāṃ ciraṃ dhyāyatā | adhvanyena vimuktakaṇṭhamakhilāṃ rātriṃ tathā kranditaṃ grāmīṇairvrajato janasya vasatirgrāme niṣiddhā yathā ||"
+# ]
+# 
+# for str in verses_to_test:
+# 	split_and_identify(str)
