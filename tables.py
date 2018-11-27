@@ -18,33 +18,35 @@ available_schemes = ['IAST', 'SLP', 'HK', 'VH', 'DEV', 'ITRANS', 'IASTreduced']
 """
 
 IAST_SLP = [
-# Group 0: clean IAST by replacing back-combining diacritic combinations with lowercase precomposed equivalents (uppercase too, also precomposed)
-('ā','ā'),('Ā','ā'),('Ā','ā'),
-('ī','ī'),('Ī','ī'),('Ī','ī'),
-('ū','ū'),('Ū','ū'),('Ū','ū'),
-('ṛ','ṛ'),('Ṛ','ṛ'),('Ṛ','ṛ'),
-('ṝ','ṝ'),('Ṝ','ṝ'),
-('ṝ','ṝ'),('Ṝ','ṝ'),('Ṝ','F'), # Ṛ plus ̄, no precomposed
-('ḷ','ḷ'),('Ḷ','ḷ'),('Ḷ','ḷ'),
-('ḹ','ḹ'),('Ḹ','ḹ'),
-('ḹ','ḹ'),('Ḹ','ḹ'),('Ḹ','ḹ'), # Ḷ plus ̄, no precomposed
-('ṅ','ṅ'),('Ṅ','ṅ'),('Ṅ','ṅ'),
-('ñ','ñ'),('Ñ','ñ'),('Ñ','ñ'),
-('ṭ','ṭ'),('Ṭ','ṭ'),('Ṭ','ṭ'),
-('ḍ','ḍ'),('Ḍ','ḍ'),('Ḍ','ḍ'),
-('ṇ','ṇ'),('Ṇ','ṇ'),('Ṇ','ṇ'),
-('ś','ś'),('Ś','ś'),('Ś','ś'),
-('ṣ','ṣ'),('Ṣ','ṣ'),('Ṣ','ṣ'),
-('ḥ','ḥ'),('Ḥ','ḥ'),('Ḥ','ḥ'),
-('ṃ','ṃ'),('Ṃ','ṃ'),('Ṃ','ṃ'),
-# theoretically preferred under-circles exchanged for more common under-dots
+# first clean IAST of: lowercase back-combining, uppercase precomposed, uppercase back-combining
+('ā','ā'),('Ā','ā'),('Ā','ā'),
+('ī','ī'),('Ī','ī'),('Ī','ī'),
+('ū','ū'),('Ū','ū'),('Ū','ū'),
+('ṛ','ṛ'),('Ṛ','ṛ'),('Ṛ','ṛ'),
+('ṝ','ṝ'),			('Ṝ','ṝ'), # r ̣ ̄  R ̣ ̄   (might be reduced to ṛ ̄  Ṛ ̄  in the wild)
+('ṝ','ṝ'),			('Ṝ','ṝ'), # r ̄ ̣  R ̄ ̣	
+('ṝ','ṝ'),			('Ṝ','ṝ'), # ṛ ̄	Ṛ ̄
+('ḷ','ḷ'),('Ḷ','ḷ'),('Ḷ','ḷ'),
+('ḹ','ḹ'),			('Ḹ','ḹ'), # l ̣ ̄  L ̣ ̄	(might be reduced to ḷ ̄  Ḷ ̄  in the wild)
+('ḹ','ḹ'),			('Ḹ','ḹ'), # l ̄ ̣  L ̄ ̣
+('ḹ','ḹ'),	 		('Ḹ','ḹ'), # ḷ ̄	Ḷ ̄
+('ṅ','ṅ'),('Ṅ','ṅ'),('Ṅ','ṅ'),
+('ñ','ñ'),('Ñ','ñ'),('Ñ','ñ'),
+('ṭ','ṭ'),('Ṭ','ṭ'),('Ṭ','ṭ'),
+('ḍ','ḍ'),('Ḍ','ḍ'),('Ḍ','ḍ'),
+('ṇ','ṇ'),('Ṇ','ṇ'),('Ṇ','ṇ'),
+('ś','ś'),('Ś','ś'),('Ś','ś'),
+('ṣ','ṣ'),('Ṣ','ṣ'),('Ṣ','ṣ'),
+('ḥ','ḥ'),('Ḥ','ḥ'),('Ḥ','ḥ'),
+('ṃ','ṃ'),('Ṃ','ṃ'),('Ṃ','ṃ'),
+# then clean of: theoretically preferred under-circles
 ('r̥','ṛ'),('R̥','ṛ'),
 ('r̥̄','ṝ'),('R̥̄','ṝ'),
 ('r̥̄','ṝ'),('R̥̄','ṝ'),
 ('l̥','ḷ'),('L̥','ḷ'),
 ('l̥̄','ḹ'),('L̥̄','ḹ'),
 ('l̥̄','ḹ'),('L̥̄','ḹ'),
-# reduce remaining ASCII uppercase to lowercase
+# then clean of: remaining uppercase
 ('A','a'),('B','b'),('C','c'),('D','d'),('E','e'),
 ('F','f'),('G','g'),('H','h'),('I','i'),('J','j'),
 ('K','k'),('L','l'),('M','m'),('N','n'),('O','o'),
@@ -55,7 +57,7 @@ IAST_SLP = [
 ('ṭ','w'),
 ('ḍh','Q'),
 ('ḍ','q'),
-# Group 2: simpler remaining mappings
+# Group 2: remaining mappings of standard precomposed 
 ('ā','A'),
 ('ī','I'),
 ('ū','U'),
