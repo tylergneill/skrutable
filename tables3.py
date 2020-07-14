@@ -213,7 +213,9 @@ SLP_vowels = SLP_short_vowels + SLP_long_vowels # len == 14
 SLP_vowels_with_mAtrAs = SLP_vowels[1:] # exclude 'a'
 DEV_vowel_mAtrAs = ['ि', 'ु', 'ृ', 'ॢ', 'ा', 'ी', 'ू', 'ॄ', 'ॣ', 'े', 'ै', 'ो', 'ौ']
 # both len == 13
+
 SLP_vowels_to_DEV_vowel_mAtrAs = dict(zip(SLP_vowels_with_mAtrAs, DEV_vowel_mAtrAs))
+
 vowels_that_preempt_virAma = SLP_vowels + DEV_vowel_mAtrAs
 
 SLP_unvoiced_consonants = ['k','K','c','C','w','W','t','T','p','P','z','S','s']
