@@ -18,8 +18,8 @@ y r l v					y r l v 				y r l v
 (IAST_reduced: a a i i u u ... jh n t th d dh n t ... s s s h m h ')
 
 DEV
-अ आ इ ई उ ऊ ( ा  ि  ी  ु  ू )
-ऋ ॠ ऌ ॡ ए ऐ ओ औ ( ृ  ॄ  ॢ  ॣ  े  ै  ो  ौ )
+अ आ इ ई उ ऊ ( ा ि ी ु ू )
+ऋ ॠ ऌ ॡ ए ऐ ओ औ ( ृ ॄ ॢ ॣ े ै ो ौ )
 क ख ग घ ङ
 च छ ज झ ञ
 ट ठ ड ढ ण
@@ -30,8 +30,8 @@ DEV
 १ २ ३ ४ ५ ६ ७ ८ ९ ०
 
 BENGALI
-অ আ ই ঈ উ ঊ ( া  ি  ী  ু  ূ )
-ঋ ৠ ঌ ৡ এ ঐ ও ঔ ( ৃ  ৄ  ৢ  ৣ  ে  ৈ  ো  ৌ )
+অ আ ই ঈ উ ঊ ( া ি ী ু ূ )
+ঋ ৠ ঌ ৡ এ ঐ ও ঔ ( ৃ ৄ ৢ ৣ ে ৈ ো ৌ )
 ক খ গ ঘ ঙ
 চ ছ জ ঝ ঞ
 ট ঠ ড ঢ ণ
@@ -42,8 +42,8 @@ BENGALI
 ১ ২ ৩ ৪ ৫ ৬ ৭ ৮ ৯ ০
 
 GUJARATI
-અ આ ઇ ઈ ઉ ઊ ( ા  િ  ી  ુ  ૂ )
-ઋ ૠ ઌ ૡ એ ઐ ઓ ઔ ( ૃ  ૄ  ૢ  ૣ  ે  ૈ  ો  ૌ )
+અ આ ઇ ઈ ઉ ઊ ( ા િ ી ુ ૂ )
+ઋ ૠ ઌ ૡ એ ઐ ઓ ઔ ( ૃ ૄ ૢ ૣ ે ૈ ો ૌ )
 ક ખ ગ ઘ ઙ
 ચ છ જ ઝ ઞ
 ટ ઠ ડ ઢ ણ
@@ -53,7 +53,7 @@ GUJARATI
 શ ષ સ હ ં ઃ ઽ
 ૧ ૨ ૩ ૪ ૫ ૬ ૭ ૮ ૯ ૦
 
-VH          			WX
+VH     			WX
 a aa i ii u uu			...
 .r .R .l .L e o ai au
 k K g G "n
@@ -79,25 +79,25 @@ CSX						REE						OAST
 ...						...						...
 """
 
-"""Mappings
-to SLP      IAST_SLP, DEV_SLP, HK_SLP, VH_SLP, ITRANS_SLP
-            (SLP_SLP)
-from SLP    SLP_IAST, SLP_DEV, SLP_HK, SLP_VH, SLP_ITRANS
+"""Available Mappings
+to SLP   IAST_SLP, DEV_SLP, HK_SLP, VH_SLP, ITRANS_SLP
+      (SLP_SLP)
+from SLP  SLP_IAST, SLP_DEV, SLP_HK, SLP_VH, SLP_ITRANS
 """
 
 IAST_SLP = [
-# Normalization step 1: merge of combining diacritics to precomposed combinations
-('ā','ā'),('Ā','ā'),('Ā','ā'), # case also dropped throughout
+# Normalization 1: merge of combining diacritics to precomposed combinations
+('ā','ā'),('Ā','ā'),('Ā','ā'), # case also lowered throughout
 ('ī','ī'),('Ī','ī'),('Ī','ī'),
 ('ū','ū'),('Ū','ū'),('Ū','ū'),
 ('ṛ','ṛ'),('Ṛ','ṛ'),('Ṛ','ṛ'),
-('ṝ','ṝ'),		  ('Ṝ','ṝ'), # r ̣ ̄ R ̣ ̄
-('ṝ','ṝ'),		  ('Ṝ','ṝ'), # r ̄ ̣ R ̄ ̣
-('ṝ','ṝ'),          ('Ṝ','ṝ'), # ṛ ̄	Ṛ ̄
+('ṝ','ṝ'),		 ('Ṝ','ṝ'), # r ̣ ̄ R ̣ ̄
+('ṝ','ṝ'),		 ('Ṝ','ṝ'), # r ̄ ̣ R ̄ ̣
+('ṝ','ṝ'),     ('Ṝ','ṝ'), # ṛ ̄	Ṛ ̄
 ('ḷ','ḷ'),('Ḷ','ḷ'),('Ḷ','ḷ'),
-('ḹ','ḹ'),		  ('Ḹ','ḹ'), # l ̣ ̄ L ̣ ̄
-('ḹ','ḹ'),		  ('Ḹ','ḹ'), # l ̄ ̣ L ̄ ̣
-('ḹ','ḹ'),          ('Ḹ','ḹ'), # ḷ ̄  Ḷ ̄
+('ḹ','ḹ'),		 ('Ḹ','ḹ'), # l ̣ ̄ L ̣ ̄
+('ḹ','ḹ'),		 ('Ḹ','ḹ'), # l ̄ ̣ L ̄ ̣
+('ḹ','ḹ'),     ('Ḹ','ḹ'), # ḷ ̄ Ḷ ̄
 ('ṅ','ṅ'),('Ṅ','ṅ'),('Ṅ','ṅ'),
 ('ñ','ñ'),('Ñ','ñ'),('Ñ','ñ'),
 ('ṭ','ṭ'),('Ṭ','ṭ'),('Ṭ','ṭ'),
@@ -107,25 +107,25 @@ IAST_SLP = [
 ('ṣ','ṣ'),('Ṣ','ṣ'),('Ṣ','ṣ'),
 ('ḥ','ḥ'),('Ḥ','ḥ'),('Ḥ','ḥ'),
 ('ṃ','ṃ'),('Ṃ','ṃ'),('Ṃ','ṃ'),
-# Normalization step 2: change of ISO under-circles to under-dots
+# Normalization 2: change of ISO under-circles to under-dots
 ('r̥','ṛ'),('R̥','ṛ'),
 ('r̥̄','ṝ'),('R̥̄','ṝ'),
 ('r̥̄','ṝ'),('R̥̄','ṝ'),
 ('l̥','ḷ'),('L̥','ḷ'),
 ('l̥̄','ḹ'),('L̥̄','ḹ'),
 ('l̥̄','ḹ'),('L̥̄','ḹ'),
-# Normalization step 3: dropping of remaining uppercase
+# Normalization 3: lowering of remaining uppercase
 ('A','a'),('B','b'),('C','c'),('D','d'),('E','e'),
 ('F','f'),('G','g'),('H','h'),('I','i'),('J','j'),
 ('K','k'),('L','l'),('M','m'),('N','n'),('O','o'),
 ('P','p'),('Q','q'),('R','r'),('S','s'),('T','t'),
 ('U','u'),('V','v'),('W','w'),('X','x'),('Y','y'),('Z','z'),
-# Transliteration group 1: careful ordering to avoid bleeding/feeding
+# Transliteration 1: careful ordering to avoid bleeding/feeding
 ('ṭh','W'),
 ('ṭ','w'),
 ('ḍh','Q'),
 ('ḍ','q'),
-# Transliteration group 2: rest
+# Transliteration 2: simpler remaining mappings
 ('ā','A'),
 ('ī','I'),
 ('ū','U'),
@@ -154,7 +154,7 @@ IAST_SLP = [
 ]
 
 HK_SLP = [
-# Transliteration group 1: careful ordering to avoid bleeding/feeding
+# Transliteration 1: careful ordering to avoid bleeding/feeding
 ('lRR','X'),
 ('RR','F'),
 ('lR','x'),
@@ -170,18 +170,18 @@ HK_SLP = [
 ('dh','D'),
 ('J','Y'),
 ('jh','J'),
-# Transliteration group 2: roundabout swap to avoid bleeding/feeding
+# Transliteration 2: roundabout swap to avoid bleeding/feeding
 ('z','Z'), # Z not used in either scheme
 ('S','z'),
 ('Z','S'),
-# Transliteration group 3: rest
+# Transliteration 3: simpler remaining mappings
 ('ai','E'),
 ('au','O'),
 ('kh','K'),
 ('ch','C'),
 ('ph','P'),
 ('bh','B'),
-# Remain the same:
+# Remain the same: ...
 ]
 
 DEV_SLP = [
@@ -248,7 +248,6 @@ DEV_SLP = [
 ('ै', 'E'),
 ('ो', 'o'),
 ('ौ', 'O'),
-# numbers too
 ('१', '1'),
 ('२', '2'),
 ('३', '3'),
@@ -325,7 +324,6 @@ BENGALI_SLP = [
 ('ৈ', 'E'),
 ('ো', 'o'),
 ('ৌ', 'O'),
-# numbers too
 ('১', '1'),
 ('২', '2'),
 ('৩', '3'),
@@ -402,7 +400,6 @@ GUJARATI_SLP = [
 ('ૈ', 'E'),
 ('ો', 'o'),
 ('ૌ', 'O'),
-# numbers too
 ('૧', '1'),
 ('૨', '2'),
 ('૩', '3'),
@@ -416,9 +413,9 @@ GUJARATI_SLP = [
 ]
 
 VH_SLP = [
-# Transliteration group 1: careful ordering to avoid bleeding/feeding
+# Transliteration 1: careful ordering to avoid bleeding/feeding
 ('.a',"'"),
-# Rest: simpler remaining mappings
+# Transliteration 2: simpler remaining mappings
 ('aa','A'),
 ('ii','I'),
 ('uu','U'),
@@ -439,13 +436,13 @@ VH_SLP = [
 ('.n','R'),
 ('"s','S'),
 ('.s','z'),
-# Remain the same:
+# Remain the same: ...
 ]
 
 WX_SLP = []
 
 ITRANS_SLP = [
-# Transliteration group 1: careful ordering to avoid bleeding/feeding
+# Transliteration 1: careful ordering to avoid bleeding/feeding
 ('w', 'v'),
 ('T', 'w'),
 ('Th', 'W'),
@@ -453,11 +450,11 @@ ITRANS_SLP = [
 ('Dh', 'Q'),
 ('th', 'T'),
 ('dh', 'D'),
-# Transliteration group 2: roundabout swap to avoid bleeding/feeding
+# Transliteration 2: roundabout swap to avoid bleeding/feeding
 ('~N', 'Z'), # Z not used in either scheme
 ('N', 'R'),
 ('Z', 'N'),
-# Transliteration group 3: rest
+# Transliteration 3: simpler remaining mappings
 ('aa', 'A'),
 ('ii', 'I'),
 ('uu', 'U'),
@@ -484,7 +481,7 @@ ITRANS_SLP = [
 ('.m', 'M'),
 ('.h', 'H'),
 ('.a', "'"),
-# Remain the same:
+# Remain the same: ...
 ]
 
 CSX_SLP = []
@@ -529,14 +526,16 @@ OAST_SLP = [
 ('¹','z'),
 ('º','M'),
 ('µ','H'),
+# Remain the same: ...
 ]
 
 SLP_SLP = [
-# Normalization step 1: avagraha
+# Normalization 1: avagraha
 ("’", "'"),
 ]
 
 SLP_IAST = [
+# Transliteration 1: all simple mappings
 ('A','ā'),
 ('I','ī'),
 ('U','ū'),
@@ -565,11 +564,11 @@ SLP_IAST = [
 ('B','bh'),
 ('S','ś'),
 ('z','ṣ'),
-# Remain the same:
+# Remain the same: ...
 ]
 
 SLP_HK = [
-# Transliteration group 1: ordered mappings to avoid bleeding/feeding
+# Transliteration 1: ordered mappings to avoid bleeding/feeding
 ('G','gh'),
 ('N','G'),
 ('R','N'),
@@ -585,11 +584,11 @@ SLP_HK = [
 ('Q','Dh'),
 ('J','jh'),
 ('Y','J'),
-# Transliteration group 2: "Duke of York gambit" to avoid feeding in direct swap
+# Transliteration 2: "Duke of York gambit" to avoid feeding in direct swap
 ('S','Z'), # Z not used in either scheme
 ('z','S'),
 ('Z','z'),
-# Transliteration group 3: simpler remaining mappings
+# Transliteration 3: simpler remaining mappings
 ('E','ai'),
 ('O','au'),
 ('K','kh'),
@@ -599,6 +598,7 @@ SLP_HK = [
 ]
 
 SLP_DEV = [
+# Transliteration 1: all simple mappings
 ('a', 'अ'),
 ('A', 'आ'),
 ('i', 'इ'),
@@ -649,7 +649,6 @@ SLP_DEV = [
 ('s', 'स'),
 ('h', 'ह'),
 ("'", 'ऽ'),
-# numbers too
 ('1', '१'),
 ('2', '२'),
 ('3', '३'),
@@ -663,6 +662,7 @@ SLP_DEV = [
 ]
 
 SLP_BENGALI = [
+# Transliteration 1: all simple mappings
 ('a', 'অ'),
 ('A', 'আ'),
 ('i', 'ই'),
@@ -713,7 +713,6 @@ SLP_BENGALI = [
 ('s', 'স'),
 ('h', 'হ'),
 ("'", 'ঽ'),
-# numbers too
 ('1', '১'),
 ('2', '২'),
 ('3', '৩'),
@@ -727,6 +726,7 @@ SLP_BENGALI = [
 ]
 
 SLP_GUJARATI = [
+# Transliteration 1: all simple mappings
 ('a', 'અ'),
 ('A', 'આ'),
 ('i', 'ઇ'),
@@ -777,7 +777,6 @@ SLP_GUJARATI = [
 ('s', 'સ'),
 ('h', 'હ'),
 ("'", 'ઽ'),
-# numbers too
 ('1', '૧'),
 ('2', '૨'),
 ('3', '૩'),
@@ -791,6 +790,7 @@ SLP_GUJARATI = [
 ]
 
 SLP_VH = [
+# Transliteration 1: all simple mappings
 ('A','aa'),
 ('I','ii'),
 ('U','uu'),
@@ -816,14 +816,16 @@ SLP_VH = [
 
 SLP_WX = []
 
-# not yet worked out
-SLP_ITRANS = []
+SLP_ITRANS = [
+# to work out next
+]
 
 SLP_CSX = []
 
 SLP_REE = []
 
-SLP_OAST = [ # OUT OF DATE, DON'T USE YET
+SLP_OAST = [
+# OUT OF DATE, DON'T USE YET
 ('A','å'),
 ('I','ï'),
 ('U','÷'),
@@ -851,6 +853,7 @@ SLP_OAST = [ # OUT OF DATE, DON'T USE YET
 ]
 
 SLP_IASTreduced = [
+# Transliteration 1: all simple mappings
 ('A','a'),
 ('I','i'),
 ('U','u'),
@@ -880,12 +883,6 @@ SLP_IASTreduced = [
 ('S','s'),
 ('z','s'),
 ]
-
-virAmas = {
-'DEV' : '्',
-'BENGALI' : '্',
-'GUJARATI' : '્',
-}
 
 by_name = {
 'IAST_SLP' : IAST_SLP, 'HK_SLP' : HK_SLP,

@@ -4,26 +4,40 @@ from skrutable import scheme_detection
 from skrutable import virAma_avoidance
 import json
 import re
+import os.path
 
 # load config variables
-config_data = open('config.json','r').read()
+abs_dir = os.path.split(os.path.abspath(__file__))[0] # for transliteration.py
+settings_file_path = os.path.join(abs_dir, 'config.json')
+config_data = open(settings_file_path,'r').read()
 config = json.loads(config_data)
+default_scheme_in = config["default_scheme_in"] # e.g. "auto"
 default_scheme_out = config["default_scheme_out"] # e.g. "IAST"
 avoid_virAma_indic_scripts = config["avoid_virAma_indic_scripts"] # e.g. True
 avoid_virAma_all_scripts = config["avoid_virAma_all_scripts"] # e.g. False
 
 class Transliterator():
+	"""
+	User-facing agent-style object.
+
+	Can be used with only default settings (see config.py),
+	or with manually passed override settings.
+
+	Main method transliterate() accepts and returns string.
+	"""
 
 	def __init__(self, from_scheme=None, to_scheme=None):
-		"""
-		User-facing constructor.
-
-		Manual specification of input and output schemes is optional here;
-		a second chance is also provided when calling self.transliterate().
-		"""
 
 		self.contents = None
+
+		if from_scheme == None:
+			from_scheme = default_scheme_in
+		from_scheme = from_scheme.upper()
 		self.scheme_in = from_scheme
+
+		if to_scheme == None:
+			to_scheme = default_scheme_out
+		to_scheme = to_scheme.upper()
 		self.scheme_out = to_scheme
 
 
@@ -69,11 +83,11 @@ class Transliterator():
 		"""
 
 		if from_scheme in scheme_maps.indic_schemes and to_scheme == 'SLP':
-			char_to_ignore = scheme_maps.virAmas[from_scheme]
+			char_to_ignore = phonemes.virAmas[from_scheme]
 			char_to_add = 'a'
 		elif from_scheme == 'SLP' and to_scheme in scheme_maps.indic_schemes:
 			char_to_ignore = 'a'
-			char_to_add = scheme_maps.virAmas[to_scheme]
+			char_to_add = phonemes.virAmas[to_scheme]
 		else: return
 
 		content_in = self.contents
@@ -112,7 +126,7 @@ class Transliterator():
 
 		if curr_char in phonemes.SLP_consonants:
 			# from SLP: final virāma if needed
-			content_out += scheme_maps.virAmas[to_scheme]
+			content_out += phonemes.virAmas[to_scheme]
 
 		self.contents = content_out # hybrid
 
@@ -136,15 +150,14 @@ class Transliterator():
 
 		self.contents = cntnts
 
-		if from_scheme != None:
-			self.scheme_in = from_scheme
-		if self.scheme_in == None:
-			self.set_detected_scheme() # default is automatic detection
+		if from_scheme != None: # override
+			self.scheme_in = from_scheme.upper()
+		if self.scheme_in.upper() in ( 	['AUTO', 'DETECT', 'AUTO DETECT',
+								'AUTO-DETECT', 'AUTO_DETECT', 'AUTODETECT'] ):
+			self.set_detected_scheme()
 
-		if to_scheme != None:
-			self.scheme_out = to_scheme
-		if self.scheme_out == None:
-			self.scheme_out = default_scheme_out
+		if to_scheme != None: # override
+			self.scheme_out = to_scheme.upper()
 
 		# transliterate first to hub scheme SLP
 		self.linear_preprocessing(self.scheme_in, 'SLP')

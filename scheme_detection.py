@@ -3,17 +3,25 @@ from numpy import dot
 from numpy.linalg import norm
 import operator
 
-def unicode_fingerprint_vector(file_data):
-    v = [0] * 10000
+def fingerprint(file_data):
+    """Returns a 10,000-dimensional vector (list) with Unicode frequency counts."""
+    code_point_frequency_vector = [0] * 10000
     for char in file_data:
-        v[ord(char)] += 1
-    return v
+        code_point_frequency_vector[ord(char)] += 1
+    return code_point_frequency_vector # Unicode code-point "fingerprint"
 
 def cosine_similarity(a, b):
     return dot(a, b) / (norm(a) * norm(b))
 
-def detect_scheme(file_data):
-    file_vector = unicode_fingerprint_vector(file_data)
+def detect_scheme(file_data=""):
+
+    if file_data == "": return None
+
+    # min_len = 10
+    # if len(file_data) < min_len:
+    #     print("input might be too short to accurately detect scheme...")
+
+    file_vector = fingerprint(file_data)
 
     scheme_scores = {}
     for scheme, mbh_vector in scheme_vectors_mbh.all.items():
