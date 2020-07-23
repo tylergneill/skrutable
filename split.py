@@ -54,12 +54,12 @@ def split_and_identify(str, output_scheme='IAST'):
 # 					if id[:12] != "unclassified":
 # 						quit_yn = raw_input('\nFound? (y/n): ')
 # 						if quit_yn == 'y': return
-# 					
+#
 # 				else: time.sleep(0.005)
 
 # verses_to_test = [
 # "dhīraṃ vāridharasya vāri kirataḥ śrutvā niśīthe dhvaniṃ dīrghocchvāsamudaśruṇā virahiṇīṃ bālāṃ ciraṃ dhyāyatā | adhvanyena vimuktakaṇṭhamakhilāṃ rātriṃ tathā kranditaṃ grāmīṇairvrajato janasya vasatirgrāme niṣiddhā yathā ||"
 # ]
-# 
+#
 # for str in verses_to_test:
 # 	split_and_identify(str)

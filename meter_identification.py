@@ -1,7 +1,11 @@
 from skrutable.scansion import Scanner as Sc
-from skrutable.config import load_config_dict_from_json_file
+from skrutable.scansion import scansion_syllable_separator
+from skrutable.scansion import Verse
 from skrutable import meter_patterns
+from skrutable.transliteration import Transliterator as Tr
+from skrutable.config import load_config_dict_from_json_file
 import re
+from copy import copy
 
 # load config variables
 config = load_config_dict_from_json_file()
@@ -14,7 +18,7 @@ class VerseTester(object):
 	Most methods take a populated scansion.Verse object as an argument;
 	test_as_anuzwuB_odd_even() is an exception.
 
-	Primary method attempt_identification returns scansion.Verse object
+	Primary method attempt_simple_strict_identification returns scansion.Verse object
 	with populated meter_label attribute if identification was successful.
 	"""
 
@@ -62,8 +66,6 @@ class VerseTester(object):
 
 		w_p = Vrs.syllable_weights.split('\n') # weights by pāda
 
-		# print "Testing halves ab and cd independently as anuṣṭubh... " + '\n'
-
 		# test
 		pAdas_ab = self.test_as_anuzwuB_odd_even(w_p[0], w_p[1])
 		pAdas_cd = self.test_as_anuzwuB_odd_even(w_p[2], w_p[3])
@@ -72,9 +74,9 @@ class VerseTester(object):
 		if pAdas_ab != None and pAdas_cd != None:
 			return "anuṣṭubh (ab: " + pAdas_ab + ", cd: " + pAdas_cd + ")"
 		elif pAdas_ab == None and pAdas_cd != None:
-			return "anuṣṭubh (ab: invalid, cd: " + pAdas_cd + ")"
+			return "anuṣṭubh (ab: asamīcīna, cd: " + pAdas_cd + ")"
 		elif pAdas_ab != None and pAdas_cd == None:
-			return "anuṣṭubh (ab: " + pAdas_ab + ", cd: invalid)"
+			return "anuṣṭubh (ab: " + pAdas_ab + ", cd: asamīcīna)"
 		else:
 			return None
 
@@ -130,7 +132,6 @@ class VerseTester(object):
 
 		w_p = Vrs.syllable_weights.split('\n') # weights by pāda
 
-		# print "Testing entire stanza as samavṛtta... " + '\n'
 		samatva_result = self.test_pAdasamatva(Vrs)
 
 		# HERE: FIRST TEST FOR ardhasamavftta
@@ -188,9 +189,6 @@ class VerseTester(object):
 		# here manipulate as such but also as a single string
 		morae_by_pAda_string = str(morae_by_pAda)
 
-		# print "Testing entire stanza as jāti..." + '\n'
-		# print "Morae: %s" % morae_by_pAda_string + '\n'
-
 		"""
 			Test whether morae match patterns, with allowance on last syllable:
 				final light syllable of a jāti quarter CAN be counted as heavy,
@@ -225,28 +223,30 @@ class VerseTester(object):
 
 
 
-	def attempt_identification(self, Vrs):
+	def attempt_simple_strict_identification(self, Vrs):
 		"""
 		= old ScansionResults.identify
 
 		runs through various possible meter types in set order
 			MAYBE SET ORDER IN CONFIG
 
-		WRONG BELOW
-
 		Receives static, populated Verse object on which to attempt identification.
-
-		four segmentation modes:
-			1) simple_strict: uses three newlines exactly as provided in input
-			2) resplit_hard: discards input newlines, resplits based on overall length
-			3) resplit_soft: initializes length-based resplit with input newlines
-			4) single_pAda: evaluates input as single pAda (verse quarter)
-
-		order
-			first: default or override
-			if fails, then: try other modes in set order (1 2 3; depending on length 4)
 		"""
-		pass
+
+		# DOES THIS ORDER MATTER? SHOULD I GENERALIZE IT?
+
+		anuzwuB_result = self.test_as_anuzwuB(Vrs)
+		if anuzwuB_result != None: return anuzwuB_result
+
+		samavftta_result = self.test_as_samavftta(Vrs)
+		if samavftta_result != None: return samavftta_result
+
+		jAti_result = self.test_as_jAti(Vrs)
+		if jAti_result != None: return jAti_result
+
+		# if here, all three type tests failed
+		return None
+
 
 class MeterIdentifier(object):
 	"""
@@ -262,6 +262,71 @@ class MeterIdentifier(object):
 		self.Verses_found = [] # list of Verse objects which passed VerseTester
 
 
+	def wiggle_iterator(self, start_pos, part_len):
+		"""
+		E.g., if len(pāda)==10,
+		then from the breaks between each pāda,
+		wiggle as far as 6 in either direction,
+		first right, then left.
+		"""
+
+		iter_list = [start_pos]
+		max_wiggle_distance = int(part_len / 2 + 1)
+		for i in range(1, max_wiggle_distance):
+			iter_list.append(start_pos+i)
+			iter_list.append(start_pos-i)
+		return iter_list
+
+	def resplit_Verse(self, syllable_list, ab_pAda_br, bc_pAda_br, cd_pAda_br):
+		"""
+		Input does not have newlines
+		"""
+		sss = scansion_syllable_separator
+		return	( 		sss.join(syllable_list[:ab_pAda_br]) 			+ '\n'
+					+ 	sss.join(syllable_list[ab_pAda_br:bc_pAda_br]) 	+ '\n'
+					+ 	sss.join(syllable_list[bc_pAda_br:cd_pAda_br]) 	+ '\n'
+					+ 	sss.join(syllable_list[cd_pAda_br:])
+				)
+
+	def wiggle_identify(	self, Vrs, syllable_list, VrsTster,
+							ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len):
+		"""Returns a list for MeterIdentifier.Verses_found"""
+
+		ab_wiggle_iterator = self.wiggle_iterator(ab_pAda_br, quarter_len)
+		bc_wiggle_iterator = self.wiggle_iterator(bc_pAda_br, quarter_len)
+		cd_wiggle_iterator = self.wiggle_iterator(cd_pAda_br, quarter_len)
+
+		wiggle_resplit_output_buffer = ''
+		temp_V = None
+		S = Sc()
+		Verses_found = []
+
+		for pos_ab in ab_wiggle_iterator:
+			for pos_bc in bc_wiggle_iterator:
+				for pos_cd in cd_wiggle_iterator:
+
+					try:
+
+						new_text_syllabified = self.resplit_Verse(
+							syllable_list, pos_ab, pos_bc, pos_cd )
+
+						temp_V = copy(Vrs)
+						temp_V.text_syllabified = new_text_syllabified
+						temp_V.syllable_weights = S.scan_syllable_weights(temp_V.text_syllabified)
+						temp_V.morae_per_line = S.count_morae(temp_V.syllable_weights)
+
+						id_result = VrsTster.attempt_simple_strict_identification(temp_V)
+
+						if id_result != None:
+							temp_V.meter_label = id_result
+							Verses_found.append(temp_V)
+
+					except IndexError:
+						continue
+
+		return Verses_found
+
+
 	def identify_meter(self, rw_str, seg_mode=default_meter_segmentation_mode):
 		"""
 		User-facing method, manages overall identification procedure:
@@ -271,23 +336,53 @@ class MeterIdentifier(object):
 				makes and passes series of Verse objects to internal VerseTester
 				receives back tested Verses (as internally available dict)
 			returns single Verse object with best identification result
+
+		four segmentation modes:
+			1) simple_strict: uses three newlines exactly as provided in input
+			2) resplit_hard: discards input newlines, resplits based on overall length
+			3) resplit_soft: initializes length-based resplit with input newlines
+			4) single_pAda: evaluates input as single pAda (verse quarter)
+
+		order
+			first: default or override
+			if fails, then: try other modes in set order (1 2 3; depending on length 4)
+
 		"""
 
-		S = Sc()
-		V = S.scan(rw_str) # static, mostly populated Verse object
+		S = Sc() 				# has inbuilt Transliterator
+		V = S.scan(rw_str) 		# static, mostly populated Verse object
 		VT = VerseTester()
 
 		if seg_mode == 'simple_strict':
-			print("mode: ", seg_mode)
-			return VT.attempt_identification(V)
 
-		elif seg_mode == 'resplit_hard':
-			# (= old split.py)
-			# wiggle_iter = VT.wiggle_iterator(pos_a, pos_b, pos_c)
-			# for positions i j k
-				# tmp_Verse = VT.resplit_Verse(V, i, j, k)
-				# VT.attempt_identification(tmp_Verse)   # = old Result.identify()
-				# if curr_Verse.meter_label != None: self.Verses.append(tmp_Verse)
-			# best_V = max(self.Verses.items(), key=operator.itemgetter(1))[0] # or similar
-			# return best_V
-			pass
+			V.meter_label = VT.attempt_simple_strict_identification(V)
+
+		elif seg_mode in ['resplit_hard', 'resplit_soft']:
+
+			if seg_mode == 'resplit_soft':
+				# capture user pāda breaks as indicated by newlines
+				newline_indices = [m.start() for m in re.finditer('\n', V.text_syllabified)]
+				ab_pAda_br = V.text_syllabified[:newline_indices[0]].count(scansion_syllable_separator)
+				bc_pAda_br = V.text_syllabified[:newline_indices[1]].count(scansion_syllable_separator)
+				cd_pAda_br = V.text_syllabified[:newline_indices[2]].count(scansion_syllable_separator)
+
+			# make list, sans newlines, sans last scansion_syllable_separator
+			syllable_list = (	V.text_syllabified.replace('\n','')
+						).split(scansion_syllable_separator)
+			if syllable_list[-1] == '': syllable_list.pop()
+
+			total_syll_count = len(syllable_list)
+			quarter_len = int(total_syll_count / 4)
+
+			if seg_mode == 'resplit_hard':
+				# discard user pāda breaks, initialize length-based ones
+				ab_pAda_br, bc_pAda_br, cd_pAda_br = (
+					[ i * quarter_len for i in [1, 2, 3] ] )
+
+			self.Verses_found = self.wiggle_identify(  V, syllable_list, VT,
+							ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len)
+
+			# could look for best match if len(self.Verses_found) > 1
+			V = self.Verses_found[0]
+
+		return V

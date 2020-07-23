@@ -3,6 +3,10 @@ from numpy import dot
 from numpy.linalg import norm
 import operator
 
+auto_detect_synonyms = ( ['AUTO', 'DETECT', 'AUTO DETECT',
+						'AUTO-DETECT', 'AUTO_DETECT', 'AUTODETECT'] )
+						
+
 def fingerprint(file_data):
     """Returns a 10,000-dimensional vector (list) with Unicode frequency counts."""
     code_point_frequency_vector = [0] * 10000

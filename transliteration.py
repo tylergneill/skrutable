@@ -16,6 +16,7 @@ default_scheme_out = config["default_scheme_out"] # e.g. "IAST"
 avoid_virAma_indic_scripts = config["avoid_virAma_indic_scripts"] # e.g. True
 avoid_virAma_all_scripts = config["avoid_virAma_all_scripts"] # e.g. False
 
+
 class Transliterator():
 	"""
 	User-facing agent-style object.
@@ -152,8 +153,7 @@ class Transliterator():
 
 		if from_scheme != None: # override
 			self.scheme_in = from_scheme.upper()
-		if self.scheme_in.upper() in ( 	['AUTO', 'DETECT', 'AUTO DETECT',
-								'AUTO-DETECT', 'AUTO_DETECT', 'AUTODETECT'] ):
+		if self.scheme_in.upper() in scheme_detection.auto_detect_synonyms:
 			self.set_detected_scheme()
 
 		if to_scheme != None: # override

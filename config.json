@@ -1,8 +1,8 @@
 {
-"default_scheme_in": "auto",
+"default_scheme_in": "SLP",
 "default_scheme_out": "IAST",
 "avoid_virAma_indic_scripts": true,
 "avoid_virAma_all_scripts": false,
 "scansion_syllable_separator": " ",
-"default_meter_segmentation_mode": "simple_strict"
+"default_meter_segmentation_mode": "resplit_soft"
 }
