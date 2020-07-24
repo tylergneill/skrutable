@@ -1,5 +1,5 @@
 {
-"default_scheme_in": "SLP",
+"default_scheme_in": "IAST",
 "default_scheme_out": "IAST",
 "avoid_virAma_indic_scripts": true,
 "avoid_virAma_all_scripts": false,

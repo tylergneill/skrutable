@@ -1,16 +1,15 @@
 from skrutable import phonemes
 from skrutable import scheme_maps
 from skrutable import scheme_detection
+from skrutable.scheme_detection import SchemeDetector
 from skrutable import virAma_avoidance
+from skrutable.config import load_config_dict_from_json_file
 import json
 import re
 import os.path
 
 # load config variables
-abs_dir = os.path.split(os.path.abspath(__file__))[0] # for transliteration.py
-settings_file_path = os.path.join(abs_dir, 'config.json')
-config_data = open(settings_file_path,'r').read()
-config = json.loads(config_data)
+config = load_config_dict_from_json_file()
 default_scheme_in = config["default_scheme_in"] # e.g. "auto"
 default_scheme_out = config["default_scheme_out"] # e.g. "IAST"
 avoid_virAma_indic_scripts = config["avoid_virAma_indic_scripts"] # e.g. True
@@ -44,7 +43,8 @@ class Transliterator():
 
 	def set_detected_scheme(self):
 		"""Internal method."""
-		self.scheme_in = scheme_detection.detect_scheme(self.contents)
+		SD = SchemeDetector()
+		self.scheme_in = SD.detect_scheme(self.contents)
 
 	def map_replace(self, from_scheme, to_scheme):
 		"""

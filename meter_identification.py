@@ -65,6 +65,8 @@ class VerseTester(object):
 		"""
 
 		w_p = Vrs.syllable_weights.split('\n') # weights by pāda
+		try: w_p[3]
+		except IndexError: return None # didn't find full four pādas
 
 		# test
 		pAdas_ab = self.test_as_anuzwuB_odd_even(w_p[0], w_p[1])
@@ -89,6 +91,8 @@ class VerseTester(object):
 
 		# weights by pāda, omitting last syllable from consideration
 		w_p = [ full_w_p[:-1] for full_w_p in Vrs.syllable_weights.split('\n') ]
+		try: w_p[3]
+		except IndexError: return None # didn't find full four pādas
 
 		# check for empty argument
 		if w_p[0] == w_p[1] == w_p[2] == w_p[3] == '':
@@ -131,6 +135,8 @@ class VerseTester(object):
 		"""
 
 		w_p = Vrs.syllable_weights.split('\n') # weights by pāda
+		try: w_p[3]
+		except IndexError: return None # didn't find full four pādas
 
 		samatva_result = self.test_pAdasamatva(Vrs)
 
@@ -181,7 +187,9 @@ class VerseTester(object):
 		Returns string detailing results if identified as such, or None if not.
 		"""
 
-		weights_by_pAda = Vrs.syllable_weights.split('\n')
+		w_p = Vrs.syllable_weights.split('\n')
+		try: w_p[3]
+		except IndexError: return None # didn't find full four pādas
 
 		morae_by_pAda = Vrs.morae_per_line
 
@@ -208,7 +216,7 @@ class VerseTester(object):
 
 						# final syllable is light but needs to be heavy
 						morae_by_pAda[i] == std_pattern[i] - 1 and
-						weights_by_pAda[i][-1] == 'l'
+						w_p[i][-1] == 'l'
 
 						):
 						continue
@@ -259,6 +267,8 @@ class MeterIdentifier(object):
 	"""
 
 	def __init__(self):
+		self.Scanner = None
+		self.VerseTester = None
 		self.Verses_found = [] # list of Verse objects which passed VerseTester
 
 
@@ -348,10 +358,13 @@ class MeterIdentifier(object):
 			if fails, then: try other modes in set order (1 2 3; depending on length 4)
 
 		"""
+		import pdb; pdb.set_trace()
 
-		S = Sc() 				# has inbuilt Transliterator
-		V = S.scan(rw_str) 		# static, mostly populated Verse object
-		VT = VerseTester()
+		self.Scanner = S = Sc()
+
+		V = S.scan(rw_str) 			# static, mostly populated Verse object
+
+		self.VerseTester = VT = VerseTester()
 
 		if seg_mode == 'simple_strict':
 
@@ -362,6 +375,10 @@ class MeterIdentifier(object):
 			if seg_mode == 'resplit_soft':
 				# capture user pāda breaks as indicated by newlines
 				newline_indices = [m.start() for m in re.finditer('\n', V.text_syllabified)]
+
+				try: newline_indices[3]
+				except IndexError: return V # didn't find full four pādas
+
 				ab_pAda_br = V.text_syllabified[:newline_indices[0]].count(scansion_syllable_separator)
 				bc_pAda_br = V.text_syllabified[:newline_indices[1]].count(scansion_syllable_separator)
 				cd_pAda_br = V.text_syllabified[:newline_indices[2]].count(scansion_syllable_separator)
@@ -369,7 +386,11 @@ class MeterIdentifier(object):
 			# make list, sans newlines, sans last scansion_syllable_separator
 			syllable_list = (	V.text_syllabified.replace('\n','')
 						).split(scansion_syllable_separator)
-			if syllable_list[-1] == '': syllable_list.pop()
+
+			try:
+				while syllable_list[-1] == '':
+					syllable_list.pop(-1) # in case of final separator(s)
+			except IndexError: pass
 
 			total_syll_count = len(syllable_list)
 			quarter_len = int(total_syll_count / 4)
@@ -383,6 +404,7 @@ class MeterIdentifier(object):
 							ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len)
 
 			# could look for best match if len(self.Verses_found) > 1
-			V = self.Verses_found[0]
+			if len(self.Verses_found) > 0:
+				V = self.Verses_found[0]
 
 		return V

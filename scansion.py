@@ -1,16 +1,14 @@
 from skrutable.transliteration import Transliterator
 from skrutable import scheme_detection
+from skrutable.scheme_detection import SchemeDetector
 from skrutable import meter_patterns, phonemes # >> skrutable.data
+from skrutable.config import load_config_dict_from_json_file
 import os.path
 import json
 import re
 
-# >> config.py
 # load config variables
-abs_dir = os.path.split(os.path.abspath(__file__))[0] # for transliteration.py
-settings_file_path = os.path.join(abs_dir, 'config.json')
-config_data = open(settings_file_path,'r').read()
-config = json.loads(config_data)
+config = load_config_dict_from_json_file()
 scansion_syllable_separator = config["scansion_syllable_separator"] # e.g. " "
 
 class Verse(object):
@@ -34,7 +32,7 @@ class Verse(object):
 		self.text_syllabified = None	# string, may contain newlines
 		self.syllable_weights = None	# string, may contain newlines
 		self.morae_per_line = None 		# list of integers
-		self.meter = None				# string
+		self.meter_label = None			# string
 
 
 	def summarize(self):
@@ -51,7 +49,10 @@ class Verse(object):
 
 		# quick view of syllables and morae
 		for i, line in enumerate(self.syllable_weights.split('\n')):
-			out_buffer += buffer_line % (line, self.morae_per_line[i])
+			try:
+				out_buffer += buffer_line % (line, self.morae_per_line[i])
+			except IndexError:
+				out_buffer += buffer_line % (line, '_?_')
 		out_buffer += '\n'
 
 		T = Transliterator(from_scheme='SLP', to_scheme=self.original_scheme)
@@ -70,11 +71,16 @@ class Verse(object):
 				out_buffer += buffer_bit % syll
 			out_buffer += '\n'
 			# display corresponding weights
-			for s_w in self.syllable_weights.split('\n')[i]:
-				out_buffer += buffer_bit % s_w
+			try:
+				for s_w in self.syllable_weights.split('\n')[i]:
+					out_buffer += buffer_bit % s_w
+			except IndexError: pass
 			out_buffer += '\n'
 
-		out_buffer += '\n' + self.meter_label + '\n'
+		try:
+			out_buffer += '\n' + self.meter_label + '\n'
+		except TypeError:
+			out_buffer += '\n' + '(vṛttam ajñātam...)' + '\n'
 
 		return out_buffer
 
@@ -108,7 +114,8 @@ class Scanner(object):
 		for c in list(set(result)):
 			if c not in phonemes.character_set[scheme_in]:
 				result = result.replace(c,'')
-		result_scheme = scheme_detection.detect_scheme(result)
+		SD = SchemeDetector()
+		result_scheme = SD.detect_scheme(result)
 		return result
 
 
@@ -151,17 +158,19 @@ class Scanner(object):
 			# e.g. 'ya.dA.ya.dA.hi.Da.rma.sya.glA.ni.rBa.va.ti.BA.ra.ta.'
 			# BUT e.g. 'a.Byu.tTA.na.ma.Da.rma.sya.ta.dA.tmA.na.Msf.jA.mya.ha.m'
 
-			# remove final scansion_syllable_separator before final consonant(s)
-			if line_syllables[-1] in phonemes.SLP_consonants_for_scansion:
+			try:
+				# remove final scansion_syllable_separator before final consonant(s)
+				if line_syllables[-1] in phonemes.SLP_consonants_for_scansion:
 
-				# final separator is incorrect, remove
-				final_separator = line_syllables.rfind(scansion_syllable_separator)
-				line_syllables = ( line_syllables[:final_separator]
-									+ line_syllables[final_separator+1:] )
+					# final separator is incorrect, remove
+					final_separator = line_syllables.rfind(scansion_syllable_separator)
+					line_syllables = ( line_syllables[:final_separator]
+										+ line_syllables[final_separator+1:] )
 
-				line_syllables += scansion_syllable_separator
+					line_syllables += scansion_syllable_separator
 
-			# e.g. 'a.Byu.tTA.na.ma.Da.rma.sya.ta.dA.tmA.na.Msf.jA.mya.ham.'
+				# e.g. 'a.Byu.tTA.na.ma.Da.rma.sya.ta.dA.tmA.na.Msf.jA.mya.ham.'
+			except IndexError: pass
 
 			syllables_by_line.append(line_syllables)
 
@@ -187,7 +196,11 @@ class Scanner(object):
 			line_weights = ''
 
 			syllables = line.split(scansion_syllable_separator)
-			if syllables[-1] == '': syllables.pop(-1) # in case of final separator
+
+			try:
+				while syllables[-1] == '':
+					syllables.pop(-1) # in case of final separator(s)
+			except IndexError: pass
 
 			for n, syllable in enumerate(syllables):
 
@@ -199,8 +212,11 @@ class Scanner(object):
 
 					# heavy by position:
 					# consonant closes syllable or is second letter of next syllable
-					syllable[-1] in (phonemes.SLP_consonants_for_scansion) or
-					n <= (len(syllables)-2) and len(syllables[n+1]) > 1 and syllables[n+1][1] in (phonemes.SLP_consonants_for_scansion)
+					syllable[-1] in (phonemes.SLP_consonants_for_scansion)
+					or
+					n <= (len(syllables)-2)
+					and len(syllables[n+1]) > 1
+					and syllables[n+1][1] in (phonemes.SLP_consonants_for_scansion)
 
 					):
 
@@ -244,6 +260,10 @@ class Scanner(object):
 		Returns string of 'gaRa'-trisyllable abbreviation, e.g. 'nml'.
 		"""
 
+		for c in list(set(syl_wts)):
+			if c not in ['l','g']:
+				return None
+
 		weights_of_curr_gaRa = ''
 		overall_abbreviation = ''
 
@@ -278,6 +298,7 @@ class Scanner(object):
 
 		# set up Transliterator and schemes
 		T = Transliterator() # default settings
+		SD = SchemeDetector()
 		if T.scheme_in.upper() in scheme_detection.auto_detect_synonyms:
 			T.set_detected_scheme()
 		V.original_scheme = T.scheme_in
