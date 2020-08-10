@@ -120,23 +120,20 @@ Data Source | 1\_text\_original | 2.1\_text\_metadata | 2.4\_text\_cleaned | 3\_
 private collections  | NO | y | NO | y |
 
 
-Roman Scheme | Full Name | Example
+Scheme | Full Name | Example
 ----- | -------- | ------- |
-IAST | International Alphabet of Sanskrit Transliteration | paṭhāmaḥ |
-SLP | Sanskrit Library Protocol 1 | paWAmaH |
-HK | Harvard-Kyoto | paThAmaH |
-VH | Velthuis | pa.thaama.h |
-WX | Scheme developed at IIT Kanpur ... |
-ITRANS | Indian Languages Transliteration | paThaamaH |
-CSX | Classical Sanskrit eXtended | paòâmaþ |
-REE | Scheme used by Ronald E. Emmerick | paèÃma÷ |
-OAST (my own made-up name) | Scheme used by Oliver Hellwig in older DCS data (incomplete) | pa®åmaµ |
-
-Indic  Scheme | Full Name | Example
------ | -------- | ------- |
-DEV | Devanagari Unicode | पठामः |
-BENGALI | Bengali Unicode | পঠামঃ |
-GUJARATI | Gujarati Unicode | પઠામઃ |
+Roman | IAST | International Alphabet of Sanskrit Transliteration | paṭhāmaḥ |
+| SLP | Sanskrit Library Protocol 1 | paWAmaH |
+| HK | Harvard-Kyoto | paThAmaH |
+| VH | Velthuis | pa.thaama.h |
+| WX | Scheme developed at IIT Kanpur ... |
+| ITRANS | Indian Languages Transliteration | paThaamaH |
+| CSX | Classical Sanskrit eXtended | paòâmaþ |
+| REE | Scheme used by Ronald E. Emmerick | paèÃma÷ |
+| OAST (my own made-up name) | Scheme used by Oliver Hellwig in older DCS data (incomplete) | pa®åmaµ |
+Indic | DEV | Devanagari Unicode | पठामः |
+| BENGALI | Bengali Unicode | পঠামঃ |
+| GUJARATI | Gujarati Unicode | પઠામઃ |
 
 Skrutable is general enough to accept more such simple schemes, whether Roman or Indic (e.g., Gurmukhi, maybe Dravidian or other Brāhmī-based ones like Burmese). In theory, symbols beyond those used for standard Classical Sanskrit, such as those used for representing Vedic or Prakrits, may also work, but different schemes have different virtues, and there may be limits. For example, one's primary Indic data may contain jihvāmūlīya and upadhmānīya, and IAST can be easily extended to accomodate this, but other Roman schemes may not be so easily extended. On the other hand, this project is not designed for modern languages such as Hindi, and such extensions may run into greater difficulties. Nevertheless, users are welcome to make the own attempts at extension by modifying the modules `phonemes.py` and `scheme_maps` on the pattern of the other Roman or Indic scripts, as appropriate. If you do it, let me know how it goes, or also let me know if you'd like me to try.
 
