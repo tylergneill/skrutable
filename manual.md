@@ -120,6 +120,34 @@ Data Source | 1\_text\_original | 2.1\_text\_metadata | 2.4\_text\_cleaned | 3\_
 private collections  | NO | y | NO | y |
 
 
+<table>
+    <thead>
+        <tr>
+            <th>Scheme Type</th>
+            <th>Scheme Short Name</th>
+            <th>Scheme Full Name</th>
+            <th>Example</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td rowspan=9>L1 Name</td>
+            <td>IAST</td>
+            <td>International Alphabet of Sanskrit Transliteration</td>
+            <td>paṭhāmaḥ</td>
+        </tr>
+        <tr>
+            <td>SLP</td>
+            <td>Sanskrit Library Protocol 1</td>
+            <td>paWAmaH</td>
+        </tr>
+        <tr>
+            <td rowspan=3>L2 Name B</td>
+            <td>L3 Name C</td>
+        </tr>
+    </tbody>
+</table>
+
 Scheme | Full Name | Example
 ----- | -------- | ------- |
 Roman | IAST | International Alphabet of Sanskrit Transliteration | paṭhāmaḥ |
