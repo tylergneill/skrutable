@@ -113,7 +113,9 @@ class Transliterator():
 
 				elif curr_char in phonemes.SLP_vowels_with_mAtrAs:
 					# from SLP: any vowel except 'a', therefore need mātrā
-					content_out += phonemes.vowel_mAtrA_lookup[to_scheme][curr_char]
+					try: # being careful of stray characters
+						content_out += phonemes.vowel_mAtrA_lookup[to_scheme][curr_char]
+					except KeyError: pass
 
 				elif curr_char in phonemes.vowels_that_preempt_virAma:
 					# from Indic: vowel mātrā (only possibility left)

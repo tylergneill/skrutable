@@ -81,7 +81,7 @@ CSX						REE						OAST
 
 """Available Mappings
 to SLP   IAST_SLP, DEV_SLP, HK_SLP, VH_SLP, ITRANS_SLP
-      (SLP_SLP)
+(SLP_SLP)
 from SLP  SLP_IAST, SLP_DEV, SLP_HK, SLP_VH, SLP_ITRANS
 """
 

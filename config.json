@@ -4,5 +4,7 @@
 "avoid_virAma_indic_scripts": true,
 "avoid_virAma_all_scripts": false,
 "scansion_syllable_separator": " ",
-"default_meter_segmentation_mode": "resplit_soft"
+"default_meter_segmentation_mode": "resplit_hard",
+"default_gui_frame_size": [1300,750],
+"default_gui_orientation": "top_bottom"
 }

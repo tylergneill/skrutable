@@ -36,6 +36,10 @@ replacements = [
 '(n) ([%s])' % vowels,
 '(n) ([%s])' % voiced_consonants,
 '(m) ([%s])' % vowels,
+]
+
+# the following is just space for notes to cut-and-paste above or vice versa
+replacements_more = [
 # this space is sometimes removed by some modern scholars
 "([Aeo]) (')",
 ]

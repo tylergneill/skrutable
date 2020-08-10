@@ -358,7 +358,6 @@ class MeterIdentifier(object):
 			if fails, then: try other modes in set order (1 2 3; depending on length 4)
 
 		"""
-		import pdb; pdb.set_trace()
 
 		self.Scanner = S = Sc()
 
@@ -376,8 +375,8 @@ class MeterIdentifier(object):
 				# capture user pāda breaks as indicated by newlines
 				newline_indices = [m.start() for m in re.finditer('\n', V.text_syllabified)]
 
-				try: newline_indices[3]
-				except IndexError: return V # didn't find full four pādas
+				try: newline_indices[2]
+				except IndexError: return V # didn't find three newlines for four pādas
 
 				ab_pAda_br = V.text_syllabified[:newline_indices[0]].count(scansion_syllable_separator)
 				bc_pAda_br = V.text_syllabified[:newline_indices[1]].count(scansion_syllable_separator)
@@ -400,8 +399,8 @@ class MeterIdentifier(object):
 				ab_pAda_br, bc_pAda_br, cd_pAda_br = (
 					[ i * quarter_len for i in [1, 2, 3] ] )
 
-			self.Verses_found = self.wiggle_identify(  V, syllable_list, VT,
-							ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len)
+			self.Verses_found = self.wiggle_identify( V, syllable_list, VT,
+							ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len )
 
 			# could look for best match if len(self.Verses_found) > 1
 			if len(self.Verses_found) > 0:
