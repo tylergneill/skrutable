@@ -120,8 +120,8 @@ Data Source | 1\_text\_original | 2.1\_text\_metadata | 2.4\_text\_cleaned | 3\_
 private collections  | NO | y | NO | y |
 
 
-Roman schemes
------ | -------- | -------
+Roman Scheme | Full Name | Example
+----- | -------- | ------- |
 IAST | International Alphabet of Sanskrit Transliteration | paṭhāmaḥ |
 SLP | Sanskrit Library Protocol 1 | paWAmaH |
 HK | Harvard-Kyoto | paThAmaH |
@@ -132,8 +132,8 @@ CSX | Classical Sanskrit eXtended | paòâmaþ |
 REE | Scheme used by Ronald E. Emmerick | paèÃma÷ |
 OAST (my own made-up name) | Scheme used by Oliver Hellwig in older DCS data (incomplete) | pa®åmaµ |
 
-Indic schemes
------ | -------- | -------
+Indic  Scheme | Full Name | Example
+----- | -------- | ------- |
 DEV | Devanagari Unicode | पठामः |
 BENGALI | Bengali Unicode | পঠামঃ |
 GUJARATI | Gujarati Unicode | પઠામઃ |
