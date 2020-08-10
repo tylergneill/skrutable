@@ -7,10 +7,10 @@ The Skrutable library is meant to make Sanskrit text processing less "inscrutibl
 * Modular subpackages for transliteration, scheme detection, scansion, and meter identification, with consistent, object-based syntax.
 * A simple desktop GUI for quick overview access to main functions.
 * A consolidated config file (`config.json`) for controlling important user options, including
- * scheme defaults (incl. auto-detection)
- * preserving IAST jihvāmūlīya and upadhmānīya
- * virāma and extra space avoidance for Indic schemes
- * default segmentation behavior for meter identification
+	* scheme defaults (incl. auto-detection)
+	* preserving IAST jihvāmūlīya and upadhmānīya
+	* virāma and extra space avoidance for Indic schemes
+	* default segmentation behavior for meter identification
 * Readable code
 
 # Example of Scansion and Meter Identification and Output
@@ -61,7 +61,7 @@ indravajrā (ttjgg)
 2. Put the Skrutable folder where your other Python libraries are.
 * (Using virtualenv? Put it directly in the `lib/python3.x/site-packages` folder.)
 * (Not? Put it where your other packages are.)
- * (Hint: command line `python -c "import sys; print(sys.path)"`)
+	* (Hint: command line `python -c "import sys; print(sys.path)"`)
 
 3. Within the folder, look for and try the desktop GUI file in the dist folder.
 * If the included Mac executable works for you, then you're all set and ready to use Skrutable.
@@ -75,27 +75,27 @@ indravajrā (ttjgg)
 
 2. Python Library
 * Import modules, instantiate their respective objects, and use those objects' primary methods.
- * Transliteration
-  1. `from skrutable.transliteration import Transliterator`
-  2. `T = Transliterator()`
-  3. `string_result = T.transliterate(input_string) # using defaults`
-  4. `another_string_result = T.transliterate(input_string, to_scheme='BENGALI')`
- * Scheme Detection
-  1. `from skrutable.scheme_detection import SchemeDetector`
-  2. `SD = SchemeDetector()`
-  3. `string_result = SD.detect_scheme(input_string)`
- * Scansion
-  1. `from skrutable.scansion import Scanner`
-  2. `S = Scanner()`
-  3. `object_result = S.scan(input_string)`
-  4. `print( object_result.summarize() )`
- * Meter Identification
-  1. `from skrutable.meter_identification import MeterIdentifier`
-  2. `MI = MeterIdentifier()`
-  3. `object_result = MI.identify_meter(input_string) # default seg_mode`
-  4. `print( object_result.summarize() )`
-  5. `another_object_result = MI.identify_meter(input_string, seg_mode='resplit_hard')`
-  6. `print( another_object_result.meter_label() )`
+	* Transliteration
+		1. `from skrutable.transliteration import Transliterator`
+		2. `T = Transliterator()`
+		3. `string_result = T.transliterate(input_string) # using defaults`
+		4. `another_string_result = T.transliterate(input_string, to_scheme='BENGALI')`
+	* Scheme Detection
+		1. `from skrutable.scheme_detection import SchemeDetector`
+		2. `SD = SchemeDetector()`
+		3. `string_result = SD.detect_scheme(input_string)`
+	* Scansion
+		1. `from skrutable.scansion import Scanner`
+		2. `S = Scanner()`
+		3. `object_result = S.scan(input_string)`
+		4. `print( object_result.summarize() )`
+	* Meter Identification
+		1. `from skrutable.meter_identification import MeterIdentifier`
+		2. `MI = MeterIdentifier()`
+		3. `object_result = MI.identify_meter(input_string) # default seg_mode`
+		4. `print( object_result.summarize() )`
+		5. `another_object_result = MI.identify_meter(input_string, seg_mode='resplit_hard')`
+		6. `print( another_object_result.meter_label() )`
 
 For more examples, see `demo.py`.
 
@@ -114,20 +114,22 @@ For more, see `skrutable.py`.
 The schemes used in Skrutable are all referred to by simple strings, as follows (also with their full names and examples of each):
 
 Roman schemes
-IAST International Alphabet of Sanskrit Transliteration paṭhāmaḥ
-SLP Sanskrit Library Protocol 1 paWAmaH
-HK Harvard-Kyoto paThAmaH
-VH Velthuis pa.thaama.h
-WX Scheme developed at IIT Kanpur ...
-ITRANS Indian Languages Transliteration paThaamaH
-CSX Classical Sanskrit eXtended paòâmaþ
-REE Scheme used by Ronald E. Emmerick paèÃma÷
-OAST (my own made-up name) Scheme used by Oliver Hellwig in older DCS data pa®åmaµ (incomplete)
+-------------
+IAST | International Alphabet of Sanskrit Transliteration | paṭhāmaḥ
+SLP | Sanskrit Library Protocol 1 | paWAmaH
+HK | Harvard-Kyoto | paThAmaH
+VH | Velthuis | pa.thaama.h
+WX | Scheme developed at IIT Kanpur ...
+ITRANS | Indian Languages Transliteration | paThaamaH
+CSX | Classical Sanskrit eXtended | paòâmaþ
+REE | Scheme used by Ronald E. Emmerick | paèÃma÷
+OAST (my own made-up name) | Scheme used by Oliver Hellwig in older DCS data (incomplete) | pa®åmaµ 
 
 Indic schemes
-DEV Devanagari Unicode पठामः
-BENGALI Bengali Unicode ...
-GUJARATI Gujarati Unicode ...
+-------------
+DEV | Devanagari Unicode | पठामः
+BENGALI | Bengali Unicode | পঠামঃ
+GUJARATI | Gujarati Unicode | પઠામઃ
 
 Skrutable is general enough to accept more such simple schemes, whether Roman or Indic (e.g., Gurmukhi, maybe Dravidian or other Brāhmī-based ones like Burmese). In theory, symbols beyond those used for standard Classical Sanskrit, such as those used for representing Vedic or Prakrits, may also work, but different schemes have different virtues, and there may be limits. For example, one's primary Indic data may contain jihvāmūlīya and upadhmānīya, and IAST can be easily extended to accomodate this, but other Roman schemes may not be so easily extended. On the other hand, this project is not designed for modern languages such as Hindi, and such extensions may run into greater difficulties. Nevertheless, users are welcome to make the own attempts at extension by modifying the modules `phonemes.py` and `scheme_maps` on the pattern of the other Roman or Indic scripts, as appropriate. If you do it, let me know how it goes, or also let me know if you'd like me to try.
 
