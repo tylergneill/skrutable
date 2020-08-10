@@ -29,7 +29,7 @@ class ExamplePanel(wx.Panel):
 		self.T = Tr()
 		self.S = Sc()
 		self.V = None
-		self.M = MtrId()
+		self.MI = MtrId()
 
 
 		if default_gui_orientation == "left_right":
@@ -90,7 +90,9 @@ class ExamplePanel(wx.Panel):
 
 	def EvtScanBtn(self,event):
 		self.output_box.Clear()
-		self.V = self.S.scan(self.buffer)
+		print("buffer: ", self.buffer)
+		print("self.input_choice:", self.input_choice)
+		self.V = self.S.scan(self.buffer, from_scheme=self.input_choice)
 
 		L1 = self.V.morae_per_line
 		L2 = self.V.syllable_weights.split('\n')
@@ -102,7 +104,7 @@ class ExamplePanel(wx.Panel):
 
 	def EvtIdBtn(self,event):
 		self.output_box.Clear()
-		self.V = self.M.identify_meter(self.buffer, seg_mode=self.split_option_choice)
+		self.V = self.MI.identify_meter(self.buffer, seg_mode=self.split_option_choice)
 		self.output_box.WriteText(self.V.summarize())
 
 app = wx.App(False)

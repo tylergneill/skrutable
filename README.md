@@ -1,6 +1,6 @@
 # Skrutable
 
-A suite of 'scrutable' text processing tools for 'Sanskroot'. These tools aim to provide what you need, be easy to use (and code with, for those interested), and make Sanskrit text less difficult to work with overall. `माहाराष्ट्रोच्चारणं जयते ।`
+A suite of tools for text processing in Sanskrit.
 
 See [manual.md](./manual.md) for instructions.
 

@@ -1,129 +1,30 @@
 # Skrutable
 
-A small library of practical tools for Sanskrit text processing in Python, including transliteration and scansion. 
+The Skrutable library is meant to make Sanskrit text processing less "inscrutible", both for interested laypeople and for serious students and scholars, especially those who know a bit of Python and are curious to peek under the hood.
 
-'Skrutable' like 'less inscrutible' but also like /saṃskrut/ in Maharashtrian pronunciation.
+# Features
 
-# About
+* Modular subpackages for transliteration, scheme detection, scansion, and meter identification, with consistent, object-based syntax.
+* A simple desktop GUI for quick overview access to main functions.
+* A consolidated config file (`config.json`) for controlling important user options, including
+ * scheme defaults (incl. auto-detection)
+ * preserving IAST jihvāmūlīya and upadhmānīya
+ * virāma and extra space avoidance for Indic schemes
+ * default segmentation behavior for meter identification
+* Readable code
 
-These tools are meant to be robust enough for the use of Sanskrit scholars but also easy enough for amateurs to use as well. In particular, I have in mind serious Sanskrit students, who, if they know some Python, are invited to not only use these tools but also read through the code in order to learn more about the mechanical nature of operations like transliteration and scansion.
+# Example of Scansion and Meter Identification and Output
 
-# Web App
-
-Preview the functionality online [here](...).
-
-# Installation
-
-~~~
-For the standalone desktop app, download this repo (easiest: green "Download" button), find the executable for your system (Mac: ..., Windows: ...), and run as you would any other program (e.g., double-click).
-~~~
-
-For the Python library:
-
-1. Have Python 3 installed. (Homebrew recommended. Programmed in 3.7.)
-
-2. Command line: `pip install skrutable`.
-* You can also clone the repo, run Python interactively, and import locally.
-
-3. Install Python libraries:
-* Easiest: `pip install -r requirements.txt`
-* (A virtual environment is recommended if you know how.)
-* (You can also install the libraries in `requirements.txt` manually.)
-
-# How to Use
-
-1. Example commands for import and use of key library objects are provided in `demo.py`. After you get the hang of it, write you own code that imports and uses skrutable as you need it.
-
-2. The schemes used are all referred to by simple strings, as follows (also with their full names and examples of each):
-
-Roman Indic
-IAST International Alphabet of Sanskrit Transliteration paṭhāmaḥ
-SLP Sanskrit Library Protocol 1 paWAmaH
-HK Harvard-Kyoto paThAmaH
-DEV Devanagari Unicode पठामः
-BENGALI Bengali Unicode ...
-GUJARATI Gujarati Unicode ...
-VH Velthuis pa.thaama.h
-WX Scheme developed at IIT Kanpur ...
-ITRANS Indian Languages Transliteration paThaamaH
-CSX Classical Sanskrit eXtended paòâmaþ
-REE Scheme used by Ronald E. Emmerick paèÃma÷
-OAST (my own made-up name) Scheme used by Oliver Hellwig in older DCS data pa®åmaµ (incomplete)
-
-For more detail, see [Terminological Note on 'Scheme' versus 'Encoding'](#Terminological-Note-on-Scheme-versus-Encoding) below.
-
-3. The default behavior is to auto-detect the input transliteration scheme, but you can override this.
-
-4. You can also issue simple requests on the command line, e.g., transliterating a whole file to Bengali script with `python skrutable.py --transliterate FILENAME.txt to_scheme=BENGALI`, or identify the meter of a verse with `python skrutable --identify_meter FILENAME.txt`.
-
-5. Tweak user options in `config.py`:
-* avoid virāma
-* default scheme out
-* preserve IAST jihvAmUlIya and upaDmAnIya
-
-# Examples
-
-## Transliteration
+Input
 
 ~~~
-from skrutable import transliteration as tr
-T = tr.Transliterator()
-text = 'रामः'
-result = T.transliterate(text, from_scheme='DEV', to_scheme='IAST')
-print(result)
->> rāmaḥ
+सम्पूर्णकुम्भो न करोति शब्दम् अर्धो घटो घोषमुपैति नूनम् /
+विद्वान्कुलीनो न करोति गर्वं जल्पन्ति मूढास्तु गुणैर्विहीनाः //
 ~~~
 
-or
+Output
 
 ~~~
-from skrutable.transliteration import Transliterator as Tr
-T = Tr()
-~~~
-
-etc.
-
-## Scansion
-
-Command line: `python skrutable --identify_meter FILENAME.txt`.
-
-Where FILENAME.txt contains:
-
-~~~
-सत्यात्मनि परसंज्ञा स्वपरविभागात् परिग्रहद्वेषौ अनयोः सम्प्रतिबद्धाः सर्वे दोषाः प्रजायन्ते
-~~~
-
-This creates FILENAME_out.txt in the same location, containing:
-
-~~~
-    ggllllgg   [12]
-llllgglglggg   [18]
-    llggllgg   [12]
-    gggglggg   [15]
-
-     sa    tyā    tma     ni     pa     ra     sa   ṃjñā       
-      g      g      l      l      l      l      g      g
-    sva     pa     ra     vi    bhā     gā    tpa     ri    gra     ha    dve    ṣau       
-      l      l      l      l      g      g      l      g      l      g      g      g
-      a     na     yo    ḥsa   mpra     ti     ba  ddhāḥ       
-      l      l      g      g      l      l      g      g
-     sa    rve     do     ṣā   ḥpra     jā     ya    nte       
-      g      g      g      g      l      g      g      g
-
-āryā
-~~~
-
-or in interactive mode (similarly when importing within other code):
-
-~~~
-from skrutable import scansion as sc
-S = sc.Scanner()
-text = "sampUrNakumbho na karoti zabdam\nardho ghaTo ghoSamupaiti nUnam |\nvidvAnkulIno na karoti garvaM\njalpanti mUDhAstu guNairvihInAH ||"
-scanning_results = S.scan(text)
-
-print scanning_results.summary()
-
->>>
 gglggllglgg   [18]
 gglggllglgg   [18]
 gglggllglgg   [18]
@@ -137,33 +38,105 @@ gglggllglgg   [18]
    g     g     l     g     g     l     l     g     l     g     g
   ja   lpa   nti    mū   ḍhā   stu    gu   ṇai   rvi    hī   nāḥ      
    g     g     l     g     g     l     l     g     l     g     g
->>>
 
-print sc.identify(scanning_results)
-
->>> indravajrā (ttjgg)
+indravajrā (ttjgg)
 ~~~
 
-# Terminology Note: 'Encoding', 'Script', 'Scheme'
+# Getting Started
 
-'Encoding' is used in the sense of UTF-8 (of which ASCII is a subset) as opposed to UTF-16 (or an older one such as 'Western ISO Latin 1').
+## Requirements:
 
-'Script' is used in the sense of alphabet or syllabary (actually abugida), meaning the set of characters as might be written out by hand (Sanskrit 'lipi'), e.g., Devanagari script, Bengali script, and the Roman (a.k.a. Latin) alphabet (often extended with technical diacritics).
+1. Have Python 3 installed. (Homebrew recommended)
 
-'Scheme' (the main term used here) is meant in the sense of a specific standardized convention for representing Sanskrit on the computer, including Devanagari Unicode (here just 'Devanagari'), Bengali Unicode (or just 'Bengali'), and various Romanizations such as IAST, SLP1, Velthuis, and ITRANS.
+2. Have the wxpython and py2app libraries installed. (pip and virtualenv recommended)
+* (Also needed are numpy and setuptools, but these come along with wxpython.)
+* (Other imports natively pre-installed: collections, copy, json, operator, os, re)
 
-Note therefore that simply speaking of "Roman" or "Unicode" is not specific enough to clearly indicate either a script or a scheme. "Roman" describes both SLP and IAST, whereas "Unicode" describes both IAST and Devanagari.
+## Installation:
 
-Note also that fonts are completely ignored here.
+* (Eventually: Installation via pip. For now...)
 
-For more information, please refer to ["Transliteration of Devanagari" by D. Wujastyk](http://indology.info/email/members/wujastyk/) and ["Linguistic Issues in Encoding Sanskrit" by P. Scharf](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).
+1. Download this repo. (Easiest: green "Download" button)
+
+2. Put the Skrutable folder where your other Python libraries are.
+* (Using virtualenv? Put it directly in the `lib/python3.x/site-packages` folder.)
+* (Not? Put it where your other packages are.)
+ * (Hint: command line `python -c "import sys; print(sys.path)"`)
+
+3. Within the folder, look for and try the desktop GUI file in the dist folder.
+* If the included Mac executable works for you, then you're all set and ready to use Skrutable.
+* If not (e.g., you're a Windows user), and if you want to use the GUI, you may need to make a new executable for your machine. See [py2app instructions](https://py2app.readthedocs.io/en/latest/tutorial.html) for more details.
+
+# Use Options:
+
+1. Desktop GUI
+* If the desktop GUI executable is working, you can just use that for simple individual operations.
+* If not, and if you want to use the GUI, you can run the `gui.py` file to start it instead.
+
+2. Python Library
+* Import modules, instantiate their respective objects, and use those objects' primary methods.
+ * Transliteration
+  1. `from skrutable.transliteration import Transliterator`
+  2. `T = Transliterator()`
+  3. `string_result = T.transliterate(input_string) # using defaults`
+  4. `another_string_result = T.transliterate(input_string, to_scheme='BENGALI')`
+ * Scheme Detection
+  1. `from skrutable.scheme_detection import SchemeDetector`
+  2. `SD = SchemeDetector()`
+  3. `string_result = SD.detect_scheme(input_string)`
+ * Scansion
+  1. `from skrutable.scansion import Scanner`
+  2. `S = Scanner()`
+  3. `object_result = S.scan(input_string)`
+  4. `print( object_result.summarize() )`
+ * Meter Identification
+  1. `from skrutable.meter_identification import MeterIdentifier`
+  2. `MI = MeterIdentifier()`
+  3. `object_result = MI.identify_meter(input_string) # default seg_mode`
+  4. `print( object_result.summarize() )`
+  5. `another_object_result = MI.identify_meter(input_string, seg_mode='resplit_hard')`
+  6. `print( another_object_result.meter_label() )`
+
+For more examples, see `demo.py`.
+
+3. Command Line
+
+You can also issue certain simple requests on the command line. Examples:
+* Transliterating a whole file to Bengali script with `python skrutable.py --transliterate FILENAME.txt to_scheme=BENGALI`
+* Identifying the meter of a verse with `python skrutable.py --identify_meter FILENAME.txt`
+
+For more, see `skrutable.py`.
+
+# Schemes
+
+(Note: “Encoding” here means, e.g., UTF-8, and “script” here means a distinct character set (e.g. Roman alphabet, Devanagari alphabet/syllabary/abugida). Thus, neither "Roman" nor "Unicode" are used here to refer to the schemes between which, e.g., one can transliterate in Sanskrit computing. For more, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).)
+
+The schemes used in Skrutable are all referred to by simple strings, as follows (also with their full names and examples of each):
+
+Roman schemes
+IAST International Alphabet of Sanskrit Transliteration paṭhāmaḥ
+SLP Sanskrit Library Protocol 1 paWAmaH
+HK Harvard-Kyoto paThAmaH
+VH Velthuis pa.thaama.h
+WX Scheme developed at IIT Kanpur ...
+ITRANS Indian Languages Transliteration paThaamaH
+CSX Classical Sanskrit eXtended paòâmaþ
+REE Scheme used by Ronald E. Emmerick paèÃma÷
+OAST (my own made-up name) Scheme used by Oliver Hellwig in older DCS data pa®åmaµ (incomplete)
+
+Indic schemes
+DEV Devanagari Unicode पठामः
+BENGALI Bengali Unicode ...
+GUJARATI Gujarati Unicode ...
+
+Skrutable is general enough to accept more such simple schemes, whether Roman or Indic (e.g., Gurmukhi, maybe Dravidian or other Brāhmī-based ones like Burmese). In theory, symbols beyond those used for standard Classical Sanskrit, such as those used for representing Vedic or Prakrits, may also work, but different schemes have different virtues, and there may be limits. For example, one's primary Indic data may contain jihvāmūlīya and upadhmānīya, and IAST can be easily extended to accomodate this, but other Roman schemes may not be so easily extended. On the other hand, this project is not designed for modern languages such as Hindi, and such extensions may run into greater difficulties. Nevertheless, users are welcome to make the own attempts at extension by modifying the modules `phonemes.py` and `scheme_maps` on the pattern of the other Roman or Indic scripts, as appropriate. If you do it, let me know how it goes, or also let me know if you'd like me to try.
+
+Note finally that schemes can be auto-detected based on input character frequencies, but results deteriorate the shorter and/or messier the input string becomes. Set options for default input/output scheme behavior in the config file.
 
 # Whitespace and virāma
 
-A handy bonus feature in `transliteration.py` is supplied by `virAma_avoidance.py`. Setting the corresponding option in `config.py` to `True` will get rid of unsightly virāmas and spaces that tend to result when transliterating from any schemes (typically Roman ones) that use more space between words to any schemes (typically Indic ones) that typically forego such explicit spaces in deference to the traditional ligature principle (not least, e.g., because of the extra virāmas that Indic scripts require to represent word-final consonants). Note that such a transformation actually results in a loss of valuable information which can be reversed only at great expense (for large texts, many hours of skilled human labor, even if assisted by a well-trained neural network).
+A last bonus feature in `transliteration.py` is supplied by `virAma_avoidance.py`. Setting the corresponding option in `config.py` to `True` will get rid of unsightly virāmas and spaces that tend to result when transliterating from any schemes (typically Roman ones) that use more space between words to any schemes (typically Indic ones) that typically forego such explicit spaces in deference to the traditional ligature principle (not least, e.g., because of the extra virāmas that Indic scripts require to represent word-final consonants). Note that such a transformation actually results in a loss of valuable information which can be reversed only at great expense (for large texts, many hours of skilled human labor, even if assisted by a well-trained neural network).
 
-# Going Further
+# Sandhi and Compound Segmentation
 
-Mixed-language input is not yet supported, so everything in the input must be Sanskrit. However, if your input is in carefully encoded XML, you can distinguish what is Sanskrit based on XML tags and their attributes and pass only that data to the transliterator.
-
-If you need symbols beyond those used for Classical Sanskrit, such as those for Vedic or Pali, you'll need to add these yourself. A limited number of extensions are currently supported (e.g. jihvāmūlīya and upadhmānīya, used in some editions) through special options. You can also easily add more scripts/schemes (e.g., Gurmukhi, maybe Dravidian or other Brāhmī-based ones like Burmese) by modifying the modules `phonemes.py` and `scheme_maps` on the pattern of the other Roman or Indic scripts, as appropriate. This project is not designed for modern languages such as Hindi, whether with the additional code points in Devanagari Unicode or the additional elements in the ISO ... Romanization.
+For automated sandhi and compound segmentation, Oliver Hellwig's and Sebastian Nehrdich's [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp) is recommended. It requires tensorflow.

@@ -279,18 +279,18 @@ class Scanner(object):
 		return overall_abbreviation
 
 
-	def scan(self, cntnts):
+	def scan(self, cntnts, from_scheme=None):
 		"""
 		Manages overall scansion procedure:
 			accept raw text
-			detect transliteration scheme
+			detect or accept transliteration scheme
 			clean text for scansion
 			transliterate text to SLP
 			perform syllabification
 			determine syllable weights (i.e., convert to l/g pattern)
 			count morae per line
 
-		Returns results of each of these steps as updated Verse object attributes.
+		Returns results of each of these steps as attributes of single Verse object.
 		"""
 
 		V = Verse()
@@ -298,9 +298,12 @@ class Scanner(object):
 
 		# set up Transliterator and schemes
 		T = Transliterator() # default settings
-		SD = SchemeDetector()
-		if T.scheme_in.upper() in scheme_detection.auto_detect_synonyms:
+		if from_scheme != None:
+			from_scheme = from_scheme.upper()
+			T.scheme_in = from_scheme
+		elif T.scheme_in.upper() in scheme_detection.auto_detect_synonyms:
 			T.set_detected_scheme()
+
 		V.original_scheme = T.scheme_in
 		T.scheme_out = 'SLP'
 
