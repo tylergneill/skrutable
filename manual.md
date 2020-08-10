@@ -76,26 +76,26 @@ indravajrā (ttjgg)
 2. Python Library
 * Import modules, instantiate their respective objects, and use those objects' primary methods.
 	* Transliteration
-		1. `from skrutable.transliteration import Transliterator`
-		2. `T = Transliterator()`
-		3. `string_result = T.transliterate(input_string) # using defaults`
-		4. `another_string_result = T.transliterate(input_string, to_scheme='BENGALI')`
+		* `from skrutable.transliteration import Transliterator`
+		* `T = Transliterator()`
+		* `string_result = T.transliterate(input_string) # using defaults`
+		* `another_string_result = T.transliterate(input_string, to_scheme='BENGALI')`
 	* Scheme Detection
-		1. `from skrutable.scheme_detection import SchemeDetector`
-		2. `SD = SchemeDetector()`
-		3. `string_result = SD.detect_scheme(input_string)`
+		* `from skrutable.scheme_detection import SchemeDetector`
+		* `SD = SchemeDetector()`
+		* `string_result = SD.detect_scheme(input_string)`
 	* Scansion
-		1. `from skrutable.scansion import Scanner`
-		2. `S = Scanner()`
-		3. `object_result = S.scan(input_string)`
-		4. `print( object_result.summarize() )`
+		* `from skrutable.scansion import Scanner`
+		* `S = Scanner()`
+		* `object_result = S.scan(input_string)`
+		* `print( object_result.summarize() )`
 	* Meter Identification
-		1. `from skrutable.meter_identification import MeterIdentifier`
-		2. `MI = MeterIdentifier()`
-		3. `object_result = MI.identify_meter(input_string) # default seg_mode`
-		4. `print( object_result.summarize() )`
-		5. `another_object_result = MI.identify_meter(input_string, seg_mode='resplit_hard')`
-		6. `print( another_object_result.meter_label() )`
+		* `from skrutable.meter_identification import MeterIdentifier`
+		* `MI = MeterIdentifier()`
+		* `object_result = MI.identify_meter(input_string) # default seg_mode`
+		* `print( object_result.summarize() )`
+		* `another_object_result = MI.identify_meter(input_string, seg_mode='resplit_hard')`
+		* `print( another_object_result.meter_label() )`
 
 For more examples, see `demo.py`.
 
@@ -113,8 +113,15 @@ For more, see `skrutable.py`.
 
 The schemes used in Skrutable are all referred to by simple strings, as follows (also with their full names and examples of each):
 
+Data Source | 1\_text\_original | 2.1\_text\_metadata | 2.4\_text\_cleaned | 3\_text\_doc\_and\_word\_segmented |
+------------ | ------------------- | ------------------------------- | ------------------------------ | ------------------------------------ |
+[GRETIL](http://gretil.sub.uni-goettingen.de/gretil.html) | y | y | y | y |
+[SARIT](http://sarit.indology.info/) | y | y | y | y |
+private collections  | NO | y | NO | y |
+
+
 Roman schemes
--------------
+----- | -------- | -------
 IAST | International Alphabet of Sanskrit Transliteration | paṭhāmaḥ
 SLP | Sanskrit Library Protocol 1 | paWAmaH
 HK | Harvard-Kyoto | paThAmaH
@@ -126,7 +133,7 @@ REE | Scheme used by Ronald E. Emmerick | paèÃma÷
 OAST (my own made-up name) | Scheme used by Oliver Hellwig in older DCS data (incomplete) | pa®åmaµ 
 
 Indic schemes
--------------
+----- | -------- | -------
 DEV | Devanagari Unicode | पठामः
 BENGALI | Bengali Unicode | পঠামঃ
 GUJARATI | Gujarati Unicode | પઠામઃ
