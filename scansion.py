@@ -55,7 +55,7 @@ class Verse(object):
 				out_buffer += buffer_line % (line, '_?_')
 		out_buffer += '\n'
 
-		T = Transliterator(from_scheme='SLP', to_scheme=self.original_scheme)
+		T = Transliterator(from_scheme='SLP', to_scheme='IAST')
 		transl_syll_txt = T.transliterate(self.text_syllabified)
 
 		line_max = []

@@ -4,43 +4,21 @@ The Skrutable library is meant to make Sanskrit text processing less "inscrutibl
 
 # Features
 
-* Modular subpackages for transliteration, scheme detection, scansion, and meter identification, with consistent, object-based syntax.
-* A simple desktop GUI for quick overview access to main functions.
+* Four main functionalities
+	* scheme detection (robust and vector-based)
+	* transliteration (extensible)
+	* scansion (with aligned, monospace output)
+	* meter identification (with resplitting options)
+
+* Modular Python subpackages, with consistent, object-based syntax, written in readable code.
+
+* A simple desktop GUI for quick overview access to main functionalities.
+![screenshot](img/gui_dark.png)
+
 * A consolidated config file (`config.json`) for controlling important user options, including
-	* scheme defaults (incl. auto-detection)
-	* preserving IAST jihvāmūlīya and upadhmānīya
-	* virāma and extra space avoidance for Indic schemes
-	* default segmentation behavior for meter identification
-* Readable code
-
-# Example of Scansion and Meter Identification and Output
-
-Input
-
-~~~
-सम्पूर्णकुम्भो न करोति शब्दम् अर्धो घटो घोषमुपैति नूनम् /
-विद्वान्कुलीनो न करोति गर्वं जल्पन्ति मूढास्तु गुणैर्विहीनाः //
-~~~
-
-Output
-
-~~~
-gglggllglgg   [18]
-gglggllglgg   [18]
-gglggllglgg   [18]
-gglggllglgg   [18]
-
-  sa   mpū   rṇa    ku  mbho    na    ka    ro    ti    śa  bdam      
-   g     g     l     g     g     l     l     g     l     g     g
-   a  rdho   gha    ṭo   gho    ṣa    mu   pai    ti    nū   nam      
-   g     g     l     g     g     l     l     g     l     g     g
-  vi   dvā   nku    lī    no    na    ka    ro    ti    ga  rvaṃ      
-   g     g     l     g     g     l     l     g     l     g     g
-  ja   lpa   nti    mū   ḍhā   stu    gu   ṇai   rvi    hī   nāḥ      
-   g     g     l     g     g     l     l     g     l     g     g
-
-indravajrā (ttjgg)
-~~~
+	* default scheme choices (incl. auto-detection)
+	* virāma avoidance control (esp. for transliteration to Indic schemes)
+	* default resplit option for meter identification
 
 # Getting Started
 
@@ -75,15 +53,15 @@ indravajrā (ttjgg)
 
 2. Python Library
 * Import modules, instantiate their respective objects, and use those objects' primary methods.
+	* Scheme Detection
+		* `from skrutable.scheme_detection import SchemeDetector`
+		* `SD = SchemeDetector()`
+		* `string_result = SD.detect_scheme(input_string)`
 	* Transliteration
 		* `from skrutable.transliteration import Transliterator`
 		* `T = Transliterator()`
 		* `string_result = T.transliterate(input_string) # using defaults`
 		* `another_string_result = T.transliterate(input_string, to_scheme='BENGALI')`
-	* Scheme Detection
-		* `from skrutable.scheme_detection import SchemeDetector`
-		* `SD = SchemeDetector()`
-		* `string_result = SD.detect_scheme(input_string)`
 	* Scansion
 		* `from skrutable.scansion import Scanner`
 		* `S = Scanner()`
@@ -102,8 +80,8 @@ For more examples, see `demo.py`.
 3. Command Line
 
 You can also issue certain simple requests on the command line. Examples:
-* Transliterating a whole file to Bengali script with `python skrutable.py --transliterate FILENAME.txt to_scheme=BENGALI`
-* Identifying the meter of a verse with `python skrutable.py --identify_meter FILENAME.txt`
+* Transliterating a file to Bengali script: `python skrutable.py --transliterate FILENAME.txt to_scheme=BENGALI`
+* Identifying the meter of a verse: `python skrutable.py --identify_meter FILENAME.txt`
 
 For more, see `skrutable.py`.
 
@@ -183,14 +161,14 @@ The schemes used in Skrutable are all referred to by simple strings, as follows 
     </tbody>
 </table>
 
-Skrutable is general enough to accept more such simple schemes, whether Roman or Indic (e.g., Gurmukhi, maybe Dravidian or other Brāhmī-based ones like Burmese). In theory, symbols beyond those used for standard Classical Sanskrit, such as those used for representing Vedic or Prakrits, may also work, but different schemes have different virtues, and there may be limits. For example, one's primary Indic data may contain jihvāmūlīya and upadhmānīya, and IAST can be easily extended to accomodate this, but other Roman schemes may not be so easily extended. On the other hand, this project is not designed for modern languages such as Hindi, and such extensions may run into greater difficulties. Nevertheless, users are welcome to make the own attempts at extension by modifying the modules `phonemes.py` and `scheme_maps` on the pattern of the other Roman or Indic scripts, as appropriate. If you do it, let me know how it goes, or also let me know if you'd like me to try.
+Skrutable can be extended to include more such simple Roman or Brāhmi-based schemes for Classical Sanskrit and perhaps even related classical languages like Vedic or Prakrits (specifically, by modifying the modules `phonemes.py` and `scheme_maps.py`). On the other hand, it is not designed for modern languages with phonologies that differ significantly from Sanskrit (e.g., Hindi).
 
-Note finally that schemes can be auto-detected based on input character frequencies, but results deteriorate the shorter and/or messier the input string becomes. Set options for default input/output scheme behavior in the config file.
+Note also that scheme auto-detection can be useful whenever manually specifying the input scheme might be inconvenient, but it should be used with caution, as it works based on input character frequencies, and so results will deteriorate the shorter and/or messier the input string becomes.
 
-# Whitespace and virāma
+# Virāma (and Whitespace) Avoidance
 
-A last bonus feature in `transliteration.py` is supplied by `virAma_avoidance.py`. Setting the corresponding option in `config.py` to `True` will get rid of unsightly virāmas and spaces that tend to result when transliterating from any schemes (typically Roman ones) that use more space between words to any schemes (typically Indic ones) that typically forego such explicit spaces in deference to the traditional ligature principle (not least, e.g., because of the extra virāmas that Indic scripts require to represent word-final consonants). Note that such a transformation actually results in a loss of valuable information which can be reversed only at great expense (for large texts, many hours of skilled human labor, even if assisted by a well-trained neural network).
+Sometimes, usually for aesthetic purposes (i.e., only rarely for scientific ones), it is best to suppress extra virāmas and spaces between words, such as where Indic scripts would instead feature ligatures. In these cases, Skrutable's transliteration includes a simple but handy virāma avoidance feature, which eliminates spaces (and with them virāmas) between certain specified combinations of characters. This can be controlled in `config.py` and `virAma_avoidance.py`.
 
 # Sandhi and Compound Segmentation
 
-For automated sandhi and compound segmentation, Oliver Hellwig's and Sebastian Nehrdich's [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp) is recommended. It requires tensorflow.
+For automated sandhi and compound segmentation, Oliver Hellwig's and Sebastian Nehrdich's pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), produces good results and is recommended. It requires tensorflow.

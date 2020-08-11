@@ -9,7 +9,7 @@ from copy import copy
 
 # load config variables
 config = load_config_dict_from_json_file()
-default_meter_segmentation_mode = config["default_meter_segmentation_mode"] # e.g. "simple_strict"
+default_resplit_option = config["default_resplit_option"] # e.g. "none"
 
 class VerseTester(object):
 	"""
@@ -18,7 +18,7 @@ class VerseTester(object):
 	Most methods take a populated scansion.Verse object as an argument;
 	test_as_anuzwuB_odd_even() is an exception.
 
-	Primary method attempt_simple_strict_identification returns scansion.Verse object
+	Primary method attempt_none_identification returns scansion.Verse object
 	with populated meter_label attribute if identification was successful.
 	"""
 
@@ -231,7 +231,7 @@ class VerseTester(object):
 
 
 
-	def attempt_simple_strict_identification(self, Vrs):
+	def attempt_none_identification(self, Vrs):
 		"""
 		= old ScansionResults.identify
 
@@ -325,7 +325,7 @@ class MeterIdentifier(object):
 						temp_V.syllable_weights = S.scan_syllable_weights(temp_V.text_syllabified)
 						temp_V.morae_per_line = S.count_morae(temp_V.syllable_weights)
 
-						id_result = VrsTster.attempt_simple_strict_identification(temp_V)
+						id_result = VrsTster.attempt_none_identification(temp_V)
 
 						if id_result != None:
 							temp_V.meter_label = id_result
@@ -337,7 +337,7 @@ class MeterIdentifier(object):
 		return Verses_found
 
 
-	def identify_meter(self, rw_str, seg_mode=default_meter_segmentation_mode):
+	def identify_meter(self, rw_str, resplit_option=default_resplit_option, from_scheme=None):
 		"""
 		User-facing method, manages overall identification procedure:
 			accepts raw string
@@ -348,7 +348,7 @@ class MeterIdentifier(object):
 			returns single Verse object with best identification result
 
 		four segmentation modes:
-			1) simple_strict: uses three newlines exactly as provided in input
+			1) none: uses three newlines exactly as provided in input
 			2) resplit_hard: discards input newlines, resplits based on overall length
 			3) resplit_soft: initializes length-based resplit with input newlines
 			4) single_pAda: evaluates input as single pAda (verse quarter)
@@ -361,17 +361,17 @@ class MeterIdentifier(object):
 
 		self.Scanner = S = Sc()
 
-		V = S.scan(rw_str) 			# static, mostly populated Verse object
+		V = S.scan(rw_str, from_scheme=from_scheme)	# gets back mostly populated Verse object
 
 		self.VerseTester = VT = VerseTester()
 
-		if seg_mode == 'simple_strict':
+		if resplit_option == 'none':
 
-			V.meter_label = VT.attempt_simple_strict_identification(V)
+			V.meter_label = VT.attempt_none_identification(V)
 
-		elif seg_mode in ['resplit_hard', 'resplit_soft']:
+		elif resplit_option in ['resplit_hard', 'resplit_soft']:
 
-			if seg_mode == 'resplit_soft':
+			if resplit_option == 'resplit_soft':
 				# capture user pāda breaks as indicated by newlines
 				newline_indices = [m.start() for m in re.finditer('\n', V.text_syllabified)]
 
@@ -394,7 +394,7 @@ class MeterIdentifier(object):
 			total_syll_count = len(syllable_list)
 			quarter_len = int(total_syll_count / 4)
 
-			if seg_mode == 'resplit_hard':
+			if resplit_option == 'resplit_hard':
 				# discard user pāda breaks, initialize length-based ones
 				ab_pAda_br, bc_pAda_br, cd_pAda_br = (
 					[ i * quarter_len for i in [1, 2, 3] ] )
