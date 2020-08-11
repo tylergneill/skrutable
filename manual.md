@@ -36,7 +36,7 @@ The Skrutable library is meant to make Sanskrit text processing less "inscrutibl
 
 * (Eventually: Installation via pip. For now...)
 
-* Download this repo. (Easiest: green "Download" button)
+* [Download this repo](https://github.com/tylergneill/Skrutable/archive/master.zip). (same as green "Code" button on [GitHub main page](https://github.com/tylergneill/Skrutable))
 
 * Put the Skrutable folder where your other Python libraries are.
 	* Using virtualenv? You can put it directly in the relevant `lib/python3.x/site-packages` folder.
@@ -45,9 +45,9 @@ The Skrutable library is meant to make Sanskrit text processing less "inscrutibl
 
 3. Get the necessary Python libraries.
 
-* If just using the library, then only numpy may be necessary to install. (pip recommended.)
+* If just using the library, then only numpy may be necessary to install. (pip recommended)
 
-* If wishing to use the desktop GUI, then also install wxpython (includes numpy, setuptools) and py2app
+* If wishing to use the desktop GUI, then also install wxpython (includes numpy, setuptools) and py2app.
 
 * (Should already be natively pre-installed: collections, copy, json, operator, os, re)
 
@@ -186,9 +186,9 @@ Numerous other projects exist which some users may find preferable to Skrutable 
 
 Scheme Detection | Transliteration | Scansion & Meter Identification | Main Author
 -------- | ---------- | --------- | --------
-([detect.py](https://github.com/sanskrit/detect.py)) | **[Sanscript](http://learnsanskrit.org/tools/sanscript)** (also via PyPi [here](https://github.com/sanskrit-coders/indic_transliteration)]) | (n/a) | Arun Prasad
+([detect.py](https://github.com/sanskrit/detect.py)) | **[Sanscript](http://learnsanskrit.org/tools/sanscript)** (also via PyPi [here](https://github.com/sanskrit-coders/indic_transliteration)) | (n/a) | Arun Prasad
 (n/a) | **[Aksharamukha](http://aksharamukha.appspot.com/converter)** | (n/a) | Vinodh Rajan
-([detect.py](https://github.com/shreevatsa/sanskrit/blob/master/transliteration/detect.py)) | ([transliteration](https://github.com/shreevatsa/sanskrit/tree/master/transliteration)) | [Metre identifier](http://sanskritmetres.appspot.com/) | Shreevatsa R.
+([detect.py](https://github.com/shreevatsa/sanskrit/blob/master/transliteration/detect.py)) | ([transliteration](https://github.com/shreevatsa/sanskrit/tree/master/transliteration)) | **[Metre identifier](http://sanskritmetres.appspot.com/)** | Shreevatsa R.
 (n/a) | (n/a) | **[Meter Identifying Tool](http://sanskritlibrary.org:8080/MeterIdentification/)** | Keshav Melnad
 (n/a) | **[Transliteration Tool](https://www.ashtangayoga.info/philosophy/sanskrit-and-devanagari/transliteration-tool/)** | (n/a) | AshtangaYoga.info
 (n/a) | [Sanscription](http://www.tyfen.com/sanscription/) | (n/a) | Marc Tiefenauer
@@ -199,8 +199,8 @@ The desktop GUI app is made with wxpython and py2app, and I'm so far having trou
 * Have the required libraries installed (see [Getting Started](#getting-started) above).
 * Create a setup.py file: `$ py2applet --make-setup gui.py`
 * Build the application in alias mode: `$ python setup.py py2app -A`
-* Rename and move the resulting alias-mode app to Applications: `mv /PATH/TO/SKRUTABLE/skrutable/dist/gui.app /Applications/Skrutable.app`
+* Rename and move the resulting alias-mode app to Applications: `mv /PATH/TO/skrutable/dist/gui.app /Applications/Skrutable.app`
 
-If all goes well, you should now be able to, e.g., run Skrutable via Spotlight.
+If all goes well, you should now be able to run the Skrutable GUI as you would any other app on macOS, for example via Spotlight.
 
-I haven't yet tried this for Windows. Ideally, I would stop developing this desktop app and focus instead on a web app, but I'm not a web developer yet. Any and all help with this welcome.
+I haven't yet tried this for Windows. Ideally, I would stop developing this desktop app and focus instead on a web app, but because I don't yet have those skills myself, any and all help would be welcome.
