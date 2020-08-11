@@ -113,13 +113,6 @@ For more, see `skrutable.py`.
 
 The schemes used in Skrutable are all referred to by simple strings, as follows (also with their full names and examples of each):
 
-Data Source | 1\_text\_original | 2.1\_text\_metadata | 2.4\_text\_cleaned | 3\_text\_doc\_and\_word\_segmented |
------------- | ------------------- | ------------------------------- | ------------------------------ | ------------------------------------ |
-[GRETIL](http://gretil.sub.uni-goettingen.de/gretil.html) | y | y | y | y |
-[SARIT](http://sarit.indology.info/) | y | y | y | y |
-private collections  | NO | y | NO | y |
-
-
 <table>
     <thead>
         <tr>
@@ -131,7 +124,7 @@ private collections  | NO | y | NO | y |
     </thead>
     <tbody>
         <tr>
-            <td rowspan=9>L1 Name</td>
+            <td rowspan=8>Roman</td>
             <td>IAST</td>
             <td>International Alphabet of Sanskrit Transliteration</td>
             <td>paṭhāmaḥ</td>
@@ -142,26 +135,53 @@ private collections  | NO | y | NO | y |
             <td>paWAmaH</td>
         </tr>
         <tr>
-            <td rowspan=3>L2 Name B</td>
-            <td>L3 Name C</td>
+            <td>HK</td>
+            <td>Harvard-Kyoto</td>
+            <td>paThAmaH</td>
+        </tr>
+        <tr>
+            <td>VH</td>
+            <td>Velthuis</td>
+            <td>pa.thaama.h</td>
+        </tr>
+        <tr>
+            <td>WX</td>
+            <td>Scheme developed at IIT Kanpur</td>
+            <td>...</td>
+        </tr>
+        <tr>
+            <td>ITRANS</td>
+            <td>Indian Languages Transliteration</td>
+            <td>paThaamaH</td>
+        </tr>
+        <tr>
+            <td>CSX</td>
+            <td>Classical Sanskrit eXtended</td>
+            <td>paòâmaþ</td>
+        </tr>
+        <tr>
+            <td>REE</td>
+            <td>Scheme used by Ronald E. Emmerick</td>
+            <td>paèÃma÷</td>
+        </tr>
+        <tr>
+            <td rowspan=3>Indic</td>
+            <td>DEV</td>
+            <td>Devanagari Unicode</td>
+            <td>पठामः</td>
+        </tr>
+        <tr>
+            <td>BENGALI</td>
+            <td>Bengali Unicode</td>
+            <td>পঠামঃ</td>
+        </tr>
+        <tr>
+            <td>GUJARATI</td>
+            <td>Gujarati Unicode</td>
+            <td>પઠામઃ</td>
         </tr>
     </tbody>
 </table>
-
-Scheme | Full Name | Example
------ | -------- | ------- |
-Roman | IAST | International Alphabet of Sanskrit Transliteration | paṭhāmaḥ |
-| SLP | Sanskrit Library Protocol 1 | paWAmaH |
-| HK | Harvard-Kyoto | paThAmaH |
-| VH | Velthuis | pa.thaama.h |
-| WX | Scheme developed at IIT Kanpur ... |
-| ITRANS | Indian Languages Transliteration | paThaamaH |
-| CSX | Classical Sanskrit eXtended | paòâmaþ |
-| REE | Scheme used by Ronald E. Emmerick | paèÃma÷ |
-| OAST (my own made-up name) | Scheme used by Oliver Hellwig in older DCS data (incomplete) | pa®åmaµ |
-Indic | DEV | Devanagari Unicode | पठामः |
-| BENGALI | Bengali Unicode | পঠামঃ |
-| GUJARATI | Gujarati Unicode | પઠામઃ |
 
 Skrutable is general enough to accept more such simple schemes, whether Roman or Indic (e.g., Gurmukhi, maybe Dravidian or other Brāhmī-based ones like Burmese). In theory, symbols beyond those used for standard Classical Sanskrit, such as those used for representing Vedic or Prakrits, may also work, but different schemes have different virtues, and there may be limits. For example, one's primary Indic data may contain jihvāmūlīya and upadhmānīya, and IAST can be easily extended to accomodate this, but other Roman schemes may not be so easily extended. On the other hand, this project is not designed for modern languages such as Hindi, and such extensions may run into greater difficulties. Nevertheless, users are welcome to make the own attempts at extension by modifying the modules `phonemes.py` and `scheme_maps` on the pattern of the other Roman or Indic scripts, as appropriate. If you do it, let me know how it goes, or also let me know if you'd like me to try.
 
