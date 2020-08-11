@@ -5,72 +5,76 @@ The Skrutable library is meant to make Sanskrit text processing less "inscrutibl
 # Features
 
 * Four main functionalities
-	* scheme detection (robust and vector-based)
+	* scheme detection (frequency-based for robustness) [still under development]
 	* transliteration (extensible)
-	* scansion (with aligned, monospace output)
-	* meter identification (with resplitting options)
+	* scansion (with aligned output)
+	* meter identification (extensible, with semiautomatic pāda re-splitting)
 
-* Modular Python subpackages, with consistent, object-based syntax, written in readable code.
+* Three use options
 
-* A simple desktop GUI for quick and easy access to main functionalities.
+	* Python library
+		* (modular subpackages; consistent object-based syntax; readable code)
 
-![screenshot](img/gui_dark.png)
+	* Python command-line interface
 
-* A consolidated config file (`config.json`) for controlling important user options, including
+	* Desktop GUI (wxpython-based; currently macOS only; requires additional setup)
+		![screenshot](img/gui_light_left_right.png)
+		![screenshot](img/gui_dark_top_bottom.png)
+
+	* (Hopefully one day soon: a web-based version of the GUI)
+
+* User options all in one place (`config.json`)
 	* default scheme choices (incl. auto-detection)
-	* virāma avoidance (esp. for transliteration to Indic schemes)
-	* default resplit option for meter identification
+	* virāma avoidance behavior (esp. for transliteration to Indic schemes)
+	* default auto-resplit options for meter identification
 
 # Getting Started
 
-## Requirements:
-
 1. Have Python 3 installed. (Homebrew recommended)
 
-2. Have the wxpython and py2app libraries installed. (pip and virtualenv recommended)
-	* (Also needed are numpy and setuptools, but these come along with wxpython.)
-	* (Other imports natively pre-installed: collections, copy, json, operator, os, re)
-
-## Installation:
+2. Install Skrutable.
 
 * (Eventually: Installation via pip. For now...)
 
-1. Download this repo. (Easiest: green "Download" button)
+* Download this repo. (Easiest: green "Download" button)
 
-2. Put the Skrutable folder where your other Python libraries are.
-	* (Using virtualenv? Put it directly in the `lib/python3.x/site-packages` folder.)
-	* (Not? Put it where your other packages are.)
-		* (Hint: command line `python -c "import sys; print(sys.path)"`)
+* Put the Skrutable folder where your other Python libraries are.
+	* Using virtualenv? You can put it directly in the relevant `lib/python3.x/site-packages` folder.
+	* Not? Then you can put it where your other packages normally install to (e.g. with pip).
+		* (Hint: command line `python -c "import sys; print(sys.path)"` to see where this is.)
 
-3. Within the folder, look for and try the desktop GUI file in the dist folder.
-	* If the included Mac desktop GUI executable works for you, then you're all set and can start using all of Skrutable.
-	* If not (e.g., you're a Windows user), and if you want to use the GUI by e.g. double-clicking on an icon, then for now, you'll need to make your own executable for your machine. See [here](https://py2app.readthedocs.io/en/latest/tutorial.html) for instructions on how to use py2app to do so.
+3. Get the necessary Python libraries.
 
-# Use Options:
+* If just using the library, then only numpy may be necessary to install. (pip recommended.)
 
-1. Desktop GUI
-	* If your desktop GUI executable is working, you can just use that for simple individual operations.
-	* If not, and if you want to use the GUI, your other option is to run the `gui.py` file at the command line, e.g., by navigating to the file and running `python gui.py`. The result is exactly the same, or even more flexible if you want to change the code yourself.
+* If wishing to use the desktop GUI, then also install wxpython (includes numpy, setuptools) and py2app
 
-2. Python Library
+* (Should already be natively pre-installed: collections, copy, json, operator, os, re)
+
+For GUI setup, see [Getting the Desktop GUI to Work](#getting-the-desktop-gui-to-work) below.
+
+# Using the Python Library
 
 Import modules, instantiate their respective objects, and use those objects' primary methods.
 
-* Scheme Detection
+1. Scheme Detection
 	* `from skrutable.scheme_detection import SchemeDetector`
 	* `SD = SchemeDetector()`
 	* `string_result = SD.detect_scheme(input_string)`
-* Transliteration
+
+2. Transliteration
 	* `from skrutable.transliteration import Transliterator`
 	* `T = Transliterator()`
 	* `string_result = T.transliterate(input_string) # using defaults`
 	* `another_string_result = T.transliterate(input_string, to_scheme='BENGALI')`
-* Scansion
+
+3. Scansion
 	* `from skrutable.scansion import Scanner`
 	* `S = Scanner()`
 	* `object_result = S.scan(input_string)`
 	* `print( object_result.summarize() )`
-* Meter Identification
+
+4. Meter Identification
 	* `from skrutable.meter_identification import MeterIdentifier`
 	* `MI = MeterIdentifier()`
 	* `object_result = MI.identify_meter(input_string) # default seg_mode`
@@ -80,17 +84,17 @@ Import modules, instantiate their respective objects, and use those objects' pri
 
 For more examples, see `demo.py`.
 
-3. Command Line
+# Using the Command Line Interface
 
 You can also issue certain simple requests on the command line. Examples:
-	* Transliterating a file to Bengali script: `python skrutable.py --transliterate FILENAME.txt to_scheme=BENGALI`
-	* Identifying the meter of a verse: `python skrutable.py --identify_meter FILENAME.txt`
+1. Transliterate to Bengali script: `python skrutable.py --transliterate FILENAME.txt to_scheme=BENGALI`
+2. Identify the meter of a verse: `python skrutable.py --identify_meter FILENAME.txt`
 
 For more, see `skrutable.py`.
 
 # Schemes
 
-(Note: “Encoding” here means basically UTF-8, and “script” means a distinct character set (e.g. Roman alphabet, Devanagari alphabet/syllabary/abugida). Thus, neither "Roman" nor "Unicode" are used here to refer to the “schemes” between which, e.g., one can transliterate in Sanskrit computing. For more on such terminology, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).)
+(Note: “Encoding” here means basically UTF-8, and “script” means a distinct character set (e.g. Roman alphabet, Devanagari alphabet/syllabary/abugida). Thus, neither "Roman" nor "Unicode" are used here to refer to the “(transliteration) schemes” described below. For more on such terminology, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).)
 
 The schemes used in Skrutable are all referred internally to by simple strings, namely, the abbreviations in the following table:
 
@@ -164,21 +168,21 @@ The schemes used in Skrutable are all referred internally to by simple strings, 
     </tbody>
 </table>
 
-Skrutable can be extended to include more such simple Roman or Brāhmi-based schemes for Classical Sanskrit and perhaps even related classical languages like Vedic or Prakrits (specifically, by modifying the modules `phonemes.py` and `scheme_maps.py`). On the other hand, it is not designed for modern languages with phonologies that differ significantly from Sanskrit (such as Hindi, Tamil, and so on). For such languages, 
+Skrutable can be extended to include more such simple Roman- or Brāhmi-based schemes for Classical Sanskrit and perhaps even related classical languages like Vedic or Prakrits (specifically, by modifying the modules `phonemes.py` and `scheme_maps.py`). On the other hand, it is not designed for modern languages with phonologies that differ significantly from Sanskrit (such as Hindi, Tamil, and so on). For tools made for such languages, cp. [Related Sanskrit Transliteration and Scansion Projects](#related-sanskrit-transliteration-and-scansion-projects) below.
 
-Note also that scheme auto-detection can be useful whenever manually specifying the input scheme might be inconvenient, but it should be used with caution, as it works based on input character frequencies, and so results will deteriorate the shorter and/or messier the input string becomes.
+Note also that scheme auto-detection can be useful whenever manually specifying the input scheme might be inconvenient, but that this should be used with caution, since this feature in Skrutable works based on input character frequencies, and so results will deteriorate the shorter and/or messier the input string becomes.
 
 # Virāma (and Whitespace) Avoidance
 
-Sometimes, usually for aesthetic purposes (i.e., only rarely for scientific ones), it is best to suppress extra virāmas and spaces between words, such as where Indic scripts would instead feature ligatures. In these cases, Skrutable's transliteration includes a simple but handy virāma avoidance feature, based on straightforward regular expressions and string replacements, which eliminates spaces (and with them virāmas) between certain specified combinations of characters. This can be controlled in `config.py` and `virAma_avoidance.py`.
+Sometimes, usually for aesthetic purposes (read: only rarely for scientific ones), it is best to suppress extra virāmas and spaces between words, such as where Indic scripts would instead feature ligatures. In these cases, Skrutable's transliteration includes a simple but handy virāma avoidance feature, based on straightforward regular expressions and string replacements, which eliminates spaces (and with them virāmas) between certain specified combinations of characters. This can be controlled in `config.py` and `virAma_avoidance.py`.
 
 # Sandhi and Compound Segmentation
 
-For automated sandhi and compound segmentation, Oliver Hellwig's and Sebastian Nehrdich's pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), produces good results and is recommended. It requires tensorflow.
+For automated sandhi and compound segmentation, the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), produces good, usable results and is recommended. It requires tensorflow.
 
 # Related Sanskrit Transliteration and Scansion Projects
 
-Numerous other projects exist which some users may find preferable to Skrutable in certain respects (e.g., available script support, installability, availability online). Here are my recommended highlights.
+Numerous other projects exist which some users may find preferable to Skrutable in certain respects (e.g., more script support, easier to install, nicer looking, available online). Here are my recommended highlights.
 
 Scheme Detection | Transliteration | Scansion & Meter Identification | Main Author
 -------- | ---------- | --------- | --------
@@ -189,6 +193,14 @@ Scheme Detection | Transliteration | Scansion & Meter Identification | Main Auth
 (n/a) | **[Transliteration Tool](https://www.ashtangayoga.info/philosophy/sanskrit-and-devanagari/transliteration-tool/)** | (n/a) | AshtangaYoga.info
 (n/a) | [Sanscription](http://www.tyfen.com/sanscription/) | (n/a) | Marc Tiefenauer
 
-# Feedback
+# Getting the desktop GUI to work
 
-Find me online (Tyler G. Neill) and get in touch by email with questions, comments, or suggestions.
+The desktop GUI app is made with wxpython and py2app, and I'm so far having trouble compiling a working standalone binary that others can also use. However, py2app has an "alias" mode which I have seen others get to work on their machines, following the [same instructions](https://py2app.readthedocs.io/en/latest/tutorial.html) I did. Try the following:
+* Have the required libraries installed (see [Getting Started](#getting-started) above).
+* Create a setup.py file: `$ py2applet --make-setup gui.py`
+* Build the application in alias mode: `$ python setup.py py2app -A`
+* Rename and move the resulting alias-mode app to Applications: `mv /PATH/TO/SKRUTABLE/skrutable/dist/gui.app /Applications/Skrutable.app`
+
+If all goes well, you should now be able to, e.g., run Skrutable via Spotlight.
+
+I haven't yet tried this for Windows. Ideally, I would stop developing this desktop app and focus instead on a web app, but I'm not a web developer yet. Any and all help with this welcome.
