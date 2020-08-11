@@ -176,17 +176,17 @@ Sometimes, usually for aesthetic purposes (i.e., only rarely for scientific ones
 
 For automated sandhi and compound segmentation, Oliver Hellwig's and Sebastian Nehrdich's pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), produces good results and is recommended. It requires tensorflow.
 
-# Related Transliteration and Meter Toolkit Projects
+# Related Sanskrit Transliteration and Scansion Projects
 
-Numerous other projects exist, which some users may find preferable to Skrutable in certain respects (e.g., available script support, installability, availability online):
+Numerous other projects exist which some users may find preferable to Skrutable in certain respects (e.g., available script support, installability, availability online). Here are my recommended highlights.
 
 Scheme Detection | Transliteration | Scansion & Meter Identification | Main Author
 -------- | ---------- | --------- | --------
 ([detect.py](https://github.com/sanskrit/detect.py)) | **[Sanscript](http://learnsanskrit.org/tools/sanscript)** (also via PyPi [here](https://github.com/sanskrit-coders/indic_transliteration)]) | (n/a) | Arun Prasad
-(n/a) | [Aksharamukha](http://aksharamukha.appspot.com/converter) | (n/a) | Vinodh Rajan
-([scheme detection](https://github.com/shreevatsa/sanskrit/blob/master/transliteration/detect.py)) | ([transliteration](https://github.com/shreevatsa/sanskrit/tree/master/transliteration)) | [Metre identifier](http://sanskritmetres.appspot.com/) | Shreevatsa R.
-(n/a) | (n/a) | [Meter Identifying Tool](http://sanskritlibrary.org:8080/MeterIdentification/) | Keshav Melnad
-(n/a) | [Transliteration Tool](https://www.ashtangayoga.info/philosophy/sanskrit-and-devanagari/transliteration-tool/) | (n/a) | AshtangaYoga.info
+(n/a) | **[Aksharamukha](http://aksharamukha.appspot.com/converter)** | (n/a) | Vinodh Rajan
+([detect.py](https://github.com/shreevatsa/sanskrit/blob/master/transliteration/detect.py)) | ([transliteration](https://github.com/shreevatsa/sanskrit/tree/master/transliteration)) | [Metre identifier](http://sanskritmetres.appspot.com/) | Shreevatsa R.
+(n/a) | (n/a) | **[Meter Identifying Tool](http://sanskritlibrary.org:8080/MeterIdentification/)** | Keshav Melnad
+(n/a) | **[Transliteration Tool](https://www.ashtangayoga.info/philosophy/sanskrit-and-devanagari/transliteration-tool/)** | (n/a) | AshtangaYoga.info
 (n/a) | [Sanscription](http://www.tyfen.com/sanscription/) | (n/a) | Marc Tiefenauer
 
 # Feedback
