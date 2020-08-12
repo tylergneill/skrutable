@@ -188,9 +188,9 @@ For such cases, the skrutable.transliteration module includes a simple but handy
 Some schemes have internal options, whether at the scheme or encoding level. For example, IAST is sometimes represented in UTF-8 with combining diacritics, sometimes with precomposed combinations. Round-trip transliteration in Skrutable can be used to iron out such differences. For example, with IAST-IAST transliteration (yes, you can do that):
 
 ~~~
-"rāmaḥ" == 'r' + 'a' + '¯' chr(0x0304) + 'm' + 'a' + 'h' + '.' chr(0x0323)
+"rāmaḥ" == 'r' + 'a' + '¯' (U+0304)) + 'm' + 'a' + 'h' + '.' (U+0323)
 >>
-"rāmaḥ" == 'r' + 'ā' + chr(0x0101) + 'm' + 'a' + 'ḥ' chr(0x1e25)
+"rāmaḥ" == 'r' + 'ā' (U+0101) + 'm' + 'a' + 'ḥ' (U+1E25)
 ~~~
 
 That is, Skrutable currently favors precomposed characters for IAST, and it has similar default behaviors for the occasional scheme-internal option, as well (e.g., 'Ri', 'RRi', and 'R^i' for 'ṛ' in ITRANS). See and control details in `scheme_maps.py`.
