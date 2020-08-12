@@ -175,7 +175,7 @@ Note also that scheme auto-detection can be useful whenever manually specifying 
 
 # Virāma (and Whitespace) Avoidance
 
-Sometimes, usually for aesthetic purposes (read: only rarely for scientific ones), it is best to suppress extra virāmas and spaces between words, such as where Indic scripts would instead feature ligatures. For example:
+Sometimes, usually for aesthetic purposes (read: only rarely for scientific ones), it's best to suppress extra virāmas and spaces between words, such as where Indic scripts would instead feature ligatures. For example:
 
 ~~~
 “asty eva” >> (“अस्त्य् एव”) >> “अस्त्येव”
@@ -185,7 +185,7 @@ For such cases, the skrutable.transliteration module includes a simple but handy
 
 # Encoding Normalization
 
-Some schemes have internal encoding options. For example, IAST is sometimes stored with combining diacritics, sometimes with precomposed combinations. Round-trip transliteration in Skrutable can be used to iron out such differences. For example, with IAST-IAST transliteration (yes, you can do that):
+Some schemes have internal options, whether at the scheme or encoding level. For example, IAST is sometimes represented in UTF-8 with combining diacritics, sometimes with precomposed combinations. Round-trip transliteration in Skrutable can be used to iron out such differences. For example, with IAST-IAST transliteration (yes, you can do that):
 
 ~~~
 "rāmaḥ" == 'r' + 'a' + '¯' chr(0x0304) + 'm' + 'a' + 'h' + '.' chr(0x0323)
@@ -193,11 +193,11 @@ Some schemes have internal encoding options. For example, IAST is sometimes stor
 "rāmaḥ" == 'r' + 'ā' + chr(0x0101) + 'm' + 'a' + 'ḥ' chr(0x1e25)
 ~~~
 
-Default behavior favors precomposed characters in IAST and certain, somewhat arbitrary choices for other schemes, as well; see and control details in `scheme_maps.py`.
+That is, Skrutable currently favors precomposed characters for IAST, and it has similar default behaviors for the occasional scheme-internal option, as well (e.g., 'Ri', 'RRi', and 'R^i' for 'ṛ' in ITRANS). See and control details in `scheme_maps.py`.
 
 # Sandhi and Compound Segmentation
 
-For automated sandhi and compound segmentation, which is a much, much harder problem but whose results can still comfortable be represented in plain-text, Skrutable defers to the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), which produces good, usable results. (TensorFlow required)
+For automated sandhi and compound segmentation — which is a much, much harder problem to solve, but whose output can still be comfortably represented in readable plain-text and so which lends itself to inclusion in such a text-processing toolkit as this — Skrutable defers to the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), which produces good, usable results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)). (TensorFlow required)
 
 # Related Sanskrit Transliteration and Scansion Projects
 
