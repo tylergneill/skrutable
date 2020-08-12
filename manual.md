@@ -178,7 +178,7 @@ Note also that scheme auto-detection can be useful whenever manually specifying 
 Sometimes, usually for aesthetic purposes (read: only rarely for scientific ones), it is best to suppress extra virāmas and spaces between words, such as where Indic scripts would instead feature ligatures. For example:
 
 ~~~
-“asty eva” > “अस्त्य् एव”
+“asty eva” >> (“अस्त्य् एव”) >> “अस्त्येव”
 ~~~
 
 For such cases, the skrutable.transliteration module includes a simple but handy “virāma avoidance” feature, based on straightforward regular expressions and string replacements, which eliminates spaces (and with them virāmas) between certain specified combinations of characters. Settings for this can be controlled in `config.py` and `virAma_avoidance.py`.
@@ -188,11 +188,9 @@ For such cases, the skrutable.transliteration module includes a simple but handy
 Some schemes have internal encoding options. For example, IAST is sometimes stored with combining diacritics, sometimes with precomposed combinations. Round-trip transliteration in Skrutable can be used to iron out such differences. For example, with IAST-IAST transliteration (yes, you can do that):
 
 ~~~
-rāmaḥ
-'r' + 'a' + '¯' chr(0x0304) + 'm' + 'a' + 'h' + '.' chr(0x0323)
->>
-rāmaḥ				
-'r' + 'ā' + chr(0x0101) + 'm' + 'a' + 'ḥ' chr(0x1e25)
+"rāmaḥ" == 'r' + 'a' + '¯' chr(0x0304) + 'm' + 'a' + 'h' + '.' chr(0x0323)
+>
+"rāmaḥ" == 'r' + 'ā' + chr(0x0101) + 'm' + 'a' + 'ḥ' chr(0x1e25)
 ~~~
 
 Default behavior favors precomposed characters in IAST and certain, somewhat arbitrary choices for other schemes, as well; see and control details in `scheme_maps.py`.
