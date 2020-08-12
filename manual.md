@@ -85,7 +85,7 @@ Import modules, instantiate their respective objects, and use those objects' pri
 
 For more examples, see `demo.py`.
 
-# Using the Command Line Interface
+# Using the Command Line Interface (coming soon)
 
 You can also issue certain simple requests on the command line. Examples:
 1. Transliterate to Bengali script: `python skrutable.py --transliterate FILENAME.txt to_scheme=BENGALI`
