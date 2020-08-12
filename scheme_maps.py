@@ -1,6 +1,6 @@
 roman_schemes_1 = ['IAST', 'SLP', 'HK']
 indic_schemes = ['DEV', 'BENGALI', 'GUJARATI']
-roman_schemes_2 = ['VH', 'WX', 'ITRANS', 'IASTreduced']
+roman_schemes_2 = ['VH', 'ITRANS', 'IASTreduced']
 all_schemes = roman_schemes_1 + indic_schemes + roman_schemes_2
 
 """For reference, each scheme on its own:
@@ -53,7 +53,7 @@ GUJARATI
 શ ષ સ હ ં ઃ ઽ
 ૧ ૨ ૩ ૪ ૫ ૬ ૭ ૮ ૯ ૦
 
-VH     			WX
+VH     					WX
 a aa i ii u uu			...
 .r .R .l .L e o ai au
 k K g G "n
@@ -887,10 +887,10 @@ SLP_IASTreduced = [
 by_name = {
 'IAST_SLP' : IAST_SLP, 'HK_SLP' : HK_SLP,
 'DEV_SLP' : DEV_SLP, 'BENGALI_SLP' : BENGALI_SLP, 'GUJARATI_SLP' : GUJARATI_SLP,
-'VH_SLP' : VH_SLP, 'WX_SLP' : WX_SLP, 'ITRANS_SLP': ITRANS_SLP,
+'VH_SLP' : VH_SLP, 'ITRANS_SLP': ITRANS_SLP,
 'SLP_SLP' : SLP_SLP,
 'SLP_IAST' : SLP_IAST, 'SLP_HK' : SLP_HK,
 'SLP_DEV' : SLP_DEV, 'SLP_BENGALI' : SLP_BENGALI, 'SLP_GUJARATI' : SLP_GUJARATI,
-'SLP_VH' : SLP_VH, 'SLP_WX' : SLP_WX, 'SLP_ITRANS' : SLP_ITRANS,
+'SLP_VH' : SLP_VH, 'SLP_ITRANS' : SLP_ITRANS,
 'SLP_IASTreduced' : SLP_IASTreduced,
 }
