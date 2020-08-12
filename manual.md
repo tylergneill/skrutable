@@ -189,7 +189,7 @@ Some schemes have internal encoding options. For example, IAST is sometimes stor
 
 ~~~
 "rāmaḥ" == 'r' + 'a' + '¯' chr(0x0304) + 'm' + 'a' + 'h' + '.' chr(0x0323)
->
+>>
 "rāmaḥ" == 'r' + 'ā' + chr(0x0101) + 'm' + 'a' + 'ḥ' chr(0x1e25)
 ~~~
 
