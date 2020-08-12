@@ -83,7 +83,7 @@ Import modules, instantiate their respective objects, and use those objects' pri
 	* `another_object_result = MI.identify_meter(input_string, resplit_option='resplit_hard')`
 	* `print( another_object_result.meter_label() )`
 
-For more examples, see `demo.py`.
+For more examples, see `demo.py` (coming soon).
 
 # Using the Command Line Interface (coming soon)
 
@@ -91,7 +91,7 @@ You can also issue certain simple requests on the command line. Examples:
 1. Transliterate to Bengali script: `python skrutable.py --transliterate FILENAME.txt to_scheme=BENGALI`
 2. Identify the meter of a verse: `python skrutable.py --identify_meter FILENAME.txt`
 
-For more, see `skrutable.py`.
+For more, see `skrutable.py` (coming soon).
 
 # Schemes
 
@@ -188,7 +188,7 @@ For such cases, the skrutable.transliteration module includes a simple but handy
 Some schemes have internal options, whether at the scheme or encoding level. For example, IAST is sometimes represented in UTF-8 with combining diacritics, sometimes with precomposed combinations. Round-trip transliteration in Skrutable can be used to iron out such differences. For example, with IAST-IAST transliteration (yes, you can do that):
 
 ~~~
-"rāmaḥ" == 'r' + 'a' + '¯' (U+0304)) + 'm' + 'a' + 'h' + '.' (U+0323)
+"rāmaḥ" == 'r' + 'a' + '¯' (U+0304) + 'm' + 'a' + 'h' + '.' (U+0323)
 >>
 "rāmaḥ" == 'r' + 'ā' (U+0101) + 'm' + 'a' + 'ḥ' (U+1E25)
 ~~~
@@ -197,7 +197,7 @@ That is, Skrutable currently favors precomposed characters for IAST, and it has 
 
 # Sandhi and Compound Segmentation
 
-For automated sandhi and compound segmentation — which is a much, much harder problem to solve, but whose output can still be comfortably represented in readable plain-text and so which lends itself to inclusion in such a text-processing toolkit as this — Skrutable defers to the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), which produces good, usable results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)). (TensorFlow required)
+For automated sandhi and compound segmentation — which is a much, much harder problem to solve, but whose output can still be comfortably represented in readable plain-text and so which might lend itself to inclusion in such a text-processing toolkit as this — Skrutable defers to the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), which produces good, usable results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)). (TensorFlow required)
 
 # Related Sanskrit Transliteration and Scansion Projects
 
