@@ -1,6 +1,6 @@
-# Skrutable
+# skrutable
 
-The Skrutable library is meant to make Sanskrit text processing less “inscrutible”, both for interested laypeople and for serious students and scholars, especially those who know a bit of Python and are curious to peek under the hood.
+The `skrutable` library is meant to make Sanskrit text processing less “inscrutible”, both for interested laypeople and for serious students and scholars, especially those who know a bit of Python and are curious to peek under the hood.
 
 # Features
 
@@ -31,13 +31,13 @@ The Skrutable library is meant to make Sanskrit text processing less “inscruti
 
 1. Have Python 3 installed. (Homebrew recommended)
 
-2. Install Skrutable.
+2. Install `skrutable`.
 
 * (Eventually: Installation via pip. For now...)
 
 * [Download this repo](https://github.com/tylergneill/skrutable/archive/master.zip). (same as green “Code” button on [GitHub main page](https://github.com/tylergneill/skrutable))
 
-* Put the Skrutable folder where your other Python libraries are.
+* Put the `skrutable` folder where your other Python libraries are.
 	* Using virtualenv? You can put it directly in the relevant `lib/python3.x/site-packages` folder.
 	* Not? Then you can put it where your other packages normally install to (e.g. with pip).
 		* (Hint: command line `python -c "import sys; print(sys.path)"` to see where.)
@@ -59,29 +59,37 @@ Import modules, instantiate their respective objects, and use those objects' pri
 (Note for coding purposes: lowercase for “skrutable” and all modules, camelcase for objects.)
 
 1. Scheme Detection
-	* `from skrutable.scheme_detection import SchemeDetector`
-	* `SD = SchemeDetector()`
-	* `string_result = SD.detect_scheme( input_string )`
+~~~
+from skrutable.scheme_detection import SchemeDetector
+SD = SchemeDetector()
+string_result = SD.detect_scheme( input_string )
+~~~
 
 2. Transliteration
-	* `from skrutable.transliteration import Transliterator`
-	* `T = Transliterator()`
-	* `string_result = T.transliterate( input_string ) # using defaults`
-	* `another_string_result = T.transliterate( input_string, to_scheme='BENGALI' )`
+~~~
+from skrutable.transliteration import Transliterator
+T = Transliterator()
+string_result = T.transliterate( input_string ) # using defaults
+another_string_result = T.transliterate( input_string, to_scheme='BENGALI' )
+~~~
 
 3. Scansion
-	* `from skrutable.scansion import Scanner`
-	* `S = Scanner()`
-	* `object_result = S.scan( input_string )`
-	* `print( object_result.summarize() )`
+~~~
+from skrutable.scansion import Scanner
+S = Scanner()
+object_result = S.scan( input_string )
+print( object_result.summarize() )
+~~~
 
 4. Meter Identification
-	* `from skrutable.meter_identification import MeterIdentifier`
-	* `MI = MeterIdentifier()`
-	* `object_result = MI.identify_meter( input_string ) # default resplit_option`
-	* `print( object_result.summarize() )`
-	* `another_object_result = MI.identify_meter(input_string, resplit_option='resplit_hard')`
-	* `print( another_object_result.meter_label() )`
+~~~
+from skrutable.meter_identification import MeterIdentifier
+MI = MeterIdentifier()
+object_result = MI.identify_meter( input_string ) # default resplit_option
+print( object_result.summarize() )
+another_object_result = MI.identify_meter(input_string, resplit_option='resplit_hard')
+print( another_object_result.meter_label() )
+~~~
 
 For more examples, see `demo.py` (coming soon).
 
@@ -97,7 +105,7 @@ For more, see `skrutable.py` (coming soon).
 
 (Note: “Encoding” here means basically UTF-8, and “script” means a distinct character set (e.g. Roman alphabet vs. Devanagari alphabet/syllabary/abugida). Thus, neither “Roman” nor “Unicode” are used here to refer to the “(transliteration) schemes” described below. For more on such terminology, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).)
 
-The schemes used in Skrutable are all referred internally to by simple strings, namely, the abbreviations in the following table:
+The schemes used in `skrutable` are all referred internally to by simple strings, namely, the abbreviations in the following table:
 
 <table>
     <thead>
@@ -169,9 +177,9 @@ The schemes used in Skrutable are all referred internally to by simple strings, 
     </tbody>
 </table>
 
-Skrutable can be extended to include more such simple Roman- or Brāhmi-based schemes for Classical Sanskrit and perhaps even related classical languages like Vedic or Prakrits (specifically, by modifying the modules `phonemes.py` and `scheme_maps.py`). On the other hand, it is not designed for modern languages with phonologies that differ significantly from Sanskrit (such as Hindi, Tamil, and so on). For tools made for such languages, cp. [Related Sanskrit Transliteration and Scansion Projects](#related-sanskrit-transliteration-and-scansion-projects) below.
+`skrutable` can be extended to include more such simple Roman- or Brāhmi-based schemes for Classical Sanskrit and perhaps even related classical languages like Vedic or Prakrits (specifically, by modifying the modules `phonemes.py` and `scheme_maps.py`). On the other hand, it is not designed for modern languages with phonologies that differ significantly from Sanskrit (such as Hindi, Tamil, and so on). For tools made for such languages, cp. [Related Sanskrit Transliteration and Scansion Projects](#related-sanskrit-transliteration-and-scansion-projects) below.
 
-Note also that scheme auto-detection can be useful whenever manually specifying the input scheme might be inconvenient, but that this should be used with caution, since this feature in Skrutable works based on input character frequencies, and so results will deteriorate the shorter and/or messier the input string becomes.
+Note also that scheme auto-detection can be useful whenever manually specifying the input scheme might be inconvenient, but that this should be used with caution, since this feature in `skrutable` works based on input character frequencies, and so results will deteriorate the shorter and/or messier the input string becomes.
 
 # Virāma (and Whitespace) Avoidance
 
@@ -181,11 +189,11 @@ Sometimes, usually for aesthetic purposes (read: only rarely for scientific ones
 “asty eva” >> (“अस्त्य् एव”) >> “अस्त्येव”
 ~~~
 
-For such cases, the skrutable.transliteration module includes a simple but handy “virāma avoidance” feature, based on straightforward regular expressions and string replacements, which eliminates spaces (and with them virāmas) between certain specified combinations of characters. Settings for this can be controlled in `config.py` and `virAma_avoidance.py`.
+For such cases, the `skrutable.transliteration` module includes a simple but handy “virāma avoidance” feature, based on straightforward regular expressions and string replacements, which eliminates spaces (and with them virāmas) between certain specified combinations of characters. Settings for this can be controlled in `config.py` and `virAma_avoidance.py`.
 
 # Encoding Normalization
 
-Some schemes have internal options, whether at the scheme or encoding level. For example, IAST is sometimes represented in UTF-8 with combining diacritics, sometimes with precomposed combinations. Round-trip transliteration in Skrutable can be used to iron out such differences. For example, with IAST-IAST transliteration (yes, you can do that):
+Some schemes have internal options, whether at the scheme or encoding level. For example, IAST is sometimes represented in UTF-8 with combining diacritics, sometimes with precomposed combinations. Round-trip transliteration in `skrutable` can be used to iron out such differences. For example, with IAST-IAST transliteration (yes, you can do that):
 
 ~~~
 "rāmaḥ" == 'r' + 'a' + '¯' (U+0304) + 'm' + 'a' + 'h' + '.' (U+0323)
@@ -193,15 +201,15 @@ Some schemes have internal options, whether at the scheme or encoding level. For
 "rāmaḥ" == 'r' + 'ā' (U+0101) + 'm' + 'a' + 'ḥ' (U+1E25)
 ~~~
 
-That is, Skrutable currently favors precomposed characters for IAST, and it has similar default behaviors for the occasional scheme-internal option, as well (e.g., 'Ri', 'RRi', and 'R^i' for 'ṛ' in ITRANS). See and control details in `scheme_maps.py`.
+That is, `skrutable` currently favors precomposed characters for IAST, and it has similar default behaviors for the occasional scheme-internal option, as well (e.g., 'Ri', 'RRi', and 'R^i' for 'ṛ' in ITRANS). See and control details in `scheme_maps.py`.
 
 # Sandhi and Compound Segmentation
 
-For automated sandhi and compound segmentation — which is a much, much harder problem to solve, but whose output can still be comfortably represented in readable plain-text and so which might lend itself to inclusion in such a text-processing toolkit as this — Skrutable defers to the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), which produces good, usable results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)). (TensorFlow required)
+For automated sandhi and compound segmentation — which is a much, much harder problem to solve, but whose output can still be comfortably represented in readable plain-text and so which might lend itself to inclusion in such a text-processing toolkit as this — `skrutable` defers to the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), which produces good, usable results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)). (TensorFlow required)
 
 # Related Sanskrit Transliteration and Scansion Projects
 
-Numerous other projects exist which some users may find preferable to Skrutable in certain respects (e.g., more script support, easier to install, nicer looking, available online). Here are my recommended highlights.
+Numerous other projects exist which some users may find preferable to `skrutable` in certain respects (e.g., more script support, easier to install, nicer looking, available online). Here are my recommended highlights.
 
 Scheme Detection | Transliteration | Scansion & Meter Identification | Main Author
 -------- | ---------- | --------- | --------
@@ -216,12 +224,12 @@ Scheme Detection | Transliteration | Scansion & Meter Identification | Main Auth
 
 The desktop GUI app is made with wxpython and py2app, and I'm so far having trouble compiling a working standalone binary that others can also use. However, py2app also has an “alias” mode which also produces a working app, and I've seen the [same procedure I used](https://py2app.readthedocs.io/en/latest/tutorial.html) work on a Mac other than my own. Try the following:
 * Have the required libraries installed (see [Getting Started](#getting-started) above).
-* In the Skrutable folder, create a setup.py file based on the GUI module: `py2applet --make-setup gui.py`
+* In the `skrutable` folder, create a setup.py file based on the GUI module: `py2applet --make-setup gui.py`
 * Build the application in alias mode: `python setup.py py2app -A`
 * (Optional:) Rename and move the resulting alias-mode app to Applications: `mv /PATH/TO/skrutable/dist/gui.app /Applications/Skrutable.app`
 
-If all goes well, you should now be able to run the Skrutable GUI as you would any other app on macOS, for example via Spotlight. I haven't yet tried this for Windows, but py2exe should produce similar results.
+If all goes well, you should now be able to run the `skrutable` GUI as you would any other app on macOS, for example via Spotlight. I haven't yet tried this for Windows, but py2exe should produce similar results.
 
 # Web App
 
-Calling all volunteers! Like Skrutable? Know some web programming? I sure don't. Help me build a simple web front-end!
+Calling all volunteers! Like `skrutable`? Know some web programming? I sure don't. Help me build a simple web front-end!
