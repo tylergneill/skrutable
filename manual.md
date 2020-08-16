@@ -16,7 +16,7 @@ The `skrutable` library is meant to make Sanskrit text processing less “inscru
 
 	* Python command-line interface [still under development]
 
-	* Desktop GUI (wxpython-based; currently macOS only; requires additional setup)
+	* Desktop GUI (`wxpython`-based; currently macOS only; requires additional setup)
 		![screenshot](img/gui_light_left_right.png)
 		![screenshot](img/gui_dark_top_bottom.png)
 
@@ -211,7 +211,7 @@ That is, `skrutable` currently favors precomposed characters for IAST, and it ha
 
 # Sandhi and Compound Segmentation
 
-For automated sandhi and compound segmentation — which is a much, much harder problem to solve, but whose output can still be comfortably represented in readable plain-text and so which might theoretically lend itself to inclusion in such a text-processing toolkit as this — `skrutable` defers to the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), which produces good, usable results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)). (TensorFlow required)
+For automated sandhi and compound segmentation — which is a much, much harder problem to solve, but whose output can still be comfortably represented in readable plain-text and so which might theoretically lend itself to inclusion in such a text-processing toolkit as this — `skrutable` defers to the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), which produces good, usable results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)). (`TensorFlow` required)
 
 # Related Sanskrit Transliteration and Scansion Projects
 
@@ -224,7 +224,7 @@ Scheme Detection | Transliteration | Scansion & Meter Identification | Main Auth
 ([“detect.py” module](https://github.com/shreevatsa/sanskrit/blob/master/transliteration/detect.py)) | ([“transliteration” subpackage](https://github.com/shreevatsa/sanskrit/tree/master/transliteration)) | **[Metre Identifier](http://sanskritmetres.appspot.com/)** | Shreevatsa R.
 (n/a) | (n/a) | **[Meter Identifying Tool](http://sanskritlibrary.org:8080/MeterIdentification/)** | Keshav Melnad
 (n/a) | **[Transliteration Tool](https://www.ashtangayoga.info/philosophy/sanskrit-and-devanagari/transliteration-tool/)** | (n/a) | AshtangaYoga.info
-(n/a) | [Sanscription](http://www.tyfen.com/sanscription/) | (n/a) | Marc Tiefenauer
+(n/a) | **[Sanscription](http://www.tyfen.com/sanscription/)** | (n/a) | Marc Tiefenauer
 
 # Getting the desktop GUI to work
 
