@@ -29,26 +29,26 @@ The `skrutable` library is meant to make Sanskrit text processing less “inscru
 
 # Getting Started
 
-1. Have Python 3 installed. (Homebrew recommended)
+1. Have Python 3 installed. (`Homebrew` recommended)
 
 2. Install `skrutable`.
 
-* (Eventually: Installation via pip. For now...)
+* (Eventually: Installation via `pip`. For now...)
 
 * [Download this repo](https://github.com/tylergneill/skrutable/archive/master.zip). (same as green “Code” button on [GitHub main page](https://github.com/tylergneill/skrutable))
 
 * Put the `skrutable` folder where your other Python libraries are.
-	* Using virtualenv? You can put it directly in the relevant `lib/python3.x/site-packages` folder.
-	* Not? Then you can put it where your other packages normally install to (e.g. with pip).
+	* Using `virtualenv`? You can put it directly in the relevant `lib/python3.x/site-packages` folder.
+	* Not? Then you can put it where your other packages normally install to (e.g. with `pip`).
 		* (Hint: command line `python -c "import sys; print(sys.path)"` to see where.)
 
-3. Get the necessary Python libraries.
+3. Get the other necessary Python libraries.
 
-* If you'll just be using the library, then only numpy may be necessary to install. (pip recommended)
+* If you'll just be using `skrutable` as a library, then the only thing you might need to install is `numpy`. (`pip` recommended)
 
-* If you wish to use the desktop GUI, then also install wxpython (includes numpy, setuptools) and py2app.
+* If you want to use the desktop GUI, then also install `wxpython` (includes `numpy`, `setuptools`) and `py2app`.
 
-* (Should already be natively pre-installed: collections, copy, json, operator, os, re)
+* (Should already be natively pre-installed: `collections`, `copy`, `json`, `operator`, `os`, `re`)
 
 For GUI setup, see [Getting the Desktop GUI to Work](#getting-the-desktop-gui-to-work) below.
 
@@ -95,9 +95,15 @@ For more examples, see `demo.py` (coming soon).
 
 # Using the Command Line Interface (coming soon)
 
-You can also issue certain simple requests on the command line. Examples:
-1. Transliterate to Bengali script: `python skrutable.py --transliterate FILENAME.txt to_scheme=BENGALI`
-2. Identify the meter of a verse: `python skrutable.py --identify_meter FILENAME.txt`
+You can also issue certain simple one-line requests on the command line to the module `skrutable.py`. Examples:
+1. Transliterate to Bengali script:
+~~~
+python skrutable.py --transliterate FILENAME.txt to_scheme=BENGALI
+~~~
+2. Identify the meter of a verse:
+~~~
+python skrutable.py --identify_meter FILENAME.txt
+~~~
 
 For more, see `skrutable.py` (coming soon).
 
@@ -201,11 +207,11 @@ Some schemes have internal options, whether at the scheme or encoding level. For
 "rāmaḥ" == 'r' + 'ā' (U+0101) + 'm' + 'a' + 'ḥ' (U+1E25)
 ~~~
 
-That is, `skrutable` currently favors precomposed characters for IAST, and it has similar default behaviors for the occasional scheme-internal option, as well (e.g., 'Ri', 'RRi', and 'R^i' for 'ṛ' in ITRANS). See and control details in `scheme_maps.py`.
+That is, `skrutable` currently favors precomposed characters for IAST, and it has similar default behaviors for the occasional scheme-internal option, as well (e.g., 'Ri', 'RRi', and 'R^i' for 'ṛ' in ITRANS). These one-way mappings can be altered in `scheme_maps.py`.
 
 # Sandhi and Compound Segmentation
 
-For automated sandhi and compound segmentation — which is a much, much harder problem to solve, but whose output can still be comfortably represented in readable plain-text and so which might lend itself to inclusion in such a text-processing toolkit as this — `skrutable` defers to the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), which produces good, usable results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)). (TensorFlow required)
+For automated sandhi and compound segmentation — which is a much, much harder problem to solve, but whose output can still be comfortably represented in readable plain-text and so which might theoretically lend itself to inclusion in such a text-processing toolkit as this — `skrutable` defers to the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), which produces good, usable results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)). (TensorFlow required)
 
 # Related Sanskrit Transliteration and Scansion Projects
 
@@ -222,13 +228,13 @@ Scheme Detection | Transliteration | Scansion & Meter Identification | Main Auth
 
 # Getting the desktop GUI to work
 
-The desktop GUI app is made with wxpython and py2app, and I'm so far having trouble compiling a working standalone binary that others can also use. However, py2app also has an “alias” mode which also produces a working app, and I've seen the [same procedure I used](https://py2app.readthedocs.io/en/latest/tutorial.html) work on a Mac other than my own. Try the following:
+The desktop GUI app is made with `wxpython` and `py2app`, and I'm so far having trouble compiling a working standalone binary that others can also use. However, `py2app` also has an “alias” mode which does more reliably produce a working app, and I have seen the [same procedure I used](https://py2app.readthedocs.io/en/latest/tutorial.html) work on a Mac other than my own. Try the following:
 * Have the required libraries installed (see [Getting Started](#getting-started) above).
-* In the `skrutable` folder, create a setup.py file based on the GUI module: `py2applet --make-setup gui.py`
+* In the `skrutable` folder, create a `setup.py` file based on the GUI module: `py2applet --make-setup gui.py`
 * Build the application in alias mode: `python setup.py py2app -A`
-* (Optional:) Rename and move the resulting alias-mode app to Applications: `mv /PATH/TO/skrutable/dist/gui.app /Applications/Skrutable.app`
+* (Optional:) Rename and move the resulting alias-mode app to Applications, e.g.: `mv /PATH/TO/skrutable/dist/gui.app /Applications/Skrutable.app`
 
-If all goes well, you should now be able to run the `skrutable` GUI as you would any other app on macOS, for example via Spotlight. I haven't yet tried this for Windows, but py2exe should produce similar results.
+If all goes well, you should now be able to run the `skrutable` GUI as you would any other app on macOS, for example via Spotlight. I haven't yet tried this for Windows, but `py2exe` should produce similar results.
 
 # Web App
 
