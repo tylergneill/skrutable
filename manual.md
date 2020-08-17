@@ -54,7 +54,7 @@ For GUI setup, see [Getting the Desktop GUI to Work](#getting-the-desktop-gui-to
 
 # Using the Python Library
 
-Import modules, instantiate their respective objects, and use those objects' primary methods.
+Import modules/constructors, instantiate respective objects, and use those objects' primary methods.
 
 (Note for coding purposes: lowercase for “skrutable” and all modules, camelcase for objects.)
 
@@ -69,8 +69,11 @@ string_result = SD.detect_scheme( input_string )
 ~~~
 from skrutable.transliteration import Transliterator
 T = Transliterator()
-string_result = T.transliterate( input_string ) # using defaults
-another_string_result = T.transliterate( input_string, to_scheme='BENGALI' )
+string_result_1 = T.transliterate( input_string ) # using default settings
+string_result_2 = T.transliterate( input_string, to_scheme='BENGALI' )
+string_result_3 = T.transliterate( input_string, from_scheme='BENGALI', to_scheme='HK' )
+string_result_4 = T.transliterate( input_string, from_scheme='auto', to_scheme='ITRANS' )
+
 ~~~
 
 3. Scansion
@@ -93,19 +96,21 @@ print( another_object_result.meter_label() )
 
 For more examples, see `demo.py` (coming soon).
 
-# Using the Command Line Interface (coming soon)
+# Using the Command Line Interface (under development)
 
-You can also issue certain simple one-line requests on the command line to the module `skrutable.py`. Examples:
+You can also issue one-line commands at the Terminal/Command Line to the module `skrutable_one.py` for quick and powerful access to the main methods for each of the four main modules. Examples:
+
 1. Transliterate to Bengali script:
 ~~~
-python skrutable.py --transliterate FILENAME.txt to_scheme=BENGALI
-~~~
-2. Identify the meter of a verse:
-~~~
-python skrutable.py --identify_meter FILENAME.txt
+python skrutable_one.py --transliterate FILENAME.txt to_scheme=BENGALI
 ~~~
 
-For more, see `skrutable.py` (coming soon).
+2. Identify the meter of a verse:
+~~~
+python skrutable_one.py --identify_meter FILENAME.txt
+~~~
+
+To use, simply put `skrutable_one.py` (or a copy thereof) and your desired input file in the same place (wherever you'd like), open the Terminal/Command Line at that place, and run the command.
 
 # Schemes
 
