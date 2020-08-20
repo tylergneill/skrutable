@@ -24,9 +24,7 @@ MI = MeterIdentifier()
 
 # look for mandatory input file
 for arg in sys.argv:
-	print(arg, arg[arg.find('.'):])
 	if arg[arg.find('.'):] in allowed_input_filetypes:
-		print("HERE")
 		input_fn = arg
 		input_data = get_input(input_fn)
 		break

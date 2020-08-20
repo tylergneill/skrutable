@@ -94,13 +94,15 @@ class ExamplePanel(wx.Panel):
 		self.output_box.Clear()
 		self.V = self.S.scan(self.buffer, from_scheme=self.input_choice)
 
-		L1 = self.V.morae_per_line
-		L2 = self.V.syllable_weights.split('\n')
-		L3 = ['['+a+'] '+b for (a,b) in zip([repr(l) for l in L1], L2)]
+		# truncate summary
+		summary = self.V.summarize()
+		truncated_summary = summary[:summary.rfind(']')+1]
+		self.output_box.WriteText(truncated_summary)
 
-		self.output_box.WriteText('\n'.join(L3))
-
-		# or just V.summarize()?
+		# L1 = self.V.morae_per_line
+		# L2 = self.V.syllable_weights.split('\n')
+		# L3 = ['['+a+'] '+b for (a,b) in zip([repr(l) for l in L1], L2)]
+		# self.output_box.WriteText('\n'.join(L3))
 
 	def EvtIdBtn(self,event):
 		self.output_box.Clear()
