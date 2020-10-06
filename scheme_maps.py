@@ -150,6 +150,7 @@ IAST_SLP = [
 ('ṣ','z'),
 ('ṃ','M'),
 ('ḥ','H'),('ẖ','H'),('ḫ','H'), # ẖ ḫ (extended IAST) not supported by SLP1
+("’", "'"),
 # Remain the same: a, i, u, k, g, c, j, t, d, p, b, s, h
 ]
 
@@ -181,6 +182,7 @@ HK_SLP = [
 ('ch','C'),
 ('ph','P'),
 ('bh','B'),
+("’", "'"),
 # Remain the same: ...
 ]
 
@@ -436,6 +438,7 @@ VH_SLP = [
 ('.n','R'),
 ('"s','S'),
 ('.s','z'),
+("’", "'"),
 # Remain the same: ...
 ]
 
@@ -481,6 +484,7 @@ ITRANS_SLP = [
 ('.m', 'M'),
 ('.h', 'H'),
 ('.a', "'"),
+("’", "'"),
 # Remain the same: ...
 ]
 
@@ -852,7 +856,7 @@ SLP_OAST = [
 ('H','µ'),
 ]
 
-SLP_IASTreduced = [
+SLP_IASTREDUCED = [
 # Transliteration 1: all simple mappings
 ('A','a'),
 ('I','i'),
@@ -892,5 +896,5 @@ by_name = {
 'SLP_IAST' : SLP_IAST, 'SLP_HK' : SLP_HK,
 'SLP_DEV' : SLP_DEV, 'SLP_BENGALI' : SLP_BENGALI, 'SLP_GUJARATI' : SLP_GUJARATI,
 'SLP_VH' : SLP_VH, 'SLP_ITRANS' : SLP_ITRANS,
-'SLP_IASTreduced' : SLP_IASTreduced,
+'SLP_IASTREDUCED' : SLP_IASTREDUCED,
 }
