@@ -24,7 +24,10 @@ class VerseTester(object):
 
 	def __init__(self):
 		"""Internal constructor"""
-		pass # agent-style object is just a collection of methods
+		self.anuzwuB_result = None
+		self.pAdasamatva_result = None
+		self.samavftta_result = None
+		self.jAti_result = None
 
 	def test_as_anuzwuB_odd_even(self, odd_candidate_weights, even_candidate_weights):
 		"""
@@ -79,6 +82,12 @@ class VerseTester(object):
 			return "anuṣṭubh (ab: asamīcīna, cd: " + pAdas_cd + ")"
 		elif pAdas_ab != None and pAdas_cd == None:
 			return "anuṣṭubh (ab: " + pAdas_ab + ", cd: asamīcīna)"
+
+		# also test whether just a half-verse
+
+		pAdas_ab = self.test_as_anuzwuB_odd_even(w_p[0]+w_p[1], w_p[2]+w_p[3])
+		if pAdas_ab != None:
+			return "anuṣṭubh (ardham eva: " + pAdas_ab + ")"
 		else:
 			return None
 
@@ -138,21 +147,21 @@ class VerseTester(object):
 		try: w_p[3]
 		except IndexError: return None # didn't find full four pādas
 
-		samatva_result = self.test_pAdasamatva(Vrs)
+		self.pAdasamatva_result = self.test_pAdasamatva(Vrs)
 
 		# HERE: FIRST TEST FOR ardhasamavftta
-		if (	samatva_result == 2
+		if (	self.pAdasamatva_result == 2
 				and w_p[0] == w_p[2] and w_p[1] == w_p[3]
 			):
 			# return("ardhasamavftta...")
 			pass
 
 		# otherwise, proceed with normal samavftta test
-		if samatva_result in [4, 3, 2]:
+		if self.pAdasamatva_result in [4, 3, 2]:
 
 			i = 0 # assume first pāda of four is a good representative for all
-			# but if not, then find one
-			while w_p[i] not in w_p[i+1:]: i += 1
+			while w_p[i] not in w_p[i+1:]: # but if it doesn't match any others
+				i += 1 # then move on until one that does is found
 
 			pAda_for_id = w_p[i]
 
@@ -167,8 +176,8 @@ class VerseTester(object):
 
 					gaRa_note = ' (%s)' % (gaRa_pattern[:-5] + gaRa_pattern[-4])
 
-					if samatva_result in [2, 3]:
-						gaRa_note += " (%d eva pādāḥ samyak)" % samatva_result
+					if self.pAdasamatva_result in [2, 3]:
+						gaRa_note += " (%d eva pādāḥ samyak)" % self.pAdasamatva_result
 
 					return meter_patterns.samavfttas_by_gaRas[gaRa_pattern] + gaRa_note
 
@@ -243,14 +252,14 @@ class VerseTester(object):
 
 		# DOES THIS ORDER MATTER? SHOULD I GENERALIZE IT?
 
-		anuzwuB_result = self.test_as_anuzwuB(Vrs)
-		if anuzwuB_result != None: return anuzwuB_result
+		self.anuzwuB_result = self.test_as_anuzwuB(Vrs)
+		if self.anuzwuB_result != None: return self.anuzwuB_result
 
-		samavftta_result = self.test_as_samavftta(Vrs)
-		if samavftta_result != None: return samavftta_result
+		self.samavftta_result = self.test_as_samavftta(Vrs)
+		if self.samavftta_result != None: return self.samavftta_result
 
-		jAti_result = self.test_as_jAti(Vrs)
-		if jAti_result != None: return jAti_result
+		self.jAti_result = self.test_as_jAti(Vrs)
+		if self.jAti_result != None: return self.jAti_result
 
 		# if here, all three type tests failed
 		return None
