@@ -18,7 +18,7 @@ class VerseTester(object):
 	Most methods take a populated scansion.Verse object as an argument;
 	test_as_anuzwuB_odd_even() is an exception.
 
-	Primary method attempt_none_identification returns scansion.Verse object
+	Primary method attempt_identification returns scansion.Verse object
 	with populated meter_label attribute if identification was successful.
 	"""
 
@@ -231,7 +231,7 @@ class VerseTester(object):
 
 
 
-	def attempt_none_identification(self, Vrs):
+	def attempt_identification(self, Vrs):
 		"""
 		= old ScansionResults.identify
 
@@ -325,7 +325,7 @@ class MeterIdentifier(object):
 						temp_V.syllable_weights = S.scan_syllable_weights(temp_V.text_syllabified)
 						temp_V.morae_per_line = S.count_morae(temp_V.syllable_weights)
 
-						id_result = VrsTster.attempt_none_identification(temp_V)
+						id_result = VrsTster.attempt_identification(temp_V)
 
 						if id_result != None:
 							temp_V.meter_label = id_result
@@ -367,7 +367,7 @@ class MeterIdentifier(object):
 
 		if resplit_option == 'none':
 
-			V.meter_label = VT.attempt_none_identification(V)
+			V.meter_label = VT.attempt_identification(V)
 
 		elif resplit_option in ['resplit_hard', 'resplit_soft']:
 
@@ -405,5 +405,8 @@ class MeterIdentifier(object):
 			# could look for best match if len(self.Verses_found) > 1
 			if len(self.Verses_found) > 0:
 				V = self.Verses_found[0]
+
+		if V.meter_label == None:
+			V.meter_label = 'ajñātam' # do not return None
 
 		return V

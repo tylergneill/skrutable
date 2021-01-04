@@ -46,6 +46,7 @@ samavfttas_by_gaRas = {
 # more from Apte (added as found in the wild)
 'ttj(r|B)' : 'indravaṃśā',
 'sssl(g|l)' : 'upacitra',
+'mmy(y|j)' : 'vaiśvadevī',
 
 # more from Sadananda
 'jrl(g|l)' : 'pramāṇikā',

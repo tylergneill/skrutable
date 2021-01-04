@@ -32,6 +32,7 @@ class Verse(object):
 		self.text_syllabified = None	# string, may contain newlines
 		self.syllable_weights = None	# string, may contain newlines
 		self.morae_per_line = None 		# list of integers
+		self.gaRa_abbreviations = None	# string, may contain newlines
 		self.meter_label = None			# string
 
 
@@ -312,6 +313,11 @@ class Scanner(object):
 		V.text_syllabified = self.syllabify_text(V.text_SLP)
 		V.syllable_weights = self.scan_syllable_weights(V.text_syllabified)
 		V.morae_per_line = self.count_morae(V.syllable_weights)
+		V.gaRa_abbreviations = self.gaRa_abbreviate(
+			'\n'.join(
+				[ self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n') ]
+			)
+		)
 
 		self.Verse = V
 		self.Transliterator = T

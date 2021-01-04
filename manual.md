@@ -237,7 +237,7 @@ The desktop GUI app is made with `wxpython` and `py2app`, and I'm so far having 
 * Have the required libraries installed (see [Getting Started](#getting-started) above).
 * In the `skrutable` folder, create a `setup.py` file based on the GUI module: `py2applet --make-setup gui.py`
 * Build the application in alias mode: `python setup.py py2app -A`
-* (Optional:) Rename and move the resulting alias-mode app to Applications, e.g.: `mv /PATH/TO/skrutable/dist/gui.app /Applications/Skrutable.app`
+* (Optional:) Rename and move the resulting alias-mode app to Applications, e.g.: `mv /PATH/TO/skrutable/dist/gui.app/Applications/Skrutable.app`
 
 If all goes well, you should now be able to run the `skrutable` GUI as you would any other app on macOS, for example via Spotlight. I haven't yet tried this for Windows, but `py2exe` should produce similar results.
 
