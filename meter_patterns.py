@@ -1,3 +1,41 @@
+"""
+	anuṣṭubh
+
+	Rules for structure of odd pāda:
+	1. Syllables 1 and 8 ALWAYS anceps. ['.xxxxxx.']
+	2. Syllables 2 and 3 NEVER both light at same time. ['^(?!.ll.)xxxx']
+	3. Multiple "extensions" (vipulā) to prescribed pattern (pathyā) possible.
+"""
+anuzwuB_pAda = {
+'even' : '^(?!.ll.|.glg).{4}lgl.$',
+'odd' : {
+	'^(?!.ll.).{4}lgg.$' : 'pathyā',
+	'^.glgggg.$' : 'ma-vipulā',
+	'^.glggll.$' : 'bha-vipulā',
+	'^.ggggll.$' : 'bha-vipulā (rare variant preceded by ma-gaṇa)',
+	'^(?!.ll).{3}glll.$' : 'na-vipulā',
+	'^(?!.ll).{3}gglg.$' : 'ra-vipulā',
+	}
+}
+
+# will be deleted
+anuzwuB_odd_pAda_types_by_weights = {
+'^(?!.ll.).{4}lgg.$' : 'pathyā',
+'^.glgggg.$' : 'ma-vipulā',
+'^.glggll.$' : 'bha-vipulā',
+'^.ggggll.$' : 'bha-vipulā (rare variant preceded by ma-gaṇa)',
+'^(?!.ll).{3}glll.$' : 'na-vipulā',
+'^(?!.ll).{3}gglg.$' : 'ra-vipulā',
+}
+
+"""
+	samavṛtta
+
+	11-syllable triṣṭubhs included as first
+	# Note: Regex allows anceps final syllable for samavftta. Other code requires that heavy be given first.
+
+"""
+
 # traditional trisyllable abbreviation scheme
 gaRas_by_weights = {
 'lgg' : 'y', # bacchius
@@ -10,66 +48,83 @@ gaRas_by_weights = {
 'llg' : 's', # anapest / antidactylus
 }
 
-
-# Note: Regex allows anceps final syllable for samavftta. Other code requires that heavy be given first.
-
 samavfttas_by_gaRas = {
-# most frequent, taking small personal collection as proxy
+
+# 8-syllable
+'jrl(g|l)' : 'pramāṇikā',
+
+# 11-syllable triṣṭubh
 'ttjg(g|l)' : 'indravajrā',
 'jtjg(g|l)' : 'upendravajrā',
-# '(t|j)tjg(g|l)' : 'upajāti', # how to detect when so flexible?
+'mttg(g|l)' : 'śālinī',
+'rnrl(g|l)' : 'rathoddhatā',
+'sssl(g|l)' : 'upacitra',
+
+# 12-syllable jagatī
 'sss(s|n)' : 'toṭakam',
 'nBB(r|B)' : 'drūtavilambitam',
-'mnjr(g|l)' : 'praharṣiṇī',
 'yyy(y|j)' : 'bhujaṅgaprayātam',
-'mBnttg(g|l)' : 'mandākrāntā',
-'nnmy(y|j)' : 'mālinī',
 'jtj(r|B)' : 'vaṃśastha',
-'tBjjg(g|l)' : 'vasantatilaka',
-'msjstt(g|l)' : 'śārdūlavikrīḍitā',
-'mttg(g|l)' : 'śālinī',
-'ymnsBl(g|l)' : 'śikhariṇī',
-'njjjjjjl(g|l)' : 'śravaṇābharaṇam', # also virājitam
-'nsmrsl(g|l)' : 'hariṇī',
-
-# more from "Peter's meters"
-'jsjsyl(g|l)' : 'pṛthvī',
+'ttj(r|B)' : 'indravaṃśā',
+'rrr(r|B)' : 'sragviṇī',
 'sjs(s|n)' : 'pramitākṣarā',
-'rnrl(g|l)' : 'rathoddhatā',
-'jBsj(g|l)' : 'rucirā',
-'mrBnyy(y|j)' : 'sragdharā',
+'mmy(y|j)' : 'vaiśvadevī',
+# drutavilambita
 
-# more from Hahn 2014
-'njBjjl(g|l)' : 'narkuṭaka',
+# 13-syllable
+'mnjr(g|l)' : 'praharṣiṇī',
+'jBsj(g|l)' : 'rucirā',
 'sjsj(g|l)' : 'mañjubhāṣiṇī',
 
-# more from Apte (added as found in the wild)
-'ttj(r|B)' : 'indravaṃśā',
-'sssl(g|l)' : 'upacitra',
-'mmy(y|j)' : 'vaiśvadevī',
+# 14-syllable
+'tBjjg(g|l)' : 'vasantatilaka',
 
-# more from Sadananda
-'jrl(g|l)' : 'pramāṇikā',
+#15-syllable
+'nnmy(y|j)' : 'mālinī',
+
+# 16-syllable
 'jrjrj(g|l)' : 'pañcacāmaram',
-'rrr(r|B)' : 'sragviṇī',
+
+# 17-syllable
+'mBnttg(g|l)' : 'mandākrāntā',
+'ymnsBl(g|l)' : 'śikhariṇī',
+'nsmrsl(g|l)' : 'hariṇī',
+'jsjsyl(g|l)' : 'pṛthvī',
+'njBjjl(g|l)' : 'narkuṭaka',
+
+# 18-syllable
+
+# 19-syllable
+'msjstt(g|l)' : 'śārdūlavikrīḍitā',
+
+# 20
+
+# 21-syllable
+'mrBnyy(y|j)' : 'sragdharā',
+
+# 22
+
+# 23-syllable
+'njjjjjjl(g|l)' : 'śravaṇābharaṇam', # also virājitam
+
 }
 
 
 # Note: Not used yet.
 ardhasamavfttas_by_gaRas = {
 # from "Peter's meters"
-'nnrl(g|l)' : 'aparavaktra (11)',
-'njj(r|B)' : 'aparavaktra (12)',
-'ssjg(g|l)' : 'aupacchandasika (11)',
-'sBr(y|j)' : 'aupacchandasika (12)',
+'nnrl(g|l)' : 'aparavaktra (ac 11)',
+'njj(r|B)' : 'aparavaktra (bd 12)',
+'ssjg(g|l)' : 'aupacchandasika (ac 11)',
+'sBr(y|j)' : 'aupacchandasika (bd 12)',
 'nnr(y|j)' : 'puṣpitāgrā (ac 12)',
 'njjr(g|l)' : 'puṣpitāgrā (bd 13)',
-'ssj(g|l)' : 'viyoginī (10 ac)',
-'sBrl(g|l)' : 'viyoginī (11 bd)',
+'ssj(g|l)' : 'viyoginī (ac 10)',
+'sBrl(g|l)' : 'viyoginī (bd 11)',
 
 # more from Hahn 2014
-'ssjg(g|l)' : 'mālābhāriṇī (11 ac)',
-'sBr(y|j)' : 'mālābhāriṇī (12 bd)',
+'ssjg(g|l)' : 'mālābhāriṇī (ac 11)',
+'sBr(y|j)' : 'mālābhāriṇī (bd 12)',
 }
 
 
@@ -84,32 +139,3 @@ jAtis_by_morae = [
 ['\[(12|11), (15|14), (12|11), (15|14)\]', [12, 15, 12, 15], 'upagīti'],
 ['\[(16|15), (16|15), (16|15), (16|15)\]', [16, 16, 16, 16], 'mātrāsamaka'],
 ]
-
-
-"""
-	Rules for structure of anuṣṭubh odd pāda:
-	1. Syllables 1 and 8 ALWAYS anceps. ['.xxxxxx.']
-	2. Syllables 2 and 3 NEVER both light at same time. ['^(?!.ll.).{4}xxxx']
-	3. Multiple "extensions" (vipulā) to prescribed pattern (pathyā) possible.
-	(NB: More rigid pattern for even pāda hard-coded in scansion.py, q.v.)
-"""
-anuzwuB_pAda = {
-'even' : '^(?!.ll.|.glg).{4}lgl.$',
-'odd' : {
-	'^(?!.ll.).{4}lgg.$' : 'pathyā',
-	'^.glgggg.$' : 'ma-vipulā',
-	'^.glggll.$' : 'bha-vipulā',
-	'^.ggggll.$' : 'bha-vipulā (rare variant preceded by ma-gaṇa)',
-	'^(?!.ll).{3}glll.$' : 'na-vipulā',
-	'^(?!.ll).{3}gglg.$' : 'ra-vipulā',
-	}
-}
-
-anuzwuB_odd_pAda_types_by_weights = {
-'^(?!.ll.).{4}lgg.$' : 'pathyā',
-'^.glgggg.$' : 'ma-vipulā',
-'^.glggll.$' : 'bha-vipulā',
-'^.ggggll.$' : 'bha-vipulā (rare variant preceded by ma-gaṇa)',
-'^(?!.ll).{3}glll.$' : 'na-vipulā',
-'^(?!.ll).{3}gglg.$' : 'ra-vipulā',
-}
