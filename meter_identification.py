@@ -25,8 +25,10 @@ class VerseTester(object):
 	def __init__(self):
 		"""Internal constructor"""
 		self.anuzwuB_result = None
-		self.pAdasamatva_result = None
+		self.pAdasamatva_count = None
+		self.trizwuB_count = None
 		self.samavftta_result = None
+		self.upajAti_result = None
 		self.jAti_result = None
 
 	def test_as_anuzwuB_odd_even(self, odd_candidate_weights, even_candidate_weights):
@@ -104,35 +106,13 @@ class VerseTester(object):
 		except IndexError: return None # didn't find full four pādas
 
 		# check for empty argument
-		if w_p[0] == w_p[1] == w_p[2] == w_p[3] == '':
-			return None
+		if w_p[0] == w_p[1] == w_p[2] == w_p[3] == '': return None
 
-		# all 4 same
-		if w_p[0] == w_p[1] == w_p[2] == w_p[3]:
-			return 4
-
-		# 3 out of 4 same
-		elif (	w_p[0] ==	w_p[1] ==	w_p[2]				or
-				w_p[0] ==	w_p[1] ==				w_p[3]	or
-				w_p[0] ==				w_p[2] ==	w_p[3]	or
-							w_p[1] ==	w_p[2] ==	w_p[3]
-			 ):
-			return 3
-
-		# 2 out of 4 same
-		elif (	w_p[0] ==	w_p[1]							 or
-				w_p[0] ==				w_p[2]				 or
-				w_p[0] ==							w_p[3]	 or
-							w_p[1] ==	w_p[2]				 or
-							w_p[1] ==				w_p[3]	 or
-										w_p[2] ==	w_p[3]
-			 ):
-			return 2
-
-		# no matches whatsoever
+		max_same = max([w_p.count(i) for i in w_p])
+		if max_same in [2,3,4]:
+			return max_same
 		else:
 			return 0
-
 
 	def test_as_samavftta(self, Vrs):
 
@@ -147,17 +127,17 @@ class VerseTester(object):
 		try: w_p[3]
 		except IndexError: return None # didn't find full four pādas
 
-		self.pAdasamatva_result = self.test_pAdasamatva(Vrs)
+		self.pAdasamatva_count = self.test_pAdasamatva(Vrs)
 
 		# HERE: FIRST TEST FOR ardhasamavftta
-		if (	self.pAdasamatva_result == 2
+		if (	self.pAdasamatva_count == 2
 				and w_p[0] == w_p[2] and w_p[1] == w_p[3]
 			):
 			# return("ardhasamavftta...")
 			pass
 
 		# otherwise, proceed with normal samavftta test
-		if self.pAdasamatva_result in [4, 3, 2]:
+		if self.pAdasamatva_count in [4, 3, 2]:
 
 			i = 0 # assume first pāda of four is a good representative for all
 			while w_p[i] not in w_p[i+1:]: # but if it doesn't match any others
@@ -176,14 +156,59 @@ class VerseTester(object):
 
 					gaRa_note = ' (%s)' % (gaRa_pattern[:-5] + gaRa_pattern[-4])
 
-					if self.pAdasamatva_result in [2, 3]:
-						gaRa_note += " (%d eva pādāḥ samyak)" % self.pAdasamatva_result
+					if self.pAdasamatva_count in [2, 3]:
+						gaRa_note += " (%d eva pādāḥ samyak)" % self.pAdasamatva_count
 
 					return meter_patterns.samavfttas_by_gaRas[gaRa_pattern] + gaRa_note
 
 			else: # if all patterns tested and no match found and returned
 				return "(ajñātasamavṛtta?) (%d: %s)" % (len(pAda_for_id), pAda_gaRas)
 
+		else:
+			return None
+
+	def test_as_upajAti(self, Vrs):
+		"""
+		gglggllglgg   [ttjgg]
+		ggggglgglgg   [mttgg]
+		ggggglgglgg   [mttgg]
+		ggggglgglgg   [mttgg]
+
+		lglggllglgg   [jtjgg]
+		gglggllglgg   [ttjgg]
+		lglggllglgg   [jtjgg]
+		gglggllglgg   [ttjgg]
+		"""
+		narrow_trizwuB_count = 0 # strict: only recognized trizwuB patterns
+		other_eleven_count = 0 # loose: any 11-syllable patterns
+		types_found = []
+
+		for g_a in Vrs.gaRa_abbreviations.split('\n'):
+			if (
+				g_a in ["jtjgg", "jtjgl", "ttjgg", "ttjgl"] or # regex to generalize
+				g_a in ["mttgg", "mttgl", "rnBgg", "rnBgl"] # not just indra/upendra
+			):
+		 		narrow_trizwuB_count += 1
+				types_found.append(meter_patterns.samavfttas_by_gaRas[g_a])
+			elif g_a in ["tBjgg", "tBjgl", "jBjgg", "jBjgl"]: # etc.
+				other_eleven_count += 1
+				types_found.append(g_a)
+			# condense by grouping "in" lists
+
+		unique_types_found = []
+		for t in types_found:
+			if t not in unique_types_found:
+				unique_types_found.append(t)
+
+		if narrow_trizwuB_count == 4:
+			return "upajāti (%s)" % ( ", ".join(unique_types_found) )
+		elif narrow_trizwuB_count + other_eleven_count == 4:
+			return "upajāti (?) (%s)" % ( ", ".join(unique_types_found) )
+		elif (narrow_trizwuB_count + other_eleven_count) in [2, 3]:
+			return "upajāti (?) (%s) (%d eva pādāḥ samyak)" % (
+				", ".join(unique_types_found),
+				self.pAdasamatva_count
+				)
 		else:
 			return None
 
@@ -253,13 +278,22 @@ class VerseTester(object):
 		# DOES THIS ORDER MATTER? SHOULD I GENERALIZE IT?
 
 		self.anuzwuB_result = self.test_as_anuzwuB(Vrs)
-		if self.anuzwuB_result != None: return self.anuzwuB_result
+		if self.anuzwuB_result != None:
+			return self.anuzwuB_result
 
 		self.samavftta_result = self.test_as_samavftta(Vrs)
-		if self.samavftta_result != None: return self.samavftta_result
+		self.upajAti_result = self.test_as_upajAti(Vrs)
+
+		if self.samavftta_result != None and self.pAdasamatva == 4: # perfect
+			return self.samavftta_result
+		elif self.upajAti_result != None:
+			return self.upajAti_result
+		elif self.samavftta_result != None:
+			return self.samavftta_result
 
 		self.jAti_result = self.test_as_jAti(Vrs)
-		if self.jAti_result != None: return self.jAti_result
+		if self.jAti_result != None:
+			return self.jAti_result
 
 		# if here, all three type tests failed
 		return None
