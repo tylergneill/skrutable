@@ -13,461 +13,528 @@ default_resplit_option = config["default_resplit_option"]  # e.g. "none"
 
 
 class VerseTester(object):
-    """
-    Internal agent-style object.
+	"""
+	Internal agent-style object.
 
-    Most methods take a populated scansion.Verse object as an argument;
-    test_as_anuzwuB_odd_even() is an exception.
+	Most methods take a populated scansion.Verse object as an argument;
+	test_as_anuzwuB_odd_even() is an exception.
 
-    Primary method attempt_identification returns scansion.Verse object
-    with populated meter_label attribute if identification was successful.
-    """
+	Primary method attempt_identification returns scansion.Verse object
+	with populated meter_label attribute if identification was successful.
+	"""
 
-    def __init__(self):
-        """Internal constructor"""
-        self.anuzwuB_result = None
-        self.pAdasamatva_count = None
-        self.trizwuB_count = None
-        self.samavftta_result = None
-        self.upajAti_result = None
-        self.jAti_result = None
+	def __init__(self):
+		"""Internal constructor"""
+		self.anuzwuB_result = None # string
+		self.pAdasamatva_count = 0 # int
+		self.strict_trizwuB_count = 0 # int
+		self.loose_eleven_count = 0 # int
+		self.trizwuB_types_found = None # list of strings
+		self.samavftta_result = None # string
+		self.upajAti_result = None # string
+		self.jAti_result = None # string
 
-    def test_as_anuzwuB_odd_even(self, odd_candidate_weights, even_candidate_weights):
-        """
-        Accepts two strings of syllable weights (e.g. 'llglgllg').
-        Tries to match to known odd-even 'anuṣṭubh' foot pairings:
-                pathya
-                vipulā (4.5 subtypes: na, ra, ma, bha, and variant bha).
-        Returns string result if match found, None otherwise.
-        """
+	def test_as_anuzwuB_odd_even(self, odd_candidate_weights, even_candidate_weights):
+		"""
+		Accepts two strings of syllable weights (e.g. 'llglgllg').
+		Tries to match to known odd-even 'anuṣṭubh' foot pairings:
+				pathya
+				vipulā (4.5 subtypes: na, ra, ma, bha, and variant bha).
+		Returns string result if match found, None otherwise.
+		"""
 
-        """
+		"""
 		First check relatively rigid structure of even pAda:
 		1. Syllables 1 and 8 ALWAYS anceps.
 		2. Syllables 2 and 3 NEVER both light.
 		3. Syllables 2-4 NEVER ra-gaRa (glg).
 		4. Syllables 5-7 ALWAYS has ja-gaRa (lgl).
 		"""
-        # regex = re.compile('^(?!.ll.|.glg).{4}lgl.$')
-        regex = re.compile(meter_patterns.anuzwuB_pAda['even'])
-        if not re.match(regex, even_candidate_weights):
-            return None
+		# regex = re.compile('^(?!.ll.|.glg).{4}lgl.$')
+		regex = re.compile(meter_patterns.anuzwuB_pAda['even'])
+		if not re.match(regex, even_candidate_weights):
+			return None
 
-        # then check for various valid patterns of odd pAda (both 'paTyA' and 'vipulA')
-        for weights_pattern in meter_patterns.anuzwuB_pAda['odd'].keys():
-            regex = re.compile(weights_pattern)
-            if re.match(regex, odd_candidate_weights):
-                return meter_patterns.anuzwuB_odd_pAda_types_by_weights[weights_pattern]
+		# then check for various valid patterns of odd pAda (both 'paTyA' and 'vipulA')
+		for weights_pattern in meter_patterns.anuzwuB_pAda['odd'].keys():
+			regex = re.compile(weights_pattern)
+			if re.match(regex, odd_candidate_weights):
+				return meter_patterns.anuzwuB_odd_pAda_types_by_weights[weights_pattern]
 				# replace with: return meter_patterns.anuzwuB_pAda['odd'][weights_pattern]
 
-        else:
-            return None
+		else:
+			return None
 
-    def test_as_anuzwuB(self, Vrs):
-        """
-        Accepts as arugment a list of strings detailing light/heavy (l/g) patterns.
-        Determines whether verse (first four lines) is of 'anuṣṭubh' type.
-        Returns string detailing results if identified as such, or None if not.
-        Tests halves ab and cd independently, reports if either half found to be valid.
-        """
+	def test_as_anuzwuB(self, Vrs):
+		"""
+		Accepts as arugment a list of strings detailing light/heavy (l/g) patterns.
+		Determines whether verse (first four lines) is of 'anuṣṭubh' type.
+		Returns string detailing results if identified as such, or None if not.
+		Tests halves ab and cd independently, reports if either half found to be valid.
+		"""
 
-        w_p = Vrs.syllable_weights.split('\n')  # weights by pāda
-        try:
-            w_p[3]
-        except IndexError:
-            return None  # didn't find full four pādas
+		w_p = Vrs.syllable_weights.split('\n')  # weights by pāda
+		try:
+			w_p[3]
+		except IndexError:
+			return None  # didn't find full four pādas
 
-        # test
-        pAdas_ab = self.test_as_anuzwuB_odd_even(w_p[0], w_p[1])
-        pAdas_cd = self.test_as_anuzwuB_odd_even(w_p[2], w_p[3])
+		# test
+		pAdas_ab = self.test_as_anuzwuB_odd_even(w_p[0], w_p[1])
+		pAdas_cd = self.test_as_anuzwuB_odd_even(w_p[2], w_p[3])
 
-        # report results
-        if pAdas_ab != None and pAdas_cd != None:
-            return "anuṣṭubh (ab: " + pAdas_ab + ", cd: " + pAdas_cd + ")"
-        elif pAdas_ab == None and pAdas_cd != None:
-            return "anuṣṭubh (ab: asamīcīna, cd: " + pAdas_cd + ")"
-        elif pAdas_ab != None and pAdas_cd == None:
-            return "anuṣṭubh (ab: " + pAdas_ab + ", cd: asamīcīna)"
+		# report results
+		if pAdas_ab != None and pAdas_cd != None:
+			return "anuṣṭubh (ab: " + pAdas_ab + ", cd: " + pAdas_cd + ")"
+		elif pAdas_ab == None and pAdas_cd != None:
+			return "anuṣṭubh (ab: asamīcīna, cd: " + pAdas_cd + ")"
+		elif pAdas_ab != None and pAdas_cd == None:
+			return "anuṣṭubh (ab: " + pAdas_ab + ", cd: asamīcīna)"
 
-        # also test whether just a half-verse
+		# also test whether just a half-verse
 
-        pAdas_ab = self.test_as_anuzwuB_odd_even(w_p[0]+w_p[1], w_p[2]+w_p[3])
-        if pAdas_ab != None:
-            return "anuṣṭubh (ardham eva: " + pAdas_ab + ")"
-        else:
-            return None
+		pAdas_ab = self.test_as_anuzwuB_odd_even(w_p[0]+w_p[1], w_p[2]+w_p[3])
+		if pAdas_ab != None:
+			return "anuṣṭubh (ardham eva: " + pAdas_ab + ")"
+		else:
+			return None
 
-    def test_pAdasamatva(self, Vrs):
-        """
-        Accepts four-part (newline-separated) string of light/heavy (l/g) pattern.
-        Since testing for samavṛtta, ignores final anceps syllable in each part.
-        Returns integer 0,2,3,4 indicating size of best matching group.
-        """
+	def count_pAdasamatva(self, Vrs):
+		"""
+		Accepts four-part (newline-separated) string of light/heavy (l/g) pattern.
+		Since testing for samavṛtta, ignores final anceps syllable in each part.
+		Returns integer 0,2,3,4 indicating size of best matching group.
+		"""
 
-        # weights by pāda, omitting last syllable from consideration
-        w_p = [full_w_p[:-1] for full_w_p in Vrs.syllable_weights.split('\n')]
-        try:
-            w_p[3]
-        except IndexError:
-            return None  # didn't find full four pādas
+		self.pAdasamatva_count = 0
 
-        # check for empty argument
-        if w_p[0] == w_p[1] == w_p[2] == w_p[3] == '':
-            return None
+		# prepare weights-by-pāda by omitting last syllable from consideration
+		wbp = [true_wbp[:-1] for true_wbp in Vrs.syllable_weights.split('\n')]
 
-        max_same = max([w_p.count(i) for i in w_p])
-        if max_same in [2, 3, 4]:
-            return max_same
-        elif max_same == 1:
-            return 0
+		# make sure full four pādas
+		try: wbp[3]
+		except IndexError: return
 
-    def test_as_samavftta(self, Vrs):
-        """
-                Accepts as arugment a list of strings detailing light/heavy (l/g) patterns.
-                Determines whether verse (first four lines) is of 'samavṛtta' type.
-                Returns string detailing results if identified as such, or None if not.
-                Tolerates one incorrect quarter out of four, notes when applicable.
-        """
+		# avoid false positive if completely empty string argument list
+		if wbp[0] == wbp[1] == wbp[2] == wbp[3] == '': return
 
-        w_p = Vrs.syllable_weights.split('\n')  # weights by pāda
-        try:
-            w_p[3]
-        except IndexError:
-            return None  # didn't find full four pādas
+		# discard any empty strings
+		while '' in wbp: wbp.remove('')
 
-        self.pAdasamatva_count = self.test_pAdasamatva(Vrs) # [0,2,3,4]
+		# calculate max number of matching pādas in verse
+		max_match = max([wbp.count(i) for i in wbp])
+		if max_match in [2, 3, 4]: # exclude value of 1 (= no matches)
+			self.pAdasamatva_count = max_match
 
-        # HERE: FIRST TEST FOR ardhasamavftta
-        if ( self.pAdasamatva_count == 2
-             and w_p[0] == w_p[2] and w_p[1] == w_p[3]
-             ):
-            # return("ardhasamavftta...")
-            pass
 
-        # otherwise, proceed with normal samavftta test
-        if self.pAdasamatva_count in [4, 3, 2]:
+	def test_as_samavftta(self, Vrs):
+		"""
+				Accepts as arugment a list of strings detailing light/heavy (l/g) patterns.
+				Determines whether verse (first four lines) is of 'samavṛtta' type.
+				Returns string detailing results if identified as such, or None if not.
+				Tolerates one incorrect quarter out of four, notes when applicable.
+		"""
 
-            i = 0  # assume first pāda of four is a good representative for all
-            while w_p[i] not in w_p[i+1:]:  # but if it doesn't match any others
-                i += 1  # then move on until one that does is found
-            pAda_for_id = w_p[i]
+		w_p = Vrs.syllable_weights.split('\n')  # weights by pāda
+		try:
+			w_p[3]
+		except IndexError:
+			return None  # didn't find full four pādas
 
-            S = Sc()
-            pAda_gaRas = S.gaRa_abbreviate(pAda_for_id)
+		self.count_pAdasamatva(Vrs) # self.pAdasamatva_count in [0,2,3,4]
 
-            for gaRa_pattern in meter_patterns.samavfttas_by_gaRas:
+		# HERE: FIRST TEST FOR ardhasamavftta
+		if ( self.pAdasamatva_count == 2
+			 and w_p[0] == w_p[2] and w_p[1] == w_p[3]
+			 ):
+			# return("ardhasamavftta...")
+			pass
 
-                regex = re.compile(gaRa_pattern)
+		# otherwise, proceed with normal samavftta test
+		if self.pAdasamatva_count in [4, 3, 2]:
 
-                if re.match(regex, pAda_gaRas):
+			i = 0  # assume first pāda of four is a good representative for all
+			while w_p[i] not in w_p[i+1:]:  # but if it doesn't match any others
+				i += 1  # then move on until one that does is found
+			pAda_for_id = w_p[i]
 
-                    gaRa_note = ' (%s)' % (
-                        gaRa_pattern[:-5] + gaRa_pattern[-4])
+			S = Sc()
+			pAda_gaRas = S.gaRa_abbreviate(pAda_for_id)
 
-                    if self.pAdasamatva_count in [2, 3]:
-                        gaRa_note += " (%d eva pādāḥ samyak)" % self.pAdasamatva_count
+			for gaRa_pattern in meter_patterns.samavfttas_by_gaRas:
 
-                    return meter_patterns.samavfttas_by_gaRas[gaRa_pattern] + gaRa_note
+				regex = re.compile(gaRa_pattern)
 
-            else:  # if all patterns tested and no match found and returned
-                return "(ajñātasamavṛtta?) (%d: %s)" % (len(pAda_for_id), pAda_gaRas)
+				if re.match(regex, pAda_gaRas):
 
-        else:
-            return None
+					gaRa_note = ' (%s)' % (
+					meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
+					)
 
-    def test_as_upajAti(self, Vrs):
-        """
-        gglggllglgg   [ttjgg]
-        ggggglgglgg   [mttgg]
-        ggggglgglgg   [mttgg]
-        ggggglgglgg   [mttgg]
+					if self.pAdasamatva_count in [2, 3]:
+						gaRa_note += " (%d eva pādāḥ samyak)" % self.pAdasamatva_count
 
-        lglggllglgg   [jtjgg]
-        gglggllglgg   [ttjgg]
-        lglggllglgg   [jtjgg]
-        gglggllglgg   [ttjgg]
-        """
-        narrow_trizwuB_count = 0 # strict: only recognized trizwuB patterns
-        other_eleven_count = 0 # loose: any 11-syllable patterns
-        types_found = []
+					return meter_patterns.samavfttas_by_gaRas[gaRa_pattern] + gaRa_note
 
-        for g_a in Vrs.gaRa_abbreviations.split('\n'):
-            if (
-                    g_a in ["jtjgg", "jtjgl", "ttjgg", "ttjgl"] # regex to generalize
-                    or g_a in ["mttgg", "mttgl", "rnBgg", "rnBgl"] # not just indra/upendra
-            ):
-                narrow_trizwuB_count += 1
-                types_found.append(meter_patterns.samavfttas_by_gaRas[g_a])
-            elif g_a in ["tBjgg", "tBjgl", "jBjgg", "jBjgl"]: # etc.
-                other_eleven_count += 1
-                types_found.append(g_a)
-            # condense by grouping "in" lists
+			else:  # if all patterns tested and no match found and returned
+				return "(ajñātasamavṛtta?) (%d: %s)" % (len(pAda_for_id), pAda_gaRas)
 
-        unique_types_found = []
-        for t in types_found:
-            if t not in unique_types_found:
-                unique_types_found.append(t)
+		else:
+			return None
 
-        if narrow_trizwuB_count == 4:
-            return "upajāti (%s)" % (", ".join(unique_types_found))
-        elif narrow_trizwuB_count + other_eleven_count == 4:
-            return "upajāti (?) (%s)" % (", ".join(unique_types_found))
-        elif (narrow_trizwuB_count + other_eleven_count) in [2, 3]:
-            return "upajāti (?) (%s) (%d eva pādāḥ samyak)" % (
-                ", ".join(unique_types_found),
-                self.pAdasamatva_count
-            )
-        else:
-            return None
+	def test_as_upajAti(self, Vrs):
+		"""
+		gglggllglgg   [ttjgg]
+		ggggglgglgg   [mttgg]
+		ggggglgglgg   [mttgg]
+		ggggglgglgg   [mttgg]
 
-	def test_as_samavftta_or_upajAti(self, Vrs):
-		pass
+		lglggllglgg   [jtjgg]
+		gglggllglgg   [ttjgg]
+		lglggllglgg   [jtjgg]
+		gglggllglgg   [ttjgg]
+		"""
+		self.strict_trizwuB_count = 0 # only recognized trizwuB patterns
+		self.loose_eleven_count = 0 # any 11-syllable pattern
+		self.trizwuB_types_found = []
 
-    def test_as_jAti(self, Vrs):
-        """
-        Accepts as arguments two lists, one of strings, the other of numbers.
-        First argument details light/heavy (l/g) patterns, second reports total morae.
-        Determines whether verse (first four lines) is of 'jāti' type.
-        Returns string detailing results if identified as such, or None if not.
-        """
+		for g_a in Vrs.gaRa_abbreviations.split('\n'):
+			if (
+				g_a in ["jtjgg", "jtjgl", "ttjgg", "ttjgl"] # regex to generalize
+				or g_a in ["mttgg", "mttgl", "rnBgg", "rnBgl"] # not just indra/upendra
+			):
+				self.strict_trizwuB_count += 1
+				for gaRa_pattern in meter_patterns.samavfttas_by_gaRas:
+					regex = re.compile(gaRa_pattern)
+					if re.match(regex, g_a):
+						self.trizwuB_types_found.append(
+						meter_patterns.samavfttas_by_gaRas[gaRa_pattern]
+						)
+			elif g_a in ["tBjgg", "tBjgl", "jBjgg", "jBjgl"]: # etc.
+				self.loose_eleven_count += 1
+				self.trizwuB_types_found.append(g_a)
+			# condense by grouping "in" lists
 
-        w_p = Vrs.syllable_weights.split('\n')
-        try:
-            w_p[3]
-        except IndexError:
-            return None  # didn't find full four pādas
+		unique_types_found = []
+		for t in self.trizwuB_types_found:
+			if t not in unique_types_found:
+				unique_types_found.append(t)
 
-        morae_by_pAda = Vrs.morae_per_line
+		if self.strict_trizwuB_count == 4:
+			return "upajāti (%s)" % (", ".join(unique_types_found))
+		elif self.strict_trizwuB_count + self.loose_eleven_count == 4:
+			return "upajāti (?) (%s)" % (", ".join(unique_types_found))
+		elif (self.strict_trizwuB_count + self.loose_eleven_count) in [2, 3]:
+			return "upajāti (?) (%s) (%d eva pādāḥ samyak)" % (
+				", ".join(unique_types_found),
+				self.pAdasamatva_count
+			)
+		else:
+			return None
 
-        # Note: self.morae_by_pAda is a list of numbers,
-        # here manipulate as such but also as a single string
-        morae_by_pAda_string = str(morae_by_pAda)
+	# def test_as_samavftta_or_upajAti(self, Vrs):
 
-        """
+		w_p = Vrs.syllable_weights.split('\n')  # weights by pāda
+		try:
+			w_p[3]
+		except IndexError:
+			return None  # didn't find full four pādas
+
+		self.pAdasamatva_count = self.test_pAdasamatva(Vrs) # [0,2,3,4]
+
+		# test perfect samavftta
+		if self.pAdasamatva_count == 4:
+			# simply distinguish whether known or not, then output answer
+			return
+
+		# test perfect ardhasamavftta
+		if ( self.pAdasamatva_count == 2
+			 and w_p[0] == w_p[2]
+			 and w_p[1] == w_p[3]
+			 ):
+			# again, distinguish whether known, output
+			# involves looking specifically for corresponding type
+			return
+
+		# test perfect upajāti
+		if self.strict_trizwuB_count == 4:
+			# already confirmed known patterns, just identify types and output
+			return
+
+		# test various cascading imperfect upajātis
+		if ( self.strict_trizwuB_count + self.loose_eleven_count ) == 4:
+			# at least some unknown, express ?, distinguish known from unknown
+			return
+		elif self.strict_trizwuB_count == 3:
+			# likely just textual error, express # samyak, identify types, output
+			return
+		elif ( self.strict_trizwuB_count + self.loose_eleven_count ) == 3:
+			# same, express ?, express # samyak, identify distinguished types
+			return
+		elif self.strict_trizwuB_count == 2:
+			# same, express # samyak, identify types, output
+			return
+		elif ( self.strict_trizwuB_count + self.loose_eleven_count ) == 2:
+			# same, express ?, express # samyak, identify distinguished types
+			return
+
+		# test imperfect ardhasamavftta? seems hard
+		# involves looking specifically for corresponding type
+
+		# test imperfect samavfttas
+		if self.pAdasamatva_count in [2,3]:
+			# distinguish whether known, express # samyak, identify type, output
+			return
+
+		return None
+
+	def test_as_jAti(self, Vrs):
+		"""
+		Accepts as arguments two lists, one of strings, the other of numbers.
+		First argument details light/heavy (l/g) patterns, second reports total morae.
+		Determines whether verse (first four lines) is of 'jāti' type.
+		Returns string detailing results if identified as such, or None if not.
+		"""
+
+		w_p = Vrs.syllable_weights.split('\n')
+		try:
+			w_p[3]
+		except IndexError:
+			return None  # didn't find full four pādas
+
+		morae_by_pAda = Vrs.morae_per_line
+
+		# Note: self.morae_by_pAda is a list of numbers,
+		# here manipulate as such but also as a single string
+		morae_by_pAda_string = str(morae_by_pAda)
+
+		"""
 			Test whether morae match patterns, with allowance on last syllable:
 				final light syllable of a jāti quarter CAN be counted as heavy,
 				but ONLY if absolutely necessary
 				and NOT otherwise.
 		"""
-        for flex_pattern, std_pattern, jAti_name in meter_patterns.jAtis_by_morae:
+		for flex_pattern, std_pattern, jAti_name in meter_patterns.jAtis_by_morae:
 
-            regex = re.compile(flex_pattern)
-            if re.match(regex, morae_by_pAda_string):
+			regex = re.compile(flex_pattern)
+			if re.match(regex, morae_by_pAda_string):
 
-                # for each of four pAdas
-                for i in range(4):
+				# for each of four pAdas
+				for i in range(4):
 
-                    if (
-                            morae_by_pAda[i] == std_pattern[i] or
+					if (
+							morae_by_pAda[i] == std_pattern[i] or
 
-                            # final syllable is light but needs to be heavy
-                            morae_by_pAda[i] == std_pattern[i] - 1 and
-                            w_p[i][-1] == 'l'
+							# final syllable is light but needs to be heavy
+							morae_by_pAda[i] == std_pattern[i] - 1 and
+							w_p[i][-1] == 'l'
 
-                    ):
-                        continue
-                    else:
-                        break
+					):
+						continue
+					else:
+						break
 
-                else:  # if all four pAdas proven valid, i.e., if no breaks
-                    return jAti_name + " (jāti)"
+				else:  # if all four pAdas proven valid, i.e., if no breaks
+					return jAti_name + " (jāti)"
 
-        else:  # if all patterns tested and nothing returned
-            return None
+		else:  # if all patterns tested and nothing returned
+			return None
 
-    def attempt_identification(self, Vrs):
-        """
-        = old ScansionResults.identify
+	def attempt_identification(self, Vrs):
+		"""
+		= old ScansionResults.identify
 
-        runs through various possible meter types in set order
-                MAYBE SET ORDER IN CONFIG
+		runs through various possible meter types in set order
+				MAYBE SET ORDER IN CONFIG
 
-        Receives static, populated Verse object on which to attempt identification.
-        """
+		Receives static, populated Verse object on which to attempt identification.
+		"""
 
-        # DOES THIS ORDER MATTER? SHOULD I GENERALIZE IT?
+		# DOES THIS ORDER MATTER? SHOULD I GENERALIZE IT?
 
-        self.anuzwuB_result = self.test_as_anuzwuB(Vrs) # also half-anuzwuBs
-        if self.anuzwuB_result != None:
-            return self.anuzwuB_result
+		self.anuzwuB_result = self.test_as_anuzwuB(Vrs) # also half-anuzwuBs
+		if self.anuzwuB_result != None:
+			return self.anuzwuB_result
 
-        self.samavftta_result = self.test_as_samavftta(Vrs)
-        self.upajAti_result = self.test_as_upajAti(Vrs)
+		self.samavftta_result = self.test_as_samavftta(Vrs)
 
-        if self.samavftta_result != None and self.pAdasamatva == 4:  # perfect
-            return self.samavftta_result
-        elif self.upajAti_result != None:
-            return self.upajAti_result
-        elif self.samavftta_result != None:
-            return self.samavftta_result
+		self.upajAti_result = self.test_as_upajAti(Vrs)
+		import pdb; pdb.set_trace()
 
-        self.jAti_result = self.test_as_jAti(Vrs)
-        if self.jAti_result != None:
-            return self.jAti_result
+		if self.samavftta_result != None and self.pAdasamatva_count == 4:  # perfect
+			return self.samavftta_result
+		# elif self.upajAti_result != None:
+		# 	return self.upajAti_result
+		elif self.samavftta_result != None:
+			return self.samavftta_result
 
-        # if here, all three type tests failed
-        return None
+		self.jAti_result = self.test_as_jAti(Vrs)
+		if self.jAti_result != None:
+			return self.jAti_result
+
+		# if here, all three type tests failed
+		return None
 
 
 class MeterIdentifier(object):
-    """
-    User-facing agent-style object.
+	"""
+	User-facing agent-style object.
 
-    Primary method identify_meter() accepts string.
+	Primary method identify_meter() accepts string.
 
-    Returns single Verse object, whose attribute meter_label
-    and method summarize() help in revealing identification results.
-    """
+	Returns single Verse object, whose attribute meter_label
+	and method summarize() help in revealing identification results.
+	"""
 
-    def __init__(self):
-        self.Scanner = None
-        self.VerseTester = None
-        self.Verses_found = []  # list of Verse objects which passed VerseTester
+	def __init__(self):
+		self.Scanner = None
+		self.VerseTester = None
+		self.Verses_found = []  # list of Verse objects which passed VerseTester
 
-    def wiggle_iterator(self, start_pos, part_len):
-        """
-        E.g., if len(pāda)==10,
-        then from the breaks between each pāda,
-        wiggle as far as 6 in either direction,
-        first right, then left.
-        """
+	def wiggle_iterator(self, start_pos, part_len):
+		"""
+		E.g., if len(pāda)==10,
+		then from the breaks between each pāda,
+		wiggle as far as 6 in either direction,
+		first right, then left.
+		"""
 
-        iter_list = [start_pos]
-        max_wiggle_distance = int(part_len / 2 + 1)
-        for i in range(1, max_wiggle_distance):
-            iter_list.append(start_pos+i)
-            iter_list.append(start_pos-i)
-        return iter_list
+		iter_list = [start_pos]
+		max_wiggle_distance = int(part_len / 2 + 1)
+		for i in range(1, max_wiggle_distance):
+			iter_list.append(start_pos+i)
+			iter_list.append(start_pos-i)
+		return iter_list
 
-    def resplit_Verse(self, syllable_list, ab_pAda_br, bc_pAda_br, cd_pAda_br):
-        """
-        Input does not have newlines
-        """
-        sss = scansion_syllable_separator
-        return (sss.join(syllable_list[:ab_pAda_br]) + '\n'
-                + sss.join(syllable_list[ab_pAda_br:bc_pAda_br]) + '\n'
-                + sss.join(syllable_list[bc_pAda_br:cd_pAda_br]) + '\n'
-                + sss.join(syllable_list[cd_pAda_br:])
-                )
+	def resplit_Verse(self, syllable_list, ab_pAda_br, bc_pAda_br, cd_pAda_br):
+		"""
+		Input does not have newlines
+		"""
+		sss = scansion_syllable_separator
+		return (sss.join(syllable_list[:ab_pAda_br]) + '\n'
+				+ sss.join(syllable_list[ab_pAda_br:bc_pAda_br]) + '\n'
+				+ sss.join(syllable_list[bc_pAda_br:cd_pAda_br]) + '\n'
+				+ sss.join(syllable_list[cd_pAda_br:])
+				)
 
-    def wiggle_identify(	self, Vrs, syllable_list, VrsTster,
-                         ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len):
-        """Returns a list for MeterIdentifier.Verses_found"""
+	def wiggle_identify(	self, Vrs, syllable_list, VrsTster,
+						 ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len):
+		"""Returns a list for MeterIdentifier.Verses_found"""
 
-        ab_wiggle_iterator = self.wiggle_iterator(ab_pAda_br, quarter_len)
-        bc_wiggle_iterator = self.wiggle_iterator(bc_pAda_br, quarter_len)
-        cd_wiggle_iterator = self.wiggle_iterator(cd_pAda_br, quarter_len)
+		ab_wiggle_iterator = self.wiggle_iterator(ab_pAda_br, quarter_len)
+		bc_wiggle_iterator = self.wiggle_iterator(bc_pAda_br, quarter_len)
+		cd_wiggle_iterator = self.wiggle_iterator(cd_pAda_br, quarter_len)
 
-        wiggle_resplit_output_buffer = ''
-        temp_V = None
-        S = Sc()
-        Verses_found = []
+		wiggle_resplit_output_buffer = ''
+		temp_V = None
+		S = Sc()
+		Verses_found = []
 
-        for pos_ab in ab_wiggle_iterator:
-            for pos_bc in bc_wiggle_iterator:
-                for pos_cd in cd_wiggle_iterator:
+		for pos_ab in ab_wiggle_iterator:
+			for pos_bc in bc_wiggle_iterator:
+				for pos_cd in cd_wiggle_iterator:
 
-                    try:
+					try:
 
-                        new_text_syllabified = self.resplit_Verse(
-                            syllable_list, pos_ab, pos_bc, pos_cd)
+						new_text_syllabified = self.resplit_Verse(
+							syllable_list, pos_ab, pos_bc, pos_cd)
 
-                        temp_V = copy(Vrs)
-                        temp_V.text_syllabified = new_text_syllabified
-                        temp_V.syllable_weights = S.scan_syllable_weights(
-                            temp_V.text_syllabified)
-                        temp_V.morae_per_line = S.count_morae(
-                            temp_V.syllable_weights)
+						temp_V = copy(Vrs)
+						temp_V.text_syllabified = new_text_syllabified
+						temp_V.syllable_weights = S.scan_syllable_weights(
+							temp_V.text_syllabified)
+						temp_V.morae_per_line = S.count_morae(
+							temp_V.syllable_weights)
 
-                        id_result = VrsTster.attempt_identification(temp_V)
+						id_result = VrsTster.attempt_identification(temp_V)
 
-                        if id_result != None:
-                            temp_V.meter_label = id_result
-                            Verses_found.append(temp_V)
+						if id_result != None:
+							temp_V.meter_label = id_result
+							Verses_found.append(temp_V)
 
-                    except IndexError:
-                        continue
+					except IndexError:
+						continue
 
-        return Verses_found
+		return Verses_found
 
-    def identify_meter(self, rw_str, resplit_option=default_resplit_option, from_scheme=None):
-        """
-        User-facing method, manages overall identification procedure:
-                accepts raw string
-                sends string to Scanner.scan, receives back scansion.Verse object
-                then, according to segmentation mode
-                        makes and passes series of Verse objects to internal VerseTester
-                        receives back tested Verses (as internally available dict)
-                returns single Verse object with best identification result
+	def identify_meter(self, rw_str, resplit_option=default_resplit_option, from_scheme=None):
+		"""
+		User-facing method, manages overall identification procedure:
+				accepts raw string
+				sends string to Scanner.scan, receives back scansion.Verse object
+				then, according to segmentation mode
+						makes and passes series of Verse objects to internal VerseTester
+						receives back tested Verses (as internally available dict)
+				returns single Verse object with best identification result
 
-        four segmentation modes:
-                1) none: uses three newlines exactly as provided in input
-                2) resplit_hard: discards input newlines, resplits based on overall length
-                3) resplit_soft: initializes length-based resplit with input newlines
-                4) single_pAda: evaluates input as single pAda (verse quarter)
+		four segmentation modes:
+				1) none: uses three newlines exactly as provided in input
+				2) resplit_hard: discards input newlines, resplits based on overall length
+				3) resplit_soft: initializes length-based resplit with input newlines
+				4) single_pAda: evaluates input as single pAda (verse quarter)
 
-        order
-                first: default or override
-                if fails, then: try other modes in set order (1 2 3; depending on length 4)
+		order
+				first: default or override
+				if fails, then: try other modes in set order (1 2 3; depending on length 4)
 
-        """
+		"""
 
-        self.Scanner = S = Sc()
+		self.Scanner = S = Sc()
 
-        # gets back mostly populated Verse object
-        V = S.scan(rw_str, from_scheme=from_scheme)
+		# gets back mostly populated Verse object
+		V = S.scan(rw_str, from_scheme=from_scheme)
 
-        self.VerseTester = VT = VerseTester()
+		self.VerseTester = VT = VerseTester()
 
-        if resplit_option == 'none':
+		if resplit_option == 'none':
 
-            V.meter_label = VT.attempt_identification(V)
+			V.meter_label = VT.attempt_identification(V)
 
-        elif resplit_option in ['resplit_hard', 'resplit_soft']:
+		elif resplit_option in ['resplit_hard', 'resplit_soft']:
 
-            if resplit_option == 'resplit_soft':
-                # capture user pāda breaks as indicated by newlines
-                newline_indices = [m.start()
-                                   for m in re.finditer('\n', V.text_syllabified)]
+			if resplit_option == 'resplit_soft':
+				# capture user pāda breaks as indicated by newlines
+				newline_indices = [m.start()
+								   for m in re.finditer('\n', V.text_syllabified)]
 
-                try:
-                    newline_indices[2]
-                except IndexError:
-                    return V  # didn't find three newlines for four pādas
+				try:
+					newline_indices[2]
+				except IndexError:
+					return V  # didn't find three newlines for four pādas
 
-                ab_pAda_br = V.text_syllabified[:newline_indices[0]].count(
-                    scansion_syllable_separator)
-                bc_pAda_br = V.text_syllabified[:newline_indices[1]].count(
-                    scansion_syllable_separator)
-                cd_pAda_br = V.text_syllabified[:newline_indices[2]].count(
-                    scansion_syllable_separator)
+				ab_pAda_br = V.text_syllabified[:newline_indices[0]].count(
+					scansion_syllable_separator)
+				bc_pAda_br = V.text_syllabified[:newline_indices[1]].count(
+					scansion_syllable_separator)
+				cd_pAda_br = V.text_syllabified[:newline_indices[2]].count(
+					scansion_syllable_separator)
 
-            # make list, sans newlines, sans last scansion_syllable_separator
-            syllable_list = (	V.text_syllabified.replace('\n', '')
-                              ).split(scansion_syllable_separator)
+			# make list, sans newlines, sans last scansion_syllable_separator
+			syllable_list = (	V.text_syllabified.replace('\n', '')
+							  ).split(scansion_syllable_separator)
 
-            try:
-                while syllable_list[-1] == '':
-                    syllable_list.pop(-1)  # in case of final separator(s)
-            except IndexError:
-                pass
+			try:
+				while syllable_list[-1] == '':
+					syllable_list.pop(-1)  # in case of final separator(s)
+			except IndexError:
+				pass
 
-            total_syll_count = len(syllable_list)
-            quarter_len = int(total_syll_count / 4)
+			total_syll_count = len(syllable_list)
+			quarter_len = int(total_syll_count / 4)
 
-            if resplit_option == 'resplit_hard':
-                # discard user pāda breaks, initialize length-based ones
-                ab_pAda_br, bc_pAda_br, cd_pAda_br = (
-                    [i * quarter_len for i in [1, 2, 3]])
+			if resplit_option == 'resplit_hard':
+				# discard user pāda breaks, initialize length-based ones
+				ab_pAda_br, bc_pAda_br, cd_pAda_br = (
+					[i * quarter_len for i in [1, 2, 3]])
 
-            self.Verses_found = self.wiggle_identify(V, syllable_list, VT,
-                                                     ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len)
+			self.Verses_found = self.wiggle_identify(V, syllable_list, VT,
+													 ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len)
 
-            # could look for best match if len(self.Verses_found) > 1
-            if len(self.Verses_found) > 0:
-                V = self.Verses_found[0]
+			# could look for best match if len(self.Verses_found) > 1
+			if len(self.Verses_found) > 0:
+				V = self.Verses_found[0]
 
-        if V.meter_label == None:
-            V.meter_label = 'ajñātam'  # do not return None
+		if V.meter_label == None:
+			V.meter_label = 'ajñātam'  # do not return None
 
-        return V
+		return V

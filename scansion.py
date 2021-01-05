@@ -313,10 +313,8 @@ class Scanner(object):
 		V.text_syllabified = self.syllabify_text(V.text_SLP)
 		V.syllable_weights = self.scan_syllable_weights(V.text_syllabified)
 		V.morae_per_line = self.count_morae(V.syllable_weights)
-		V.gaRa_abbreviations = self.gaRa_abbreviate(
-			'\n'.join(
-				[ self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n') ]
-			)
+		V.gaRa_abbreviations = '\n'.join(
+		[ self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n') ]
 		)
 
 		self.Verse = V

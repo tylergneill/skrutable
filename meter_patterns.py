@@ -109,6 +109,85 @@ samavfttas_by_gaRas = {
 
 }
 
+def choose_heavy_gaRa_pattern(gaRa_pattern):
+	return gaRa_pattern[:-5] + gaRa_pattern[-4]
+
+samavfttas_by_syll_num_and_gaRa = {
+
+8: 	{
+	'jrl(g|l)' : 'pramāṇikā',
+	},
+
+9:	{ },
+
+10: { },
+
+11:	{
+	'ttjg(g|l)' : 'indravajrā',
+	'jtjg(g|l)' : 'upendravajrā',
+	'mttg(g|l)' : 'śālinī',
+	'rnrl(g|l)' : 'rathoddhatā',
+	'sssl(g|l)' : 'upacitra',
+	},
+
+12: {
+	'sss(s|n)' : 'toṭakam',
+	'nBB(r|B)' : 'drūtavilambitam',
+	'yyy(y|j)' : 'bhujaṅgaprayātam',
+	'jtj(r|B)' : 'vaṃśastha',
+	'ttj(r|B)' : 'indravaṃśā',
+	'rrr(r|B)' : 'sragviṇī',
+	'sjs(s|n)' : 'pramitākṣarā',
+	'mmy(y|j)' : 'vaiśvadevī',
+	# drutavilambita
+	},
+
+13: {
+	'mnjr(g|l)' : 'praharṣiṇī',
+	'jBsj(g|l)' : 'rucirā',
+	'sjsj(g|l)' : 'mañjubhāṣiṇī',
+	},
+
+14: {
+	'tBjjg(g|l)' : 'vasantatilaka',
+	},
+
+15: {
+	'nnmy(y|j)' : 'mālinī',
+	},
+
+16: {
+	'jrjrj(g|l)' : 'pañcacāmaram',
+	},
+
+17: {
+	'mBnttg(g|l)' : 'mandākrāntā',
+	'ymnsBl(g|l)' : 'śikhariṇī',
+	'nsmrsl(g|l)' : 'hariṇī',
+	'jsjsyl(g|l)' : 'pṛthvī',
+	'njBjjl(g|l)' : 'narkuṭaka',
+	},
+
+18: { },
+
+19: {
+	'msjstt(g|l)' : 'śārdūlavikrīḍitā',
+	},
+
+20: { },
+
+21: {
+	'mrBnyy(y|j)' : 'sragdharā',
+	},
+
+22: { },
+
+23: {
+	'njjjjjjl(g|l)' : 'śravaṇābharaṇam', # also virājitam
+	},
+
+}
+
 
 # Note: Not used yet.
 ardhasamavfttas_by_gaRas = {
