@@ -573,7 +573,7 @@ SLP_IAST = [
 ]
 
 SLP_HK = [
-# Transliteration 1: ordered mappings to avoid bleeding/feeding
+# Transliteration 1: careful ordering to avoid bleeding/feeding
 ('G','gh'),
 ('N','G'),
 ('R','N'),
@@ -589,7 +589,7 @@ SLP_HK = [
 ('Q','Dh'),
 ('J','jh'),
 ('Y','J'),
-# Transliteration 2: "Duke of York gambit" to avoid feeding in direct swap
+# Transliteration 2: roundabout swap to avoid feeding in direct swap
 ('S','Z'), # Z not used in either scheme
 ('z','S'),
 ('Z','z'),
@@ -822,7 +822,41 @@ SLP_VH = [
 SLP_WX = []
 
 SLP_ITRANS = [
-# to work out next
+# Transliteration 1: careful ordering to avoid bleeding/feeding
+('N','~N'), # palatal nasal
+('R','N'), # retroflex nasal
+# Transliteration 2: simpler remaining mappings
+('A','aa'),
+('I','ii'),
+('U','uu'),
+('f','Ri'),
+('F','RI'),
+('x','Li'),
+('X','LI'),
+('e','ee'),
+('o','oo'),
+('E','ai'),
+('O','au'),
+('M','.m'),
+('H','.h'),
+('K','kh'),
+('G','gh'),
+('c','ch'),
+('C','Ch'),
+('J','jh'),
+('Y','~n'),
+('w','T'),
+('W','Th'),
+('q','D'),
+('Q','Dh'),
+('T','th'),
+('D','dh'),
+('P','ph'),
+('B','bh'),
+('v','w'),
+('S','"sh'),
+('z','Sh'),
+("'",'.a'),
 ]
 
 SLP_CSX = []
