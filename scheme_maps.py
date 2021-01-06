@@ -1,6 +1,6 @@
 roman_schemes_1 = ['IAST', 'SLP', 'HK']
 indic_schemes = ['DEV', 'BENGALI', 'GUJARATI']
-roman_schemes_2 = ['VH', 'ITRANS', 'IASTreduced']
+roman_schemes_2 = ['VH', 'ITRANS', 'IASTREDUCED']
 all_schemes = roman_schemes_1 + indic_schemes + roman_schemes_2
 
 """For reference, each scheme on its own:
@@ -15,7 +15,7 @@ p ph b bh m				p P b B m 				p ph b bh m
 y r l v					y r l v 				y r l v
 ś ṣ s h ṃ ḥ '			S z s h M H '			z S s h M H '
 
-(IASTreduced: a a i i u u ... jh n t th d dh n t ... s s s h m h ')
+(IASTREDUCED: a a i i u u ... jh n t th d dh n t ... s s s h m h ')
 
 DEV
 अ आ इ ई उ ऊ ( ा ि ी ु ू )
@@ -892,7 +892,7 @@ SLP_OAST = [
 ('H','µ'),
 ]
 
-SLP_IASTreduced = [
+SLP_IASTREDUCED = [
 # Transliteration 1: all simple mappings
 ('A','a'),
 ('I','i'),
@@ -932,5 +932,5 @@ by_name = {
 'SLP_IAST' : SLP_IAST, 'SLP_HK' : SLP_HK,
 'SLP_DEV' : SLP_DEV, 'SLP_BENGALI' : SLP_BENGALI, 'SLP_GUJARATI' : SLP_GUJARATI,
 'SLP_VH' : SLP_VH, 'SLP_ITRANS' : SLP_ITRANS,
-'SLP_IASTreduced' : SLP_IASTreduced,
+'SLP_IASTREDUCED' : SLP_IASTREDUCED,
 }
