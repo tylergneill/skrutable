@@ -151,6 +151,9 @@ class Transliterator():
 		and also directly as string.
 		"""
 
+		if from_scheme == "IASTreduced":
+			return cntnts
+
 		self.contents = cntnts
 
 		if from_scheme != None: # override
