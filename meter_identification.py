@@ -342,10 +342,22 @@ class VerseTester(object):
 
 	def attempt_identification(self, Vrs):
 		"""
-		= old ScansionResults.identify
+		Runs through various possible meter types in set order:
+			anuzwuB
+				full (imperfect noted depending on other half)
+				half (imperfect currently not yet noted)
+			samavftta
+				(option:) perfect vizamavftta
+				perfect ardhasamavftta (fixed set of known 1-3 and 2-4 mixings)
+				perfect samavftta (all exact same pattern)
+				perfect upajAti (all patterns from same family, not just trizwuB)
+				imperfect ardhasamavftta
+				perfect upajAti
+				(maybe:) imperfect ardhasamavftta
+				imperfect samavftta
+			jAti
+				currently only perfect
 
-		runs through various possible meter types in set order
-				MAYBE SET ORDER IN CONFIG
 
 		Receives static, populated Verse object on which to attempt identification.
 		"""
@@ -532,6 +544,7 @@ class MeterIdentifier(object):
 													 ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len)
 
 			# could look for best match if len(self.Verses_found) > 1
+			# e.g. perfect upajāti overrides imperfect samavftta
 			if len(self.Verses_found) > 0:
 				V = self.Verses_found[0]
 

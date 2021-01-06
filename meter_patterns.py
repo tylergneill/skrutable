@@ -114,13 +114,13 @@ def choose_heavy_gaRa_pattern(gaRa_pattern):
 
 samavfttas_by_syll_num_and_gaRa = {
 
+1: { }, 2: { }, 3: { }, 4: { }, 5: { }, 6: { }, 7: { },
+
 8: 	{
 	'jrl(g|l)' : 'pramāṇikā',
 	},
 
-9:	{ },
-
-10: { },
+9:	{ }, 10: { },
 
 11:	{
 	'ttjg(g|l)' : 'indravajrā',
@@ -186,6 +186,7 @@ samavfttas_by_syll_num_and_gaRa = {
 	'njjjjjjl(g|l)' : 'śravaṇābharaṇam', # also virājitam
 	},
 
+24: { }, 25: { }, 26: { }, 
 }
 
 
