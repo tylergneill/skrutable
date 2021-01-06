@@ -15,7 +15,7 @@ p ph b bh m				p P b B m 				p ph b bh m
 y r l v					y r l v 				y r l v
 ś ṣ s h ṃ ḥ '			S z s h M H '			z S s h M H '
 
-(IAST_reduced: a a i i u u ... jh n t th d dh n t ... s s s h m h ')
+(IASTreduced: a a i i u u ... jh n t th d dh n t ... s s s h m h ')
 
 DEV
 अ आ इ ई उ ऊ ( ा ि ी ु ू )
@@ -89,7 +89,9 @@ IAST_SLP = [
 # Normalization 1: merge of combining diacritics to precomposed combinations
 ('ā','ā'),('Ā','ā'),('Ā','ā'), # case also lowered throughout
 ('ī','ī'),('Ī','ī'),('Ī','ī'),
+('ï','ï'), # for Prakrit
 ('ū','ū'),('Ū','ū'),('Ū','ū'),
+('ü','ü'), # for Prakrit
 ('ṛ','ṛ'),('Ṛ','ṛ'),('Ṛ','ṛ'),
 ('ṝ','ṝ'),		 ('Ṝ','ṝ'), # r ̣ ̄ R ̣ ̄
 ('ṝ','ṝ'),		 ('Ṝ','ṝ'), # r ̄ ̣ R ̄ ̣
@@ -115,6 +117,7 @@ IAST_SLP = [
 ('l̥̄','ḹ'),('L̥̄','ḹ'),
 ('l̥̄','ḹ'),('L̥̄','ḹ'),
 # Normalization 3: lowering of remaining uppercase
+# Another option: Comment out to allow capitalization of proper names
 ('A','a'),('B','b'),('C','c'),('D','d'),('E','e'),
 ('F','f'),('G','g'),('H','h'),('I','i'),('J','j'),
 ('K','k'),('L','l'),('M','m'),('N','n'),('O','o'),
@@ -127,7 +130,9 @@ IAST_SLP = [
 ('ḍ','q'),
 # Transliteration 2: simpler remaining mappings
 ('ā','A'),
+('ï','i'), # for Prakrit
 ('ī','I'),
+('ü','u'), # for Prakrit
 ('ū','U'),
 ('ṛ','f'),
 ('ṝ','F'),
