@@ -825,6 +825,12 @@ SLP_ITRANS = [
 # Transliteration 1: careful ordering to avoid bleeding/feeding
 ('N','~N'), # palatal nasal
 ('R','N'), # retroflex nasal
+('T','th'),
+('w','T'),
+('W','Th'),
+('v','w'),
+('D','dh'),
+('q','D'),
 # Transliteration 2: simpler remaining mappings
 ('A','aa'),
 ('I','ii'),
@@ -845,15 +851,10 @@ SLP_ITRANS = [
 ('C','Ch'),
 ('J','jh'),
 ('Y','~n'),
-('w','T'),
-('W','Th'),
-('q','D'),
+
 ('Q','Dh'),
-('T','th'),
-('D','dh'),
 ('P','ph'),
 ('B','bh'),
-('v','w'),
 ('S','sh'),
 ('z','Sh'),
 ("'",'.a'),
