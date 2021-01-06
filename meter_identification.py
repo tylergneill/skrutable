@@ -359,12 +359,12 @@ class VerseTester(object):
 		self.samavftta_result = self.test_as_samavftta(Vrs)
 
 		self.upajAti_result = self.test_as_upajAti(Vrs)
-		import pdb; pdb.set_trace()
+
 
 		if self.samavftta_result != None and self.pAdasamatva_count == 4:  # perfect
 			return self.samavftta_result
-		# elif self.upajAti_result != None:
-		# 	return self.upajAti_result
+		elif self.upajAti_result != None:
+		 	return self.upajAti_result
 		elif self.samavftta_result != None:
 			return self.samavftta_result
 
@@ -488,6 +488,7 @@ class MeterIdentifier(object):
 
 		if resplit_option == 'none':
 
+			import pdb; pdb.set_trace()
 			V.meter_label = VT.attempt_identification(V)
 
 		elif resplit_option in ['resplit_hard', 'resplit_soft']:
@@ -510,8 +511,9 @@ class MeterIdentifier(object):
 					scansion_syllable_separator)
 
 			# make list, sans newlines, sans last scansion_syllable_separator
-			syllable_list = (	V.text_syllabified.replace('\n', '')
-							  ).split(scansion_syllable_separator)
+			syllable_list = (
+							V.text_syllabified.replace('\n', '')
+							).split(scansion_syllable_separator)
 
 			try:
 				while syllable_list[-1] == '':
