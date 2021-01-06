@@ -151,7 +151,7 @@ class Transliterator():
 		and also directly as string.
 		"""
 
-		if from_scheme == "IASTreduced":
+		if from_scheme == "IASTREDUCED":
 			return cntnts
 
 		self.contents = cntnts
