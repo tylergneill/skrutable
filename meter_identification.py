@@ -488,7 +488,6 @@ class MeterIdentifier(object):
 
 		if resplit_option == 'none':
 
-			import pdb; pdb.set_trace()
 			V.meter_label = VT.attempt_identification(V)
 
 		elif resplit_option in ['resplit_hard', 'resplit_soft']:
