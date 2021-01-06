@@ -130,9 +130,7 @@ IAST_SLP = [
 ('ḍ','q'),
 # Transliteration 2: simpler remaining mappings
 ('ā','A'),
-('ï','i'), # for Prakrit
 ('ī','I'),
-('ü','u'), # for Prakrit
 ('ū','U'),
 ('ṛ','f'),
 ('ṝ','F'),
@@ -140,6 +138,8 @@ IAST_SLP = [
 ('ḹ','X'),
 ('ai','E'),
 ('au','O'),
+('ï','i'), # for Prakrit
+('ü','u'), # for Prakrit
 ('kh','K'),
 ('gh','G'),
 ('ṅ','N'),
