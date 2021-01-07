@@ -233,60 +233,60 @@ class VerseTester(object):
 			return None
 
 	# def test_as_samavftta_or_upajAti(self, Vrs):
-
-		w_p = Vrs.syllable_weights.split('\n')  # weights by pāda
-		try:
-			w_p[3]
-		except IndexError:
-			return None  # didn't find full four pādas
-
-		self.pAdasamatva_count = self.test_pAdasamatva(Vrs) # [0,2,3,4]
-
-		# test perfect samavftta
-		if self.pAdasamatva_count == 4:
-			# simply distinguish whether known or not, then output answer
-			return
-
-		# test perfect ardhasamavftta
-		if ( self.pAdasamatva_count == 2
-			 and w_p[0] == w_p[2]
-			 and w_p[1] == w_p[3]
-			 ):
-			# again, distinguish whether known, output
-			# involves looking specifically for corresponding type
-			return
-
-		# test perfect upajāti
-		if self.strict_trizwuB_count == 4:
-			# already confirmed known patterns, just identify types and output
-			return
-
-		# test various cascading imperfect upajātis
-		if ( self.strict_trizwuB_count + self.loose_eleven_count ) == 4:
-			# at least some unknown, express ?, distinguish known from unknown
-			return
-		elif self.strict_trizwuB_count == 3:
-			# likely just textual error, express # samyak, identify types, output
-			return
-		elif ( self.strict_trizwuB_count + self.loose_eleven_count ) == 3:
-			# same, express ?, express # samyak, identify distinguished types
-			return
-		elif self.strict_trizwuB_count == 2:
-			# same, express # samyak, identify types, output
-			return
-		elif ( self.strict_trizwuB_count + self.loose_eleven_count ) == 2:
-			# same, express ?, express # samyak, identify distinguished types
-			return
-
-		# test imperfect ardhasamavftta? seems hard
-		# involves looking specifically for corresponding type
-
-		# test imperfect samavfttas
-		if self.pAdasamatva_count in [2,3]:
-			# distinguish whether known, express # samyak, identify type, output
-			return
-
-		return None
+	#
+	# 	w_p = Vrs.syllable_weights.split('\n')  # weights by pāda
+	# 	try:
+	# 		w_p[3]
+	# 	except IndexError:
+	# 		return None  # didn't find full four pādas
+	#
+	# 	self.pAdasamatva_count = self.test_pAdasamatva(Vrs) # [0,2,3,4]
+	#
+	# 	# test perfect samavftta
+	# 	if self.pAdasamatva_count == 4:
+	# 		# simply distinguish whether known or not, then output answer
+	# 		return
+	#
+	# 	# test perfect ardhasamavftta
+	# 	if ( self.pAdasamatva_count == 2
+	# 		 and w_p[0] == w_p[2]
+	# 		 and w_p[1] == w_p[3]
+	# 		 ):
+	# 		# again, distinguish whether known, output
+	# 		# involves looking specifically for corresponding type
+	# 		return
+	#
+	# 	# test perfect upajāti
+	# 	if self.strict_trizwuB_count == 4:
+	# 		# already confirmed known patterns, just identify types and output
+	# 		return
+	#
+	# 	# test various cascading imperfect upajātis
+	# 	if ( self.strict_trizwuB_count + self.loose_eleven_count ) == 4:
+	# 		# at least some unknown, express ?, distinguish known from unknown
+	# 		return
+	# 	elif self.strict_trizwuB_count == 3:
+	# 		# likely just textual error, express # samyak, identify types, output
+	# 		return
+	# 	elif ( self.strict_trizwuB_count + self.loose_eleven_count ) == 3:
+	# 		# same, express ?, express # samyak, identify distinguished types
+	# 		return
+	# 	elif self.strict_trizwuB_count == 2:
+	# 		# same, express # samyak, identify types, output
+	# 		return
+	# 	elif ( self.strict_trizwuB_count + self.loose_eleven_count ) == 2:
+	# 		# same, express ?, express # samyak, identify distinguished types
+	# 		return
+	#
+	# 	# test imperfect ardhasamavftta? seems hard
+	# 	# involves looking specifically for corresponding type
+	#
+	# 	# test imperfect samavfttas
+	# 	if self.pAdasamatva_count in [2,3]:
+	# 		# distinguish whether known, express # samyak, identify type, output
+	# 		return
+	#
+	# 	return None
 
 	def test_as_jAti(self, Vrs):
 		"""

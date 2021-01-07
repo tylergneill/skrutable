@@ -6,7 +6,7 @@ all_schemes = roman_schemes_1 + indic_schemes + roman_schemes_2
 """For reference, each scheme on its own:
 IAST					SLP						HK
 a ā i ī u ū				a A i I u U 			a A i I u U
-ṛ ṝ ḷ ḹ e o ai au		f F x X e E o O 		R RR lR lRR e o ai au
+ṛ ṝ ḷ ḹ e ai o au		f F x X e E o O 		R RR lR lRR e ai o au
 k kh g gh ṅ				k K g G N 				k kh g gh G
 c ch j jh ñ				c C j J Y 				c ch j jh J
 ṭ ṭh ḍ ḍh ṇ				w W q Q R 				T Th D Dh N
@@ -54,19 +54,19 @@ GUJARATI
 ૧ ૨ ૩ ૪ ૫ ૬ ૭ ૮ ૯ ૦
 
 VH     					WX
-a aa i ii u uu			...
-.r .R .l .L e o ai au
-k K g G "n
-c C j J ~n
-.t .T .d .D .n
-t T d D n
-p P b B m
-y r l v
-"s .s s h .m .h .a
+a aa i ii u uu			a A i I u U
+.r .R .l .L e ai o au	q Q L   e E o O
+k K g G "n				k K g G f
+c C j J ~n				c C j J F
+.t .T .d .D .n			t T d D N
+t T d D n				w W x X n
+p P b B m				p P b B m
+y r l v					y r l v
+"s .s s h .m .h .a		S R s M H Z
 
 ITRANS
 a aa i ii u uu
-Ri/RRi/R^i RI/RRI/R^I Li/LLi/L^i LI/LLI/L^I ee/E oo/O ai au
+Ri/RRi/R^i RI/RRI/R^I Li/LLi/L^i LI/LLI/L^I ee/E ai oo/O au
 k kh g gh ~N
 ch Ch j jh ~n
 T Th D Dh N
@@ -444,7 +444,34 @@ VH_SLP = [
 # Remain the same: ...
 ]
 
-WX_SLP = []
+WX_SLP = [
+# Transliteration 1: very careful ordering to avoid bleeding/feeding
+# start with what not used in WX: Y
+('F','Y'), # ñ
+# now progressively map to what is freed up
+('Q','F'), # ṝ
+('D','Q'), # ḍh
+('X','D'), # dh
+# again, start with what not used in WX: z
+('R','z'), # ṣ
+# now progressively map to what is freed up
+('N','R'), # ṇ
+('f','N'), # ṅ
+('q','f'), # ṛ
+('d','q'), # ḍ
+('x','d'), # d
+('L','x'), # ḷ
+# Transliteration 2: roundabout swaps to avoid bleeding/feeding
+# V not used in either scheme
+('t','V'), # ṭ
+('w','t'), # t
+('V','w'), # ṭ
+('T','V'), # ṭh
+('W','T'), # th
+('V','W'), # ṭh
+# Transliteration 3: simpler remaining mapping
+('Z',"'"),
+]
 
 ITRANS_SLP = [
 # Transliteration 1: careful ordering to avoid bleeding/feeding
@@ -819,7 +846,35 @@ SLP_VH = [
 ("'",'.a'),
 ]
 
-SLP_WX = []
+SLP_WX = [
+# Transliteration 1: very careful ordering to avoid bleeding/feeding
+# start with what not used in SLP: L
+('x','L'), # ḷ
+# now progressively map to what is freed up
+('d','x'), # d
+('q','d'), # ḍ
+('f','q'), # ṛ
+('N','f'), # ṅ
+('R','N'), # ṇ
+('z','R'), # ṣ
+# WX does not seem to have ḹ, so make something up
+('X','LL'), 
+# now progressively map to what is freed up
+('D','X'), # dh
+('Q','D'), # ḍh
+('F','Q'), # ṝ
+('Y','F'), # ñ
+# Transliteration 2: roundabout swaps to avoid bleeding/feeding
+# V not used in either scheme
+('w','V'), # ṭ
+('t','w'), # t
+('V','t'), # ṭ
+('W','V'), # ṭh
+('T','W'), # th
+('V','T'), # ṭh
+# Transliteration 3: simpler remaining mapping
+("'",'Z'),
+]
 
 SLP_ITRANS = [
 # Transliteration 1: careful ordering to avoid bleeding/feeding
