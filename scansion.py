@@ -34,7 +34,7 @@ class Verse(object):
 		self.morae_per_line = None 		# list of integers
 		self.gaRa_abbreviations = None	# string, may contain newlines
 		self.meter_label = None			# string
-
+		self.identification_score = None # int
 
 	def summarize(self):
 		"""
