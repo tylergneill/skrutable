@@ -55,3 +55,23 @@ mOnaM viDeyaM satataM suDIBiH"""
 	print("\n\n test_test_as_upajAti OUTPUT: " + output + '\n\n')
 	expected_output = "upajāti"
 	assert output[:7] == expected_output
+
+def test_identify_meter_upajAti():
+	MI = MeterIdentifier()
+	input_string = """kolAhale kAkakulasya jAte
+virAjate kokilakUjitaM kim
+parasparaM saMvadatAM KalAnAM
+mOnaM viDeyaM satataM suDIBiH"""
+	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_hard')
+	output = object_result.summarize()
+	print("\n\n test_identify_meter_upajAti OUTPUT: " + output + '\n\n')
+	expected_output = "upajāti"
+
+def test_identify_meter_Darmakzetre():
+	MI = MeterIdentifier()
+	input_string = """dharmakṣetre kurukṣetre samavetā yuyutsavaḥ /
+māmakāḥ pāṇḍavāś caiva kim akurvata sañjaya //"""
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_hard')
+	output = object_result.summarize()
+	print("\n\ntest_identify_meter_Darmakzetre OUTPUT:\n" + output + '\n\n')
+	expected_output = "upajāti"

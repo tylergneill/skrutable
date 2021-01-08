@@ -64,16 +64,19 @@ class Verse(object):
 
 			for i, weights in enumerate(self.syllable_weights.split('\n')):
 
-				line = ''
-				if show_weights:
-					line += ('%%%ds' % max_weights_len) % weights
-				if show_morae:
-					line += ' %6s' % '[%s]' % str(self.morae_per_line[i])
-				if show_gaRas:
-					line += ' %6s' % '[%s]' % self.gaRa_abbreviations.split('\n')[i]
-				if show_weights or show_morae or show_gaRas:
-					line += '\n'
-				part_A += line
+				try:
+					line = ''
+					if show_weights:
+						line += ('%%%ds' % max_weights_len) % weights
+					if show_morae:
+						line += ' %6s' % '[%s]' % str(self.morae_per_line[i])
+					if show_gaRas:
+						line += ' %6s' % '[%s]' % self.gaRa_abbreviations.split('\n')[i]
+					if show_weights or show_morae or show_gaRas:
+						line += '\n'
+					part_A += line
+				except IndexError:
+					import pdb; pdb.set_trace()
 
 			if part_A != '': part_A += '\n'
 
@@ -343,7 +346,7 @@ class Scanner(object):
 
 	def gaRa_abbreviate(self, syl_wts):
 		"""
-		Accepts string of light/heavy (l/g) pattern, e.g., 'lllgggl'.
+		Accepts one-line string of light/heavy (l/g) pattern, e.g., 'lllgggl'.
 
 		Returns string of 'gaRa'-trisyllable abbreviation, e.g. 'nml'.
 		"""

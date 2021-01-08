@@ -476,6 +476,11 @@ class MeterIdentifier(object):
 							temp_V.text_syllabified)
 						temp_V.morae_per_line = S.count_morae(
 							temp_V.syllable_weights)
+						temp_V.gaRa_abbreviations = '\n'.join(
+						[ S.gaRa_abbreviate(line) for line in temp_V.syllable_weights.split('\n') ]
+						)
+
+
 
 						temp_V.meter_label = VrsTster.attempt_identification(temp_V)
 						# >> attempt_result = VrsTster.attempt_identification(temp_V)
