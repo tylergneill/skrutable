@@ -36,25 +36,108 @@ class Verse(object):
 		self.meter_label = None			# string
 		self.identification_score = None # int
 
-	def summarize(self):
+	def summarize(self,
+		show_weights=True, show_morae=True, show_gaRas=True, # part_A
+		show_alignment=True, # part_B
+		show_label=True): # part_C
 		"""
-		Returns display-ready, formatted string,
-		featuring right-alignment of (vowel-final) syllables and their weights,
-		as summary of key attributes resulting from scansion.
+		Returns display-ready formatted string summarizing scansion
+		and (if applicable) meter identification.
+
+		Features on-demand combination of:
+			syllable weights
+			morae counts
+			gaṇa abbreviations
+			right-justified alignment of vowel-final syllables and their weights
+			meter label (if available)
 		"""
+
+		# part_A_buffer = part_B_buffer = part_C_buffer = ''
+		#
+		# # part_A
+		#
+		# max_weights_len = max(
+		# 	[ len(line) for line in self.syllable_weights.split('\n') ]
+		# 	)
+		#
+		# part_A = ''
+		# for i, weights in enumerate(self.syllable_weights.split('\n')):
+		# 	line = ''
+		# 	if show_weights:
+		# 		line += '%%%ds' % max_weights_len
+		# 	if show_morae:
+		# 		line += ' %6s\n' % '[%s]' % self.morae_per_line[i]
+		# 	if show_gaRas:
+		# 		line += ' %6s\n' % '[%s]' % self.gaRa_abbreviations[i]
+		# 	if show_weights or show_morae or show_gaRas:
+		# 		line += '\n'
+		# if part_A != '':
+		# 	part_A += '\n'
+		#
+		# # part_B
+		#
+		# part_B = ''
+		# if show_alignment:
+		#
+		# 	# IAST is standard output for alignment (as well as meter label)
+		# 	T = Transliterator(from_scheme='SLP', to_scheme='IAST')
+		# 	text_syllabified_IAST = T.transliterate(self.text_syllabified)
+		#
+		# 	# calculate max syllable length for entire verse
+		# 	line_max = []
+		# 	for line in text_syllabified_IAST.split('\n'):
+		# 		line_max.append( max([ len(s_w) for s_w in line.split(' ') ]) )
+		# 	max_syllable_len = max(line_max)
+		#
+		# 	part_B_cell = '%%%ds' % (long_syll_len + 2)
+		#
+		# 	for i, line in enumerate(text_syllabified_IAST.split('\n')):
+		#
+		# 		# display IAST syllables
+		# 		for syll in line.split(' '):
+		# 			part_B += part_B_cell % syll
+		# 		part_B += '\n'
+		#
+		# 		# display corresponding weights aligned underneath each syllable
+		# 		for s_w in self.syllable_weights.split('\n')[i]:
+		# 			part_B += part_B_cell % s_w
+		#
+		# 	if part_B != '':
+		# 		part_B += '\n'
+		#
+		# # part_C
+		#
+		# part_C = ''
+		# if show_label:
+		# 	if self.meter_label = None:
+		# 		part_C += '\n' + '(vṛttaṃ gaṇyatām...)' + '\n'
+		# 	else:
+		# 		part_C += self.meter_label
+		# if part_C != '':
+		# 	part_C += '\n'
+		#
+		# cumulative_output = ''.join([part_A, part_B, part_C])
+		# return cumulative_output
+
 
 		out_buffer = ''
 
-		longest_line_len = max([len(line) for line in self.syllable_weights.split('\n')])
-		buffer_line = '%%%ds' % longest_line_len + ' %6s\n' % '[%s]'
+		# part_A
 
-		# quick view of syllables and morae
+		if show_weights:
+			max_line_len = max(
+				[ len(line) for line in self.syllable_weights.split('\n') ]
+				)
+			buffer_line = '%%%ds' % max_line_len + ' %6s\n' % '[%s]'
+			# >> "%#s' % max_line_len + ' %6s\n' % '[%s]'
+
 		for i, line in enumerate(self.syllable_weights.split('\n')):
-			try:
-				out_buffer += buffer_line % (line, self.morae_per_line[i])
-			except IndexError:
-				out_buffer += buffer_line % (line, '_?_')
+			if show_morae:
+				try: out_buffer += buffer_line % (line, self.morae_per_line[i])
+				except IndexError: out_buffer += buffer_line % (line, '_?_')
 		out_buffer += '\n'
+
+		# part_B
 
 		T = Transliterator(from_scheme='SLP', to_scheme='IAST')
 		transl_syll_txt = T.transliterate(self.text_syllabified)
@@ -77,6 +160,8 @@ class Verse(object):
 					out_buffer += buffer_bit % s_w
 			except IndexError: pass
 			out_buffer += '\n'
+
+		# part_C
 
 		try:
 			out_buffer += '\n' + self.meter_label + '\n'
