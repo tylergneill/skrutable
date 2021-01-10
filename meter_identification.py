@@ -32,6 +32,7 @@ class VerseTester(object):
 		self.trizwuB_types_found = None # list of strings
 		self.samavftta_result = None # string
 		self.upajAti_result = None # string
+		# >> samavftta_and_or_upajAti_result = None # string
 		self.jAti_result = None # string
 
 	def test_as_anuzwuB_odd_even(self, odd_candidate_weights, even_candidate_weights):
@@ -66,6 +67,7 @@ class VerseTester(object):
 			return None
 
 	def test_as_anuzwuB(self, Vrs):
+	# >> def test_as_zloka(self, Vrs):
 		"""
 		Accepts as arugment a list of strings detailing light/heavy (l/g) patterns.
 		Determines whether verse (first four lines) is of 'anuṣṭubh' type.
@@ -116,7 +118,7 @@ class VerseTester(object):
 
 		self.pAdasamatva_count = 0
 
-		# prepare weights-by-pāda by omitting last syllable from consideration
+		# prepare weights-by-pāda for samatva count: omit last anceps syllable
 		wbp = [true_wbp[:-1] for true_wbp in Vrs.syllable_weights.split('\n')]
 
 		# make sure full four pādas
@@ -168,8 +170,10 @@ class VerseTester(object):
 
 			S = Sc()
 			pAda_gaRas = S.gaRa_abbreviate(pAda_for_id)
+			# family = len(pAda_for_id)
 
 			for gaRa_pattern in meter_patterns.samavfttas_by_gaRas:
+			# for gaRa_pattern in meter_patterns.samavfttas_by_family_and_gaRa[family]:
 
 				regex = re.compile(gaRa_pattern)
 
@@ -178,6 +182,7 @@ class VerseTester(object):
 					gaRa_note = ' (%s)' % (
 					meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
 					)
+
 
 					if self.pAdasamatva_count in [2, 3]:
 						gaRa_note += " (%d eva pādāḥ samyak)" % self.pAdasamatva_count
@@ -240,61 +245,202 @@ class VerseTester(object):
 		else:
 			return None
 
-	def test_as_samavftta_or_upajAti(self, Vrs):
+	def evaluate_samavftta(self, Vrs, perfect):
 
-		w_p = Vrs.syllable_weights.split('\n')  # weights by pāda
+		wbp = Vrs.syllable_weights.split('\n') # weights by pāda
+
+		# get index of best match
+		cp_wbp = [ w[:-1] for w in wbp ] # omit final anceps from consideration
+		most_freq_pAda = max( set(cp_wbp), key=cp_wbp.count )
+		i = cp_wbp.index(most_freq_pAda)
+
+		# i = 0  # assume first pāda of four is a good representative for all
+		# if not perfect: # i.e., if first doesn't necessarily match others
+		# 	cp_wbp = [ w[:-1] for w in wbp ] # for comparison, omit final anceps
+		# 	while cp_wbp[i] not in cp_wbp[i+1:]: # keep moving until match
+		# 		i += 1
+
+		w_to_id = wbp[i] # include final anceps
+		g_to_id = Vrs.gaRa_abbreviations.split('\n')[i]
+
+		for gaRa_pattern in meter_patterns.samavfttas_by_family_and_gaRa[len(w_to_id)].keys():
+
+			regex = re.compile(gaRa_pattern)
+
+			if re.match(regex, g_to_id):
+
+				meter_label = meter_patterns.samavfttas_by_family_and_gaRa[len(w_to_id)][gaRa_pattern]
+				break
+
+		else:
+			meter_label = "(ajñātasamavṛttam)" # i.e., need to add to meter_patterns
+
+		gaRa_note = ' [%s]' % (
+		meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
+		)
+
+		if perfect:
+
+			Vrs.meter_label = meter_label + gaRa_note
+			Vrs.identification_score = 9
+
+		elif not perfect:
+
+			meter_label += " (? %d eva pādāḥ samyak)" % self.pAdasamatva_count
+
+			# may tie with pre-existing result
+
+			if Vrs.identification_score == 7:
+				# tie, Vrs.meter_label != None, concatenate meter_labels
+				Vrs.meter_label += " atha vā " + meter_label + gaRa_note
+			else:
+				# Vrs.meter_label == None
+				Vrs.meter_label = meter_label + gaRa_note
+				Vrs.identification_score = 7
+
+
+	def evaluate_upajAti(self, Vrs, perfect, trizwuB):
+
+		wbp = Vrs.syllable_weights.split('\n') # weights by pāda
+		wbp_lens = [ len(line) for line in wbp ]
+		gs_to_id = Vrs.gaRa_abbreviations.split('\n')
+
+		# if imperfect, exclude all info for lines of non-majority lengths
+		if not perfect:
+			# get index of most freq pāda type
+			cp_wbp = [ w[:-1] for w in wbp ] # omit final anceps from consideration
+			most_freq_pAda = max( set(cp_wbp), key=cp_wbp.count )
+			for i, w in enumerate(cp_wbp):
+				if len(w) != len(most_freq_pAda):
+					del wbp[i]; del wbp_lens[i]; del gs_to_id[i]
+
+		# for however many remain, produce labels as possible
+		meter_labels = []
+		for i, g_to_id in enumerate(gs_to_id):
+
+			for gaRa_pattern in meter_patterns.samavfttas_by_family_and_gaRa[wbp_lens[0]].keys():
+
+				regex = re.compile(gaRa_pattern)
+
+				if re.match(regex, g_to_id):
+
+					meter_label = meter_patterns.samavfttas_by_family_and_gaRa[wbp_lens[0]][gaRa_pattern]
+
+					gaRa_note = ' [%s]' % (
+					meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
+					)
+
+					meter_labels.append(meter_label + gaRa_note)
+
+			else:
+
+				meter_label = "ajñātasamavṛttam"
+
+				gaRa_note = ' [%s]' % (
+				meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
+				)
+
+				meter_labels.append(meter_label + gaRa_note)
+
+		meter_label = "upajāti %d" % wbp_lens[0]
+		meter_label += " (? %d eva pādāḥ samyak)" % self.pAdasamatva_count
+		gaRa_note = ', '.join(list(set(meter_labels)))
+
+		if Vrs.meter_label != None:
+			# pre-exisiting, concatenate meter_labels
+			Vrs.meter_label += " atha vā " + meter_label + gaRa_note
+
+		if perfect and trizwuB: 				id_score = 8
+		elif perfect and (not trizwuB): 		id_score = 7
+		elif (not perfect) and trizwuB: 		id_score = 6
+		elif (not perfect) and (not trizwuB): 	id_score = 5
+
+
+
+
+
+
+
+	def test_as_samavftta_and_or_upajAti(self, Vrs):
+
+		wbp = Vrs.syllable_weights.split('\n') # weights by pāda
+		wbp_lens = [ len(line) for line in wbp ]
 
 		# make sure full four pādas
-		try: w_p[3]
+		try: wbp[3]
 		except IndexError: return
 
-		self.pAdasamatva_count = self.test_pAdasamatva(Vrs) # [0,2,3,4]
+		self.count_pAdasamatva(Vrs) # [0,2,3,4]
 
-		# test perfect samavftta
+		# test perfect samavṛtta (identification_score == 9)
+
 		if self.pAdasamatva_count == 4:
-			# simply distinguish whether known or not, then output answer
+			self.evaluate_samavftta(Vrs, perfect=True)
 			return
 
-		# test perfect ardhasamavftta
-		if ( self.pAdasamatva_count == 2
-			 and w_p[0] == w_p[2]
-			 and w_p[1] == w_p[3]
-			 ):
-			# again, distinguish whether known, output
-			# involves looking specifically for corresponding type
+		# test perfect ardhasamavftta (identification_score == 9)
+
+		# if ( self.pAdasamatva_count == 2
+		# 	 and weight_lines[0] == weight_lines[2]
+		# 	 and weight_lines[1] == weight_lines[3]
+		# 	 ):
+		# 	# again, distinguish whether known, output
+		# 	# involves looking specifically for corresponding type
+
+		# test perfect viṣamavṛtta (identification_score == 9)
+		# if self.pAdasamatva_count == 0:
+		# simple lookup table
+
+		# test perfect upajāti (identification_score in [8, 6])
+
+		if len(list(set(wbp_lens))) == 1: # all same length, upajāti in broad sense
+			if wbp_lens == [11] * 4: # triṣṭubh
+				self.evaluate_upajAti(Vrs, perfect=True, trizwuB=True)
+			else:
+				self.evaluate_upajAti(Vrs, perfect=True, trizwuB=False)
+
+		# test imperfect samavftta (identification_score == 7 with possibility of tie)
+
+		if self.pAdasamatva_count in [2, 3] and Vrs.identification_score <= 7:
+			self.evaluate_samavftta(Vrs, perfect=False)
 			return
 
-		# test perfect upajāti
-		if self.strict_trizwuB_count == 4:
-			# already confirmed known patterns, just identify types and output
+		# imperfect ardhasamavftta? seems hard
+		# involves looking specifically for corresponding type...
+
+		# imperfect upajāti (identification_score in [7, 5])
+
+		if len(list(set(wbp_lens))) in [2, 3]: # not all same length
+			if wbp_lens.count(11) in [2, 3]: # triṣṭubh
+				self.evaluate_upajAti(Vrs, perfect=False, trizwuB=True)
+			else:
+				self.evaluate_upajAti(Vrs, perfect=False, trizwuB=False)
 			return
 
-		# test various cascading imperfect upajātis
-		if ( self.strict_trizwuB_count + self.loose_eleven_count ) == 4:
-			# at least some unknown, express ?, distinguish known from unknown
-			return
-		elif self.strict_trizwuB_count == 3:
-			# likely just textual error, express # samyak, identify types, output
-			return
-		elif ( self.strict_trizwuB_count + self.loose_eleven_count ) == 3:
-			# same, express ?, express # samyak, identify distinguished types
-			return
-		elif self.strict_trizwuB_count == 2:
-			# same, express # samyak, identify types, output
-			return
-		elif ( self.strict_trizwuB_count + self.loose_eleven_count ) == 2:
-			# same, express ?, express # samyak, identify distinguished types
-			return
+		# if len(list(set(wbp_lens))) != 1: # all same length, upajāti in broad sense
+		# 	if wbp_lens == [11] * 4: # triṣṭubh
+		# 		self.evaluate_upajAti(Vrs, perfect=False, trizwuB=True)
+		# 	else:
+		# 		self.evaluate_upajAti(Vrs, perfect=False, trizwuB=False)
 
-		# test imperfect ardhasamavftta? seems hard
-		# involves looking specifically for corresponding type
+		# if ( self.strict_trizwuB_count + self.loose_eleven_count ) == 4:
+		# 	# at least some unknown, express ?, distinguish known from unknown
+		# 	return
+		# elif self.strict_trizwuB_count == 3:
+		# 	# likely just textual error, express # samyak, identify types, output
+		# 	return
+		# elif ( self.strict_trizwuB_count + self.loose_eleven_count ) == 3:
+		# 	# same, express ?, express # samyak, identify distinguished types
+		# 	return
+		# elif self.strict_trizwuB_count == 2:
+		# 	# same, express # samyak, identify types, output
+		# 	return
+		# elif ( self.strict_trizwuB_count + self.loose_eleven_count ) == 2:
+		# 	# same, express ?, express # samyak, identify distinguished types
+		# 	return
 
-		# test imperfect samavfttas
-		if self.pAdasamatva_count in [2,3]:
-			# distinguish whether known, express # samyak, identify type, output
-			return
 
-		return None
+		return # if here, nothing was found, Vrs.meter_label == None
 
 	def test_as_jAti(self, Vrs):
 		"""
@@ -383,28 +529,27 @@ class VerseTester(object):
 		# anuzwuB
 
 		test_result = self.test_as_anuzwuB(Vrs) # 1 if successful, 0 if not
-		if Vrs.meter_label != None:
-			return Vrs.meter_label
+		if Vrs.meter_label != None: return 1
 
 		# samavftta, upajAti, and vizamavftta
 
 		self.samavftta_result = self.test_as_samavftta(Vrs)
 		self.upajAti_result = self.test_as_upajAti(Vrs)
-		# >> self.samavftta_slash_upajAti_result = test_as_samavftta_slash_upajAti()
-
 		if self.samavftta_result != None and self.pAdasamatva_count == 4:  # perfect
 			return self.samavftta_result
 		elif self.upajAti_result != None:
 		 	return self.upajAti_result
 		elif self.samavftta_result != None:
 			return self.samavftta_result
+		# >> self.samavftta_and_or_upajAti_result = self.test_as_samavftta_and_or_upajAti()
+		# if Vrs.meter_label != None: return 1
+
+		# jAti
 
 		self.jAti_result = self.test_as_jAti(Vrs)
-		if self.jAti_result != None:
-			return self.jAti_result
+		if self.jAti_result != None: return 1
 
-		# if here, all three type tests failed
-		return None
+		return 0 # all three tests failed
 
 
 class MeterIdentifier(object):
@@ -482,8 +627,8 @@ class MeterIdentifier(object):
 
 
 
-						temp_V.meter_label = VrsTster.attempt_identification(temp_V)
-						# >> attempt_result = VrsTster.attempt_identification(temp_V)
+						# temp_V.meter_label = VrsTster.attempt_identification(temp_V)
+						attempt_result = VrsTster.attempt_identification(temp_V)
 
 						if temp_V.meter_label != None:
 							# >> if attempt_result == 1:

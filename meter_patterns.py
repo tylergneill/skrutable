@@ -110,9 +110,10 @@ samavfttas_by_gaRas = {
 }
 
 def choose_heavy_gaRa_pattern(gaRa_pattern):
+	"""e.g. "...(g|l)" > "...g", "...(r|B)" > "...r", etc."""
 	return gaRa_pattern[:-5] + gaRa_pattern[-4]
 
-samavfttas_by_syll_num_and_gaRa = {
+samavfttas_by_family_and_gaRa = {
 
 1: { }, 2: { }, 3: { }, 4: { }, 5: { }, 6: { }, 7: { },
 
@@ -186,7 +187,7 @@ samavfttas_by_syll_num_and_gaRa = {
 	'njjjjjjl(g|l)' : 'śravaṇābharaṇam', # also virājitam
 	},
 
-24: { }, 25: { }, 26: { }, 
+24: { }, 25: { }, 26: { },
 }
 
 
