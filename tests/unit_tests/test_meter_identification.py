@@ -47,19 +47,19 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	expected_output = 4
 	assert output == expected_output
 
-def test_test_as_upajAti():
-	S = Scanner()
-	input_string = """kolAhale kAkakulasya jAte
-virAjate kokilakUjitaM kim
-parasparaM saMvadatAM KalAnAM
-mOnaM viDeyaM satataM suDIBiH"""
-	V = S.scan(input_string, from_scheme='SLP')
-	VT = VerseTester()
-	output = VT.test_as_upajAti(V)
-	# curr_func = inspect.stack()[0][3]
-	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = "upajāti"
-	assert output[:7] == expected_output
+# def test_test_as_upajAti():
+# 	S = Scanner()
+# 	input_string = """kolAhale kAkakulasya jAte
+# virAjate kokilakUjitaM kim
+# parasparaM saMvadatAM KalAnAM
+# mOnaM viDeyaM satataM suDIBiH"""
+# 	V = S.scan(input_string, from_scheme='SLP')
+# 	VT = VerseTester()
+# 	output = VT.test_as_upajAti(V)
+# 	# curr_func = inspect.stack()[0][3]
+# 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+# 	expected_output = "upajāti"
+# 	assert output[:7] == expected_output
 
 def test_identify_meter_upajAti():
 	MI = MeterIdentifier()
@@ -240,7 +240,7 @@ def test_identify_meter_SArdUlavikrIqitA():
 pArSve tasya ca sA vidagDaparizat tAScandrabimbAnanAH
 udriktaH sa ca rAjaputranivahaste bandinastAH kaTAH
 sarvaM yasya vaSAdagAt smftipaTaM kAlAya tasmE namaH"""
-	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_hard')
+	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='none')
 	output = object_result.meter_label
 	truncated_output = output[:16]
 	curr_func = inspect.stack()[0][3]

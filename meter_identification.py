@@ -693,8 +693,7 @@ class MeterIdentifier(object):
 
 		if resplit_option == 'none':
 
-			V.meter_label = VT.attempt_identification(V)
-			# >> attempt_result = VT.attempt_identification(V)
+			attempt_result = VT.attempt_identification(V)
 
 		elif resplit_option in ['resplit_hard', 'resplit_soft']:
 
