@@ -233,3 +233,17 @@ mOnaM viDeyaM satataM suDIBiH""" # id_score == 8
 	print("\n\n%s OUTPUT:\n" % curr_func + str(other_output) + '\n\n')
 	expected_output = 9
 	assert output == expected_output
+
+def test_identify_meter_SArdUlavikrIqitA():
+	MI = MeterIdentifier()
+	input_string = """sA ramyA nagarI mahAn sa nfpatiH sAmantacakraM ca tat
+pArSve tasya ca sA vidagDaparizat tAScandrabimbAnanAH
+udriktaH sa ca rAjaputranivahaste bandinastAH kaTAH
+sarvaM yasya vaSAdagAt smftipaTaM kAlAya tasmE namaH"""
+	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_hard')
+	output = object_result.meter_label
+	truncated_output = output[:16]
+	curr_func = inspect.stack()[0][3]
+	print("\n\n%s OUTPUT:\n" % curr_func + str(truncated_output) + '\n\n')
+	expected_output = "śārdūlavikrīḍitā"
+	assert truncated_output == expected_output

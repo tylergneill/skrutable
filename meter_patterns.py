@@ -63,8 +63,11 @@ samavftta_family_names = {
 14: 'śakvarī',	15: 'atiśakvarī',
 16: 'aṣṭi', 	17: 'atyaṣṭi',
 18: 'dhṛti', 	19: 'atidhṛti',
-20: 'kṛti',		21: 'prakṛti', 22: 'ākṛti',	23: 'vikṛti',
-24: 'saṃkṛti',	25: 'atikṛti', 26: 'utkṛti',
+20: 'kṛti',		21: 'prakṛti', 	22: 'ākṛti',	23: 'vikṛti',
+24: 'saṃkṛti',	25: 'atikṛti', 	26: 'utkṛti',
+27: 'daṇḍaka',	28: 'daṇḍaka', 	29: 'daṇḍaka', 	30: 'daṇḍaka',
+31: 'daṇḍaka',	32: 'daṇḍaka',	33: 'daṇḍaka',	34: 'daṇḍaka',
+35: 'daṇḍaka',	36: 'daṇḍaka',	37: 'daṇḍaka',	38: 'daṇḍaka',
 }
 
 samavfttas_by_gaRas = {
@@ -211,6 +214,11 @@ samavfttas_by_family_and_gaRa = {
 	},
 
 24: { }, 25: { }, 26: { },
+
+27: { }, 28: { }, 29: { }, 30: { },
+
+31: { }, 32: { }, 33: { }, 34: { }, 35: { }, 36: { }, 37: { },
+
 }
 
 
