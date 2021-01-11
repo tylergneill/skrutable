@@ -390,7 +390,7 @@ class VerseTester(object):
 			combined_meter_labels
 			)
 		if len(wbp_lens) != 4: # not perfect
-			overall_meter_label += " (? %d eva pādāḥ samyak)" % self.pAdasamatva_count
+			overall_meter_label += " (? %d eva pādāḥ samānākṣarasaṃkhyāḥ)" % len(wbp_lens)
 
 		self.combine_results(Vrs, overall_meter_label, potential_score)
 
