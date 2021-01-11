@@ -319,7 +319,7 @@ class VerseTester(object):
 		potential_score = 9
 
 		if self.pAdasamatva_count in [2, 3]:
-			meter_label += " (? %d eva pādāḥ samyak)" % self.pAdasamatva_count
+			meter_label += " (? %d eva pādāḥ yuktāḥ)" % self.pAdasamatva_count
 			potential_score = 4 + self.pAdasamatva_count # 2 >> 6, 3 >> 7
 
 		# may tie with pre-existing result (e.g., upajāti)
@@ -333,26 +333,32 @@ class VerseTester(object):
 		wbp_lens = [ len(line) for line in wbp ]
 		gs_to_id = Vrs.gaRa_abbreviations.split('\n')
 
-		# if imperfect, exclude all info for lines of non-majority lengths
+		# special exception for triṣṭubh-jagatī mix
+		# see Karashima 2016 "The Triṣṭubh-Jagatī Verses in the Saddharmapuṇḍarīka"
+		unique_sorted_lens = list(set(wbp_lens))
+		unique_sorted_lens.sort()
+		if unique_sorted_lens != [11, 12]:
 
-		# find most frequent pAda length
-		most_freq_pAda_len = max( set(wbp_lens), key=wbp_lens.count )
+			# if imperfect, exclude all info for lines of non-majority lengths
 
-		# exclude based on most frequent pAda length
-		to_exclude = []
-		for i, weights in enumerate(wbp):
-			if len(weights) != most_freq_pAda_len:
-				to_exclude.append(i)
-		for i in reversed(to_exclude): # delete in descending index order, avoid index errors
-			del wbp[i]
-			del wbp_lens[i]
-			del gs_to_id[i]
+			# find most frequent pAda length
+			most_freq_pAda_len = max( set(wbp_lens), key=wbp_lens.count )
+
+			# exclude based on most frequent pAda length
+			to_exclude = []
+			for i, weights in enumerate(wbp):
+				if len(weights) != most_freq_pAda_len:
+					to_exclude.append(i)
+			for i in reversed(to_exclude): # delete in descending index order, avoid index errors
+				del wbp[i]
+				del wbp_lens[i]
+				del gs_to_id[i]
 
 		# calculate what result could possibly score based on analysis so far
 		potential_score = 8
-		if wbp_lens[0] != 11: # not triṣṭubh
+		if 11 not in wbp_lens: # no triṣṭubh (can be mixed with jagatī)
 			potential_score -= 1
-		if len(wbp_lens) != 4: # not perfect
+		if len(wbp_lens) != 4: # not perfect, less than 4 being analyzed
 			potential_score -= 2
 
 		# possibly quit based on analysis so far
@@ -385,12 +391,19 @@ class VerseTester(object):
 		unique_meter_labels = list(set(meter_labels)) # de-dupe
 		combined_meter_labels = ', '.join(unique_meter_labels)
 
+		# again, special treatment for triṣṭubh-jagatī mix
+		if unique_sorted_lens == [11, 12]:
+			family = "triṣṭubh-jagatī-saṃkara"
+		else:
+			family = meter_patterns.samavftta_family_names[ wbp_lens[0] ]
+
 		overall_meter_label = "upajāti (%s: %s)" % (
-			meter_patterns.samavftta_family_names[ wbp_lens[0] ],
+			family,
 			combined_meter_labels
 			)
+
 		if len(wbp_lens) != 4: # not perfect
-			overall_meter_label += " (? %d eva pādāḥ samānākṣarasaṃkhyāḥ)" % len(wbp_lens)
+			overall_meter_label += " (? %d eva pādāḥ yuktāḥ)" % len(wbp_lens)
 
 		self.combine_results(Vrs, overall_meter_label, potential_score)
 
