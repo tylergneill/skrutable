@@ -356,9 +356,13 @@ class VerseTester(object):
 
 		# calculate what result could possibly score based on analysis so far
 		potential_score = 8
+		# import pdb; pdb.set_trace()
 		if 11 not in wbp_lens: # no triṣṭubh (can be mixed with jagatī)
 			potential_score -= 1
-		if len(wbp_lens) != 4: # not perfect, less than 4 being analyzed
+		if 	(
+				len(wbp_lens) != 4 and
+				unique_sorted_lens != [11, 12]
+			): # not perfect, less than 4 being analyzed
 			potential_score -= 2
 
 		# possibly quit based on analysis so far
@@ -402,7 +406,10 @@ class VerseTester(object):
 			combined_meter_labels
 			)
 
-		if len(wbp_lens) != 4: # not perfect
+		if 	(
+				len(wbp_lens) != 4 and
+				unique_sorted_lens != [11, 12]
+			): # not perfect
 			overall_meter_label += " (? %d eva pādāḥ yuktāḥ)" % len(wbp_lens)
 
 		self.combine_results(Vrs, overall_meter_label, potential_score)
@@ -445,10 +452,17 @@ class VerseTester(object):
 		# 	return # max score already reached
 
 		# test perfect upajāti
-		if len( list(set(wbp_lens)) ) == 1: # all same length
+
+		unique_sorted_lens = list(set(wbp_lens))
+		unique_sorted_lens.sort()
+		if 	(
+			len(unique_sorted_lens) == 1 or
+			unique_sorted_lens == [11, 12]
+			): # all same length or triṣṭubh-jagatī mix
 			# will give id_score in [8, 7], may tie with above
 			self.evaluate_upajAti(Vrs)
-			# max score not necessarily yet reached, don't return
+			if Vrs.identification_score == 8: return # max score reached
+			# otherwise, max score not necessarily yet reached, don't return
 
 		# test imperfect samavftta
 		if self.pAdasamatva_count in [2, 3]:
@@ -460,7 +474,10 @@ class VerseTester(object):
 		# involves looking specifically for corresponding type...
 
 		# test imperfect upajāti
-		if len( list(set(wbp_lens)) ) in [2, 3]: # not all same length
+		if (
+			len( list(set(wbp_lens)) ) in [2, 3] and
+			unique_sorted_lens != [11, 12]
+			): # not all same length and not triṣṭubh-jagatī mix
 			# will give id_score in [6, 5], may tie with above
 			self.evaluate_upajAti(Vrs)
 
@@ -750,8 +767,8 @@ class MeterIdentifier(object):
 
 			# pick best match, i.e. Verse with highest identification_score
 			if len(self.Verses_found) > 0:
+				self.Verses_found.sort(key=lambda x: x.identification_score, reverse=True)
 				V = self.Verses_found[0]
-				# >> Verses_found.sort(key=lambda x: x.identification_score, reverse=True)
 
 		if V.meter_label == None:
 			V.meter_label = 'na kiṃcid adhyavasitam'  # do not return None

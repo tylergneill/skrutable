@@ -250,15 +250,15 @@ sarvaM yasya vaSAdagAt smftipaTaM kAlAya tasmE namaH"""
 
 def test_identify_meter_trizwuB_jagatI_saMkara():
 	MI = MeterIdentifier()
-	input_string = """āścaryavat paśyati kaś cid enam;
-āścaryavad vadati tathaiva cānyaḥ /
-āścaryavac cainam anyaḥ śṛṇoti;
-śrutvāpy enaṃ veda na caiva kaś cit //"""
+	input_string = """na caitad vidmaḥ kataran no garīyo;
+yad vā jayema yadi vā no jayeyuḥ /
+yān eva hatvā na jijīviṣāmas;
+te 'vasthitāḥ pramukhe dhārtarāṣṭrāḥ //"""
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_hard')
 	output = object_result.meter_label
 	truncated_output = output
 	curr_func = inspect.stack()[0][3]
-	# import pdb; pdb.set_trace()
+	import pdb; pdb.set_trace()
 	print("\n\n%s OUTPUT:\n" % curr_func + str(truncated_output) + '\n\n')
 	# expected_output = "śārdūlavikrīḍitā"
 	assert truncated_output != None
