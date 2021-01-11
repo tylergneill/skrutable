@@ -1,9 +1,15 @@
 """
 	anuṣṭubh
 
+	Rules for structure of even pāda (more rigid):
+	1. Syllables 1 and 8 ALWAYS anceps. ( .xxxxxx. )
+	2. Syllables 2 and 3 NEVER both light. ( (?!.ll.)xxxx )
+	3. Syllables 2-4 NEVER ra-gaRa (glg). ( (?!.glg)xxxx )
+	4. Syllables 5-7 ALWAYS has ja-gaRa (lgl). ( xxxxlgl. )
+
 	Rules for structure of odd pāda:
-	1. Syllables 1 and 8 ALWAYS anceps. ['.xxxxxx.']
-	2. Syllables 2 and 3 NEVER both light at same time. ['^(?!.ll.)xxxx']
+	1. Syllables 1 and 8 ALWAYS anceps. ( .xxxxxx. )
+	2. Syllables 2 and 3 NEVER both light at same time. ( (?!.ll.)xxxx )
 	3. Multiple "extensions" (vipulā) to prescribed pattern (pathyā) possible.
 """
 anuzwuB_pAda = {
@@ -46,6 +52,19 @@ gaRas_by_weights = {
 'gll' : 'B', # dactyl
 'lll' : 'n', # tribrach
 'llg' : 's', # anapest / antidactylus
+}
+
+samavftta_family_names = {
+4: 'pratiṣṭhā',	5: 'supratiṣṭhā',
+6: 'gāyatrī',	7: 'uṣṇik',
+8: 'anuṣṭubh',	9: 'bṛhatī',
+10: 'paṅkti',	11: 'triṣṭubh',
+12: 'jagatī',	13: 'atijagatī',
+14: 'śakvarī',	15: 'atiśakvarī',
+16: 'aṣṭi', 	17: 'atyaṣṭi',
+18: 'dhṛti', 	19: 'atidhṛti',
+20: 'kṛti',		21: 'prakṛti', 22: 'ākṛti',	23: 'vikṛti',
+24: 'saṃkṛti',	25: 'atikṛti', 26: 'utkṛti',
 }
 
 samavfttas_by_gaRas = {
@@ -110,7 +129,11 @@ samavfttas_by_gaRas = {
 }
 
 def choose_heavy_gaRa_pattern(gaRa_pattern):
-	"""e.g. "...(g|l)" > "...g", "...(r|B)" > "...r", etc."""
+	"""
+		e.g., "...(g|l)" > "...g",
+		e.g., "...(r|B)" > "...r",
+		etc.
+	"""
 	return gaRa_pattern[:-5] + gaRa_pattern[-4]
 
 samavfttas_by_family_and_gaRa = {

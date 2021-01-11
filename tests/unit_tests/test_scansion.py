@@ -26,7 +26,7 @@ māmakāḥ pāṇḍavāś caiva
 kim akurvata sañjaya //"""
 	S = Scanner()
 	V = S.scan(input, from_scheme='IAST')
-	output = V.summarize2(
+	output = V.summarize(
 	show_weights=False, show_morae=False, show_gaRas=False, # part_A
 	show_alignment=False, # part_B
 	show_label=False  # part_C

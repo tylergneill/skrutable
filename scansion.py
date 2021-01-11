@@ -34,7 +34,7 @@ class Verse(object):
 		self.morae_per_line = None 		# list of integers
 		self.gaRa_abbreviations = None	# string, may contain newlines
 		self.meter_label = None			# string
-		self.identification_score = None # int
+		self.identification_score = 0 	# int
 
 	def summarize(self,
 		show_weights=True, show_morae=True, show_gaRas=True, # part_A
@@ -172,7 +172,7 @@ class Verse(object):
 	# 		out_buffer += '\n' + self.meter_label + '\n'
 	# 	except TypeError:
 	# 		out_buffer += '\n' + '(vṛttam ajñātam...)' + '\n'
-	# 
+	#
 	# 	return out_buffer
 
 class Scanner(object):
