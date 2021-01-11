@@ -55,6 +55,7 @@ gaRas_by_weights = {
 }
 
 samavftta_family_names = {
+1: "...", 2: "...", 3: "...",
 4: 'pratiṣṭhā',	5: 'supratiṣṭhā',
 6: 'gāyatrī',	7: 'uṣṇik',
 8: 'anuṣṭubh',	9: 'bṛhatī',
