@@ -1,25 +1,23 @@
 # about
 
-See [http://skrutable.pythonanywhere.com/about](http://skrutable.pythonanywhere.com/about)
+See [http://skrutable.pythonanywhere.com/about](skrutable.pythonanywhere.com/about)
 
 
 # how to use
 
-The online web app [http://skrutable.pythonanywhere.com/](http://skrutable.pythonanywhere.com/)
+The online web app at [http://skrutable.pythonanywhere.com/](skrutable.pythonanywhere.com)
 will let you do both casual one-off tasks and (with some limits) whole-file processing.
 
 ![screenshot](img/web_app.png)
 
-See [http://skrutable.pythonanywhere.com/tutorial](http://skrutable.pythonanywhere.com/tutorial) for more instructions.
+See [http://skrutable.pythonanywhere.com/tutorial](skrutable.pythonanywhere.com/tutorial) for more instructions.
 
-If you need more functionality, you can also download and use the Python code, either as a library or (with limits) as a command-line script. See [using the code](#using-the-code) below for more.
+If you need to, you can also download and use the Python code, either as a library or (with limits) as a command-line script. See [below](#using-the-code) for more.
 
 
 # transliteration schemes
 
 Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
-
-
 
 <table>
     <thead>
@@ -78,13 +76,12 @@ Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
             <td>Gujarati Unicode</td>
             <td>પઠામઃ</td>
         </tr>
-
     </tbody>
 </table>
 
-There is also an IASTreduced (“samskrtam pathamah”) that loses a lot of information but sometimes comes in handy. Other schemes not featured include CSX (Classical Sanskrit eXtended, “saüskçtaü paòâmaþ”), REE (devised by Ronald E. Emmerick, “saæsk­taæ paèÃma÷”), and that internal to the [DCS](http://www.sanskrit-linguistics.org/dcs/index.php) (devised by Oliver Hellwig, “saºskŸtaº paÅåmaµ”). 
+There is also an IASTreduced (“samskrtam pathamah”) that loses a lot of information but sometimes comes in handy. Other schemes not currently featured include CSX (Classical Sanskrit eXtended, “saüskçtaü paòâmaþ”), REE (by Ronald E. Emmerick, “saæsk­taæ paèÃma÷”), and one internal to the [DCS](http://www.sanskrit-linguistics.org/dcs/index.php) (by Oliver Hellwig, “saºskŸtaº paÅåmaµ”). 
 
-Other schemes that can be used for Sanskrit (especially those corresponding to different Indic scripts) can also easily be added. For other tools with better Indic support, including for other languages, see [related projects](#related-projects) below.
+Other schemes for writing Sanskrit, especially those corresponding to additional Indic scripts, can easily be added by modifying the code in `phonemes.py` and `scheme_maps.py`. For other tools with wider character support, including for other South Asian languages, see [related projects](#related-projects) below.
 
 Note that I use “encoding” here in the sense of UTF-8 and “script” in the sense of a distinct character set like either the Roman or Devanagari alphabets (latter actually an abugida), and so I don't use either “Roman” or “Unicode” to refer to any of the individual schemes. For more on such terminology, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).)
 
@@ -138,7 +135,10 @@ Scheme Detection | Transliteration | Scansion & Meter Identification | Main Auth
 
 # sandhi and compound splitting
 
-Currently under development is a wrapper for the pre-trained model of the powerful neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp) by Hellwig and Nehrdich, which produces good, usable splitting results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)) but which has so far not yet been easily available (command-line only, `Python 3.5.9`, `TensorFlow`). This is to be presented as a fourth functionality after transliteration, scansion, and meter identification.
+(*Currently under development*)
+
+In the works as a fourth `skrutable` functionality (after transliteration, scansion, and meter identification) is a wrapper for the pre-trained model of the powerful neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp) by Hellwig and Nehrdich, which produces good, usable splitting results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)) but which has so far not yet been easily available (command-line only, `Python 3.5.9`, `TensorFlow`).
+
 
 # using the code
 
@@ -158,15 +158,19 @@ Currently under development is a wrapper for the pre-trained model of the powerf
 		* (Hint: command line `python -c "import sys; print(sys.path)"` to see where.)
 
 3. Get the other necessary Python libraries: 
-	* currently only `numpy`. (`pip` recommended)
+	* currently only `numpy` (`pip` recommended)
 	* (should already be natively pre-installed: `collections`, `copy`, `json`, `operator`, `os`, `re`)
 
-4. If you wish to also use the web app running locally in your browser, then also download the [separate front-end repo](https://github.com/tylergneill/skrutable_front_end). This will attempt to import `skrutable` as a library (see hint on `sys.path` above). Then `pip install flask`, and in the folder with the front-end flask app, export the path, start the app, and use your browser to navigate to the localhost address:
+## using the web app running locally in your browser
+
+For this, you'll need to also download the [separate front-end repo](https://github.com/tylergneill/skrutable_front_end). This package relies on importing `skrutable` as a library (see hint on `sys.path` above). With both of these in place (and don't forget to also `pip install flask`), go to the folder with the front-end flask app, export the FLASK_APP variable for your shell environment, run the app, and use your browser to navigate to the localhost address:
 ~~~
 export FLASK_APP=flask_app.py
 flask run
  \* Running on http://127.0.0.1:5000/
 ~~~~
+
+(See [here](https://flask.palletsprojects.com/en/1.1.x/quickstart/) for more instructions on flask.)
 
 
 ## using as command-line script
@@ -197,7 +201,7 @@ These keywords are shared between the command-line and library interfaces:
 
 ## using as library
 
-For each functionality, import the object construction from the respective module, then instantiate the object, and use its primary methods.
+For each functionality, import the relevant object constructor from the respective module, then instantiate the object, and use its primary methods.
 
 1. Transliteration
 ~~~
@@ -210,7 +214,7 @@ string_result_4 = T.transliterate( input_string, from_scheme='auto', to_scheme='
 
 ~~~
 
-2. Scansion
+2. scansion
 ~~~
 from skrutable.scansion import Scanner
 S = Scanner()
@@ -218,7 +222,7 @@ result = S.scan( input_string )
 print( result.summarize() )
 ~~~
 
-3. Meter Identification
+3. meter identification
 ~~~
 from skrutable.meter_identification import MeterIdentifier
 MI = MeterIdentifier()
@@ -227,3 +231,7 @@ print( result_1.summarize() )
 result_2 = MI.identify_meter(input_string, resplit_option='resplit_hard', from_scheme='IAST')
 print( result_2.meter_label() )
 ~~~
+
+# questions?
+
+Find [me on Academia](https://uni-leipzig1.academia.edu/TylerNeill) and send me an email.
