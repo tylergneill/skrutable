@@ -149,8 +149,9 @@ Scheme Detection | Transliteration | Scansion & Meter Identification | Main Auth
 
 Currently under development is a wrapper for the pre-trained model of the powerful neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp) by Hellwig and Nehrdich, which produces good, usable splitting results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)) but which has so far not yet been easily available (command-line only, `Python 3.5.9`, `TensorFlow`). This is to be presented as a fourth functionality after transliteration, scansion, and meter identification.
 
+# using the code
 
-# installation for offline use
+## installation for offline use
 
 1. Have Python 3 installed. (`Homebrew` recommended)
 
@@ -177,7 +178,7 @@ flask run
 ~~~~
 
 
-# using as command-line script
+## using as command-line script
 
 Make a copy of `skrutable_one.py` and put it the same location as your desired input file. Then just run `skrutable_one.py` at the command line (e.g., Terminal) with the proper arguments. Examples:
 
@@ -203,7 +204,7 @@ These keywords are shared between the command-line and library interfaces:
 * meter identification: resplit_option
 
 
-### using as library
+## using as library
 
 For each functionality, import the object construction from the respective module, then instantiate the object, and use its primary methods.
 
