@@ -9,7 +9,7 @@
 
 	Rules for structure of odd pāda:
 	1. Syllables 1 and 8 ALWAYS anceps. ( .xxxxxx. )
-	2. Syllables 2 and 3 NEVER both light at same time. ( (?!.ll.)xxxx )
+	2. Syllables 2 and 3 NEVER both light. ( (?!.ll.)xxxx )
 	3. Multiple "extensions" (vipulā) to prescribed pattern (pathyā) possible.
 """
 anuzwuB_pAda = {
@@ -55,7 +55,7 @@ gaRas_by_weights = {
 }
 
 samavftta_family_names = {
-1: "...", 2: "...", 3: "...",
+0: "...", 1: "...", 2: "...", 3: "...", # never occur, just for bad input
 4: 'pratiṣṭhā',	5: 'supratiṣṭhā',
 6: 'gāyatrī',	7: 'uṣṇik',
 8: 'anuṣṭubh',	9: 'bṛhatī',
