@@ -177,16 +177,16 @@ In the works as a fourth `skrutable` functionality (after transliteration, scans
 	* (should already be natively pre-installed: `collections`, `copy`, `json`, `operator`, `os`, `re`)
 
 
-## using the web app running locally in your browser
+## using as local web app
 
-For this, you'll need to also download the [separate front-end repo](https://github.com/tylergneill/skrutable_front_end). This package relies on importing `skrutable` as a library (see hint on `sys.path` above). With both of these in place (and don't forget to also `pip install flask`), go to the folder with the front-end flask app, export the FLASK_APP variable for your shell environment, run the app, and use your browser to navigate to the localhost address:
+For doing more data-heavy processing that is still user-friendly, you may wish to run the front end locally on your own machine. If so, you'll also need to download the [separate front-end repo](https://github.com/tylergneill/skrutable_front_end). This package relies on importing `skrutable` as a library (see hint on `sys.path` above). With both of these in place (and don't forget to also `pip install flask`), go to the folder with the front-end flask app, export the FLASK_APP variable for your shell environment, run the app, and use your browser to navigate to the localhost address:
 ~~~
 export FLASK_APP=flask_app.py
 flask run
  \* Running on http://127.0.0.1:5000/
 ~~~~
 
-(See [here](https://flask.palletsprojects.com/en/1.1.x/quickstart/) for more instructions on flask.)
+See [here](https://flask.palletsprojects.com/en/1.1.x/quickstart/) for more instructions on flask, or [ask me](#feedback).
 
 
 ## using as command-line script
