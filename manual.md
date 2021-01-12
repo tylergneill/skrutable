@@ -142,6 +142,7 @@ In the works as a fourth `skrutable` functionality (after transliteration, scans
 
 # using the code
 
+
 ## installation for offline use
 
 1. Have Python 3 installed. (`Homebrew` recommended)
@@ -160,6 +161,7 @@ In the works as a fourth `skrutable` functionality (after transliteration, scans
 3. Get the other necessary Python libraries: 
 	* currently only `numpy` (`pip` recommended)
 	* (should already be natively pre-installed: `collections`, `copy`, `json`, `operator`, `os`, `re`)
+
 
 ## using the web app running locally in your browser
 
@@ -200,9 +202,10 @@ These keywords are shared between the command-line and library interfaces:
 
 See the code documentation in the respective modules for more information.
 
+
 ## using as library
 
-From each respective module (`transliteration.py`, `scansion.py`, `meter_identification.py`), import the respective object constructor (`Transliterator`, `Scanner`, `MeterIdentifier`), instantiate the object, and use its primary methods (`transliterate()`, `scan()`, `identify_meter()`).
+From each respective module (`transliteration.py`, `scansion.py`, `meter_identification.py`), import the respective object constructor (`Transliterator`, `Scanner`, `MeterIdentifier`), instantiate the object, and use its primary methods (`transliterate()`, `scan()`, `identify_meter()`). Transliteration returns a string, whereas scansion and meter identification return `Scansion.Verse` objects, which contain (among other things) a `.meter_label` attribute and a `summarize()` method.
 
 1. transliteration, Transliterator, transliterate()
 ~~~
@@ -219,20 +222,23 @@ string_result_4 = T.transliterate( input_string, from_scheme='auto', to_scheme='
 ~~~
 from skrutable.scansion import Scanner
 S = Scanner()
-result = S.scan( input_string )
-print( result.summarize() )
+Verse_result = S.scan( input_string )
+print( Verse_result.summarize() )
 ~~~
 
-3. meter_identification, MeterIdentifier, identify_meter
+3. meter_identification, MeterIdentifier, identify_meter()
 ~~~
 from skrutable.meter_identification import MeterIdentifier
 MI = MeterIdentifier()
-result_1 = MI.identify_meter( input_string ) # default settings
-print( result_1.summarize() )
-result_2 = MI.identify_meter(input_string, resplit_option='resplit_hard', from_scheme='IAST')
-print( result_2.meter_label() )
+Verse_result_1 = MI.identify_meter( input_string ) # default settings
+print( Verse_result_1.summarize() )
+Verse_result_2 = MI.identify_meter(input_string, resplit_option='resplit_hard', from_scheme='IAST')
+print( Verse_result_2.meter_label() )
 ~~~
 
-# questions?
+More examples can be found in the repo's `tests` folder (for use with `pytest`).
 
-Find [me on Academia](https://uni-leipzig1.academia.edu/TylerNeill) and send me an email.
+
+# feedback
+
+For any questions, comments, or requests, find [me on Academia](https://uni-leipzig1.academia.edu/TylerNeill) and send me an email.
