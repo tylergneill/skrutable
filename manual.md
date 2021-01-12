@@ -137,7 +137,7 @@ Scheme Detection | Transliteration | Scansion & Meter Identification | Main Auth
 
 (*Currently under development*)
 
-In the works as a fourth `skrutable` functionality (after transliteration, scansion, and meter identification) is a wrapper for the pre-trained model of the powerful neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp) by Hellwig and Nehrdich, which produces good, usable splitting results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)) but which has so far not yet been easily available (command-line only, `Python 3.5.9`, `TensorFlow`).
+In the works as a fourth `skrutable` functionality (after transliteration, scansion, and meter identification) is a wrapper for the pre-trained model of the powerful neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), by Hellwig and Nehrdich, which produces good, usable splitting results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)) but which has so far not yet been easily available (command-line only, `Python 3.5.9`, `TensorFlow`).
 
 
 # using the code
@@ -198,12 +198,13 @@ These keywords are shared between the command-line and library interfaces:
 * scansion: show_weights, show_morae, show_gaRas, show_alignment, show_label
 * meter identification: resplit_option
 
+See the code documentation in the respective modules for more information.
 
 ## using as library
 
-For each functionality, import the relevant object constructor from the respective module, then instantiate the object, and use its primary methods.
+From each respective module (transliteration.py, scansion.py, meter_identification.py), import the respective object constructor (Transliterator, Scanner, MeterIdentifier), instantiate the object, and use its primary methods (transliterate(), scan(), identify_meter()).
 
-1. Transliteration
+1. transliteration, Transliterator, transliterate()
 ~~~
 from skrutable.transliteration import Transliterator
 T = Transliterator()
@@ -214,7 +215,7 @@ string_result_4 = T.transliterate( input_string, from_scheme='auto', to_scheme='
 
 ~~~
 
-2. scansion
+2. scansion, Scanner, scan()
 ~~~
 from skrutable.scansion import Scanner
 S = Scanner()
@@ -222,7 +223,7 @@ result = S.scan( input_string )
 print( result.summarize() )
 ~~~
 
-3. meter identification
+3. meter_identification, MeterIdentifier, identify_meter
 ~~~
 from skrutable.meter_identification import MeterIdentifier
 MI = MeterIdentifier()
