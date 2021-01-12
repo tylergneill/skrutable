@@ -165,14 +165,14 @@ In the works as a fourth `skrutable` functionality (after transliteration, scans
 
 * (Eventually: Installation via `pip`. For now...)
 
-* Click the green “Code” button on [GitHub main page](https://github.com/tylergneill/skrutable) or just click [here](https://github.com/tylergneill/skrutable/archive/master.zip) to download the repo.
+* Click the green “Code” button on [repo main page](https://github.com/tylergneill/skrutable) or just click [here](https://github.com/tylergneill/skrutable/archive/master.zip) to download the repo.
 
 * Put the `skrutable` folder where your other Python libraries are.
 	* Using `virtualenv`? You can put it directly in the relevant `lib/python3.x/site-packages` folder.
 	* Not? Then you can put it where your other packages normally install to (e.g. with `pip`).
 		* (Hint: command line `python -c "import sys; print(sys.path)"` to see where.)
 
-3. Get the other necessary Python libraries: 
+* Get the other necessary Python libraries: 
 	* currently only `numpy` (`pip` recommended)
 	* (should already be natively pre-installed: `collections`, `copy`, `json`, `operator`, `os`, `re`)
 
@@ -229,7 +229,6 @@ string_result_1 = T.transliterate( input_string ) # default settings
 string_result_2 = T.transliterate( input_string, to_scheme='BENGALI' )
 string_result_3 = T.transliterate( input_string, from_scheme='BENGALI', to_scheme='HK' )
 string_result_4 = T.transliterate( input_string, from_scheme='auto', to_scheme='ITRANS' )
-
 ~~~
 
 2. scansion, Scanner, scan()
