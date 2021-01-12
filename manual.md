@@ -1,16 +1,16 @@
 # about
 
-See [http://skrutable.pythonanywhere.com/about](skrutable.pythonanywhere.com/about)
+See [skrutable.pythonanywhere.com/about](http://skrutable.pythonanywhere.com/about)
 
 
 # how to use
 
-The online web app at [http://skrutable.pythonanywhere.com/](skrutable.pythonanywhere.com)
+The online web app at [skrutable.pythonanywhere.com/](http://skrutable.pythonanywhere.com)
 will let you do both casual one-off tasks and (with some limits) whole-file processing.
 
 ![screenshot](img/web_app.png)
 
-See [http://skrutable.pythonanywhere.com/tutorial](skrutable.pythonanywhere.com/tutorial) for more instructions.
+See [skrutable.pythonanywhere.com/tutorial](http://skrutable.pythonanywhere.com/tutorial) for more instructions.
 
 If you need to, you can also download and use the Python code, either as a library or (with limits) as a command-line script. See [below](#using-the-code) for more.
 
