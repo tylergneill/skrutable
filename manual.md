@@ -83,7 +83,7 @@ There is also an IASTreduced (“samskrtam pathamah”) that loses a lot of info
 
 Other schemes for writing Sanskrit, especially those corresponding to additional Indic scripts, can easily be added by modifying the code in `phonemes.py` and `scheme_maps.py`. For other tools with wider character support, including for other South Asian languages, see [related projects](#related-projects) below.
 
-Note that I use “encoding” here in the sense of UTF-8 and “script” in the sense of a distinct character set like either the Roman or Devanagari alphabets (latter actually an abugida), and so I don't use either “Roman” or “Unicode” to refer to any of the individual schemes. For more on such terminology, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).)
+Note that I use “encoding” here in the sense of UTF-8 and “script” in the sense of a distinct character set like either the Roman or Devanagari alphabets (latter actually an abugida), and so I don't use either “Roman” or “Unicode” to refer to any of the individual schemes. For more on such terminology, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).
 
 
 # encoding normalization
@@ -202,7 +202,7 @@ See the code documentation in the respective modules for more information.
 
 ## using as library
 
-From each respective module (transliteration.py, scansion.py, meter_identification.py), import the respective object constructor (Transliterator, Scanner, MeterIdentifier), instantiate the object, and use its primary methods (transliterate(), scan(), identify_meter()).
+From each respective module (`transliteration.py`, `scansion.py`, `meter_identification.py`), import the respective object constructor (`Transliterator`, `Scanner`, `MeterIdentifier`), instantiate the object, and use its primary methods (`transliterate()`, `scan()`, `identify_meter()`).
 
 1. transliteration, Transliterator, transliterate()
 ~~~
