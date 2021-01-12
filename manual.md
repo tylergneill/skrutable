@@ -19,6 +19,8 @@ If you need more functionality, you can also download and use the Python code, e
 
 Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
 
+
+
 <table>
     <thead>
         <tr>
@@ -30,7 +32,7 @@ Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
     </thead>
     <tbody>
         <tr>
-            <td rowspan=8>Roman</td>
+            <td rowspan=6>Roman</td>
             <td>IAST</td>
             <td>International Alphabet of Sanskrit Transliteration</td>
             <td>saṃskṛtaṃ paṭhāmaḥ</td>
