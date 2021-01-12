@@ -142,7 +142,7 @@ def choose_heavy_gaRa_pattern(gaRa_pattern):
 
 samavfttas_by_family_and_gaRa = {
 
-1: { }, 2: { }, 3: { }, 4: { }, 5: { }, 6: { }, 7: { },
+0: { }, 1: { }, 2: { }, 3: { }, 4: { }, 5: { }, 6: { }, 7: { },
 
 8: 	{
 	'jrl(g|l)' : 'pramāṇikā',
