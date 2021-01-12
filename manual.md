@@ -73,6 +73,12 @@ Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
             <td>Bengali Unicode</td>
             <td>পঠামঃ</td>
         </tr>
+        <tr>
+            <td>GUJARATI</td>
+            <td>Gujarati Unicode</td>
+            <td>પઠામઃ</td>
+        </tr>
+
     </tbody>
 </table>
 
