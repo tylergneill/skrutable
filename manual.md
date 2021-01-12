@@ -150,9 +150,7 @@ Scheme Detection | Transliteration | Scansion & Meter Identification | Main Auth
 Currently under development is a wrapper for the pre-trained model of the powerful neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp) by Hellwig and Nehrdich, which produces good, usable splitting results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)) but which has so far not yet been easily available (command-line only, `Python 3.5.9`, `TensorFlow`). This is to be presented as a fourth functionality after transliteration, scansion, and meter identification.
 
 
-# using the code
-
-## installation
+# installation for offline use
 
 1. Have Python 3 installed. (`Homebrew` recommended)
 
@@ -160,94 +158,80 @@ Currently under development is a wrapper for the pre-trained model of the powerf
 
 * (Eventually: Installation via `pip`. For now...)
 
-3. Click the green “Code” button on [GitHub main page](https://github.com/tylergneill/skrutable) or just click [here](https://github.com/tylergneill/skrutable/archive/master.zip) to download the repo.
+* Click the green “Code” button on [GitHub main page](https://github.com/tylergneill/skrutable) or just click [here](https://github.com/tylergneill/skrutable/archive/master.zip) to download the repo.
 
-4. Put the `skrutable` folder where your other Python libraries are.
+* Put the `skrutable` folder where your other Python libraries are.
 	* Using `virtualenv`? You can put it directly in the relevant `lib/python3.x/site-packages` folder.
 	* Not? Then you can put it where your other packages normally install to (e.g. with `pip`).
 		* (Hint: command line `python -c "import sys; print(sys.path)"` to see where.)
 
-5. Get the other necessary Python libraries: 
+3. Get the other necessary Python libraries: 
 	* currently only `numpy`. (`pip` recommended)
 	* (should already be natively pre-installed: `collections`, `copy`, `json`, `operator`, `os`, `re`)
 
-## how to use
+4. If you wish to also use the web app running locally in your browser, then also download the [separate front-end repo](https://github.com/tylergneill/skrutable_front_end). This will attempt to import `skrutable` as a library (see hint on `sys.path` above). Then `pip install flask`, and in the folder with the front-end flask app, export the path, start the app, and use your browser to navigate to the localhost address:
+~~~
+export FLASK_APP=flask_app.py
+flask run
+ \* Running on http://127.0.0.1:5000/
+~~~~
 
-### keywords
 
-For transliteration:
-* from_scheme, to_scheme
-* IAST, HK, SLP, ITRANS, VH, WX, IASTreduced
+# using as command-line script
 
-
-### command-line script
-
-Make a copy of `skrutable_one.py` and put it the same location as your desired input file. Then just run `skrutable_one.py` at the command line (e.g., Terminal) for quick and powerful access to the main methods for each of the four main modules. Examples:
+Make a copy of `skrutable_one.py` and put it the same location as your desired input file. Then just run `skrutable_one.py` at the command line (e.g., Terminal) with the proper arguments. Examples:
 
 1. transliterate to Bengali script:
 ~~~
-python skrutable_one.py --transliterate FILENAME.txt to_scheme=BENGALI
+python skrutable_one.py --transliterate FILENAME.txt from_scheme=IAST to_scheme=BENGALI
 ~~~
 
-2. identify the meter of a single verse:
+2. identify meter for a single verse:
 ~~~
-python skrutable_one.py --identify_meter FILENAME.txt
-~~~
-
-
-
-To use, simply put `skrutable_one.py` (or a copy thereof) and 
-
-
- in the same place (wherever you'd like), open the Terminal/Command Line at that place, and run the command.
-
-
-
-
-
-
-
-1. 
-
-Import modules/constructors, instantiate respective objects, and use those objects' primary methods.
-
-(Note for coding purposes: lowercase for “skrutable” and all modules, camelcase for objects.)
-
-1. Scheme Detection
-~~~
-from skrutable.scheme_detection import SchemeDetector
-SD = SchemeDetector()
-string_result = SD.detect_scheme( input_string )
+python skrutable_one.py --identify_meter FILENAME.txt from_scheme=IAST
 ~~~
 
-2. Transliteration
+3. identify meter for a whole file (one verse per line):
+~~~
+python skrutable_one.py --identify_meter --whole_file FILENAME.txt from_scheme=IAST
+~~~
+
+These keywords are shared between the command-line and library interfaces:
+
+* transliteration: from_scheme, to_scheme, IAST, HK, SLP, ITRANS, VH, WX, IASTreduced, DEV, BENGALI, GUJARATI
+* scansion: show_weights, show_morae, show_gaRas, show_alignment, show_label
+* meter identification: resplit_option
+
+
+### using as library
+
+For each functionality, import the object construction from the respective module, then instantiate the object, and use its primary methods.
+
+1. Transliteration
 ~~~
 from skrutable.transliteration import Transliterator
 T = Transliterator()
-string_result_1 = T.transliterate( input_string ) # using default settings
+string_result_1 = T.transliterate( input_string ) # default settings
 string_result_2 = T.transliterate( input_string, to_scheme='BENGALI' )
 string_result_3 = T.transliterate( input_string, from_scheme='BENGALI', to_scheme='HK' )
 string_result_4 = T.transliterate( input_string, from_scheme='auto', to_scheme='ITRANS' )
 
 ~~~
 
-3. Scansion
+2. Scansion
 ~~~
 from skrutable.scansion import Scanner
 S = Scanner()
-object_result = S.scan( input_string )
-print( object_result.summarize() )
+result = S.scan( input_string )
+print( result.summarize() )
 ~~~
 
-4. Meter Identification
+3. Meter Identification
 ~~~
 from skrutable.meter_identification import MeterIdentifier
 MI = MeterIdentifier()
-object_result = MI.identify_meter( input_string ) # default resplit_option
-print( object_result.summarize() )
-another_object_result = MI.identify_meter(input_string, resplit_option='resplit_hard')
-print( another_object_result.meter_label() )
+result_1 = MI.identify_meter( input_string ) # default settings
+print( result_1.summarize() )
+result_2 = MI.identify_meter(input_string, resplit_option='resplit_hard', from_scheme='IAST')
+print( result_2.meter_label() )
 ~~~
-
-For more examples, see `demo.py` (coming soon).
-
