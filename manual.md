@@ -79,11 +79,39 @@ Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
     </tbody>
 </table>
 
-There is also an IASTreduced (“samskrtam pathamah”) that loses a lot of information but sometimes comes in handy. Other schemes not currently featured include CSX (Classical Sanskrit eXtended, “saüskçtaü paòâmaþ”), REE (by Ronald E. Emmerick, “saæsk­taæ paèÃma÷”), and one internal to the [DCS](http://www.sanskrit-linguistics.org/dcs/index.php) (by Oliver Hellwig, “saºskŸtaº paÅåmaµ”). 
+There is also an IASTreduced (“samskrtam pathamah”) that loses a lot of information but sometimes comes in handy. Further academic schemes not currently featured include CSX (Classical Sanskrit eXtended, “saüskçtaü paòâmaþ”), REE (by Ronald E. Emmerick, “saæsk­taæ paèÃma÷”), and the scheme internal to the [DCS](http://www.sanskrit-linguistics.org/dcs/index.php) (by Oliver Hellwig, “saºskŸtaº paÅåmaµ”). 
 
-Other schemes for writing Sanskrit, especially those corresponding to additional Indic scripts, can easily be added by modifying the code in `phonemes.py` and `scheme_maps.py`. For other tools with wider character support, including for other South Asian languages, see [related projects](#related-projects) below.
+More schemes for writing Sanskrit, especially those corresponding to additional Indic scripts, can easily be added to `skrutable` by modifying the code in `phonemes.py` and `scheme_maps.py`. For other tools with wider character support, including for other South Asian languages, see [related projects](#related-projects) below.
 
 Note that I use “encoding” here in the sense of UTF-8 and “script” in the sense of a distinct character set like either the Roman or Devanagari alphabets (latter actually an abugida), and so I don't use either “Roman” or “Unicode” to refer to any of the individual schemes. For more on such terminology, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).
+
+
+# scansion and meter identification
+
+For the concepts and traditional conventions in Sanskrit prosody on which this part of `skrutable` is based, see above all the appendix of V.S. Apte's *Practical Sanskrit-English dictionary*, 1890, pp. 1179ff. ([on archive](https://archive.org/details/ldpd_7285627_000/page/n1195/mode/2up))
+
+In short:
+* laghu (l) / guru (g): metrically light / heavy syllable
+* mora: value of 1 for each light syllable and 2 for each heavy syllable
+* gaṇa: [traditional abbreviation](https://en.wikipedia.org/wiki/Sanskrit_prosody#Ga%E1%B9%87a) for [trisyllable](https://en.wikipedia.org/wiki/Foot_(prosody))
+* śloka: verse consisting of 8 syllables (or *akṣaras*) per quarter (or *pāda*) following particular pattern of constraints
+* samavṛtta: verse containing four quarters of equal syllable length
+* jāti: verse containing quarters with set total moraic length
+
+
+# related projects
+
+There are numerous related projects which some users may find preferable to `skrutable` in certain respects (e.g., more script support, easier to install, nicer looking, etc.) Here are my recommended highlights.
+
+Scheme Detection | Transliteration | Scansion & Meter Identification | Main Author
+-------- | ---------- | --------- | --------
+([“detect.py” module](https://github.com/sanskrit/detect.py)) | **[Sanscript](http://learnsanskrit.org/tools/sanscript)** (also via PyPi [here](https://github.com/sanskrit-coders/indic_transliteration)) | (n/a) | Arun Prasad
+(n/a) | **[Aksharamukha](http://aksharamukha.appspot.com/converter)** | (n/a) | Vinodh Rajan
+([“detect.py” module](https://github.com/shreevatsa/sanskrit/blob/master/transliteration/detect.py)) | ([“transliteration” subpackage](https://github.com/shreevatsa/sanskrit/tree/master/transliteration)) | **[Metre Identifier](http://sanskritmetres.appspot.com/)** | Shreevatsa R.
+(n/a) | (n/a) | **[Meter Identifying Tool](http://sanskritlibrary.org:8080/MeterIdentification/)** | Keshav Melnad
+(n/a) | **[Transliteration Tool](https://www.ashtangayoga.info/philosophy/sanskrit-and-devanagari/transliteration-tool/)** | (n/a) | AshtangaYoga.info
+(n/a) | **[Sanscription](http://www.tyfen.com/sanscription/)** | (n/a) | Marc Tiefenauer
+
 
 
 # encoding normalization
@@ -110,20 +138,6 @@ For the purpose of printing Indic scripts, it's often aesthetically (albeit not 
 ~~~
 
 This is the default behavior for transliterating to Indic scripts in `skrutable`. In the code, the regular expressions governing this can be found in `virAma_avoidance.py`, and the overall setting can be toggled in `config.py`.
-
-
-# related projects
-
-There are numerous related projects which some users may find preferable to `skrutable` in certain respects (e.g., more script support, easier to install, nicer looking, etc.) Here are my recommended highlights.
-
-Scheme Detection | Transliteration | Scansion & Meter Identification | Main Author
--------- | ---------- | --------- | --------
-([“detect.py” module](https://github.com/sanskrit/detect.py)) | **[Sanscript](http://learnsanskrit.org/tools/sanscript)** (also via PyPi [here](https://github.com/sanskrit-coders/indic_transliteration)) | (n/a) | Arun Prasad
-(n/a) | **[Aksharamukha](http://aksharamukha.appspot.com/converter)** | (n/a) | Vinodh Rajan
-([“detect.py” module](https://github.com/shreevatsa/sanskrit/blob/master/transliteration/detect.py)) | ([“transliteration” subpackage](https://github.com/shreevatsa/sanskrit/tree/master/transliteration)) | **[Metre Identifier](http://sanskritmetres.appspot.com/)** | Shreevatsa R.
-(n/a) | (n/a) | **[Meter Identifying Tool](http://sanskritlibrary.org:8080/MeterIdentification/)** | Keshav Melnad
-(n/a) | **[Transliteration Tool](https://www.ashtangayoga.info/philosophy/sanskrit-and-devanagari/transliteration-tool/)** | (n/a) | AshtangaYoga.info
-(n/a) | **[Sanscription](http://www.tyfen.com/sanscription/)** | (n/a) | Marc Tiefenauer
 
 
 # scheme auto-detection
