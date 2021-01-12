@@ -41,15 +41,14 @@ Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
             <td>saMskRtaM paThAmaH</td>
         </tr>
         <tr>
-            <td>ITRANS</td>
-            <td>Indian Languages Transliteration</td>
-            <td>sa.mskRita.m paThaama.h</td>
-        </tr>
-
-        <tr>
             <td>SLP</td>
             <td>Sanskrit Library Protocol 1</td>
             <td>saMskftaM paWAmaH</td>
+        </tr>
+        <tr>
+            <td>ITRANS</td>
+            <td>Indian Languages Transliteration</td>
+            <td>sa.mskRita.m paThaama.h</td>
         </tr>
         <tr>
             <td>VH</td>
@@ -77,17 +76,6 @@ Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
             <td>Gujarati Unicode</td>
             <td>પઠામઃ</td>
         </tr>
-        <tr>
-            <td>CSX</td>
-            <td>Classical Sanskrit eXtended</td>
-            <td>paòâmaþ</td>
-        </tr>
-        <tr>
-            <td>REE</td>
-            <td>Scheme used by Ronald E. Emmerick</td>
-            <td>paèÃma÷</td>
-        </tr>
-
     </tbody>
 </table>
 
