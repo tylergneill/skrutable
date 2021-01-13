@@ -69,39 +69,39 @@ Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
         <tr>
             <td>BENGALI</td>
             <td>Bengali Unicode</td>
-            <td>পঠামঃ</td>
+            <td>সংস্কৃতং পঠামঃ</td>
         </tr>
         <tr>
             <td>GUJARATI</td>
             <td>Gujarati Unicode</td>
-            <td>પઠામઃ</td>
+            <td>સંસ્કૃતં પઠામઃ</td>
         </tr>
     </tbody>
 </table>
 
-There is also an IASTreduced (“samskrtam pathamah”) that loses a lot of information but sometimes comes in handy. Further academic schemes not currently featured include CSX (Classical Sanskrit eXtended, “saüskçtaü paòâmaþ”), REE (by Ronald E. Emmerick, “saæsk­taæ paèÃma÷”), and the scheme internal to the [DCS](http://www.sanskrit-linguistics.org/dcs/index.php) (by Oliver Hellwig, “saºskŸtaº paÅåmaµ”). 
+There is also a very lossy “IASTreduced” (e.g., “samskrtam pathamah”) which nevertheless sometimes comes in handy. Further academic schemes not currently featured include CSX (Classical Sanskrit eXtended, “saüskçtaü paòâmaþ”), REE (by Ronald E. Emmerick, “saæsk­taæ paèÃma÷”), and the scheme internal to the [DCS](http://www.sanskrit-linguistics.org/dcs/index.php) (by Oliver Hellwig, “saºskŸtaº paÅåmaµ”). 
 
-More schemes for writing Sanskrit, especially those corresponding to additional Indic scripts, can easily be added to `skrutable` by modifying the code in `phonemes.py` and `scheme_maps.py`. For other tools with wider character support, including for other South Asian languages, see [related projects](#related-projects) below.
+More schemes for writing Sanskrit, especially those corresponding to additional Indic scripts, can easily be added to `skrutable` by modifying the code in `phonemes.py` and `scheme_maps.py`. I'm happy to help with this. Alternatively, for other tools with wider character support, including for other South Asian languages, see [related projects](#related-projects) below.
 
 Note that I use “encoding” here in the sense of UTF-8 and “script” in the sense of a distinct character set like either the Roman or Devanagari alphabets (latter actually an abugida), and so I don't use either “Roman” or “Unicode” to refer to any of the individual schemes. For more on such terminology, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).
 
 
 # scansion and meter identification
 
-For the concepts and traditional conventions in Sanskrit prosody on which this part of `skrutable` is based, see above all the appendix of V.S. Apte's *Practical Sanskrit-English dictionary*, 1890, pp. 1179ff. ([on archive](https://archive.org/details/ldpd_7285627_000/page/n1195/mode/2up))
+For the concepts and traditional conventions in Sanskrit prosody on which this part of `skrutable` is based, see above all the appendix of V.S. Apte's *Practical Sanskrit-English dictionary*, 1890, pp. 1179ff. ([on Archive](https://archive.org/details/ldpd_7285627_000/page/n1195/mode/2up))
 
 In short:
 * laghu (l) / guru (g): metrically light / heavy syllable
 * mora: value of 1 for each light syllable and 2 for each heavy syllable
-* gaṇa: [traditional abbreviation](https://en.wikipedia.org/wiki/Sanskrit_prosody#Ga%E1%B9%87a) for [trisyllable](https://en.wikipedia.org/wiki/Foot_(prosody))
+* gaṇa: [traditional abbreviation](https://en.wikipedia.org/wiki/Sanskrit_prosody#Ga%E1%B9%87a) for [trisyllable group](https://en.wikipedia.org/wiki/Foot_(prosody))
 * śloka: verse consisting of 8 syllables (or *akṣaras*) per quarter (or *pāda*) following particular pattern of constraints
 * samavṛtta: verse containing four quarters of equal syllable length
-* jāti: verse containing quarters with set total moraic length
+* jāti: verse containing quarters with set pattern of total moraic length
 
 
 # related projects
 
-There are numerous related projects which some users may find preferable to `skrutable` in certain respects (e.g., more script support, easier to install, nicer looking, etc.) Here are my recommended highlights.
+There are numerous related projects which some users may find preferable to `skrutable` in certain respects (e.g., more script support, different meter guesses, easier to install, etc.) Here are my recommended highlights.
 
 Scheme Detection | Transliteration | Scansion & Meter Identification | Main Author
 -------- | ---------- | --------- | --------
@@ -118,7 +118,7 @@ Scheme Detection | Transliteration | Scansion & Meter Identification | Main Auth
 
 Some schemes have internal options. For example, at the level of encoding, IAST is sometimes represented in UTF-8 with combining diacritics, sometimes with precomposed combinations. Alternatively, at the level of the scheme itself, ITRANS writes vocalic r (ṛ, ऋ) as 'Ri', 'RRi', or 'R^i.
 
-Because `skrutable` transliterates by way of SLP, and because it must output a single option, you can use round-trip transliteration (e.g. IAST-IAST) to normalize such variation. For example:
+Because `skrutable` transliterates by way of SLP, and because it must output a single option, you can use round-trip transliteration (e.g., IAST-IAST) to normalize such variation. For example:
 
 ~~~
 "rāmaḥ" == 'r' + 'a' + '¯' (U+0304) + 'm' + 'a' + 'h' + '.' (U+0323)
@@ -131,10 +131,10 @@ That is, `skrutable` currently favors precomposed characters for IAST. In the co
 
 # virāma avoidance
 
-For the purpose of printing Indic scripts, it's often aesthetically (albeit not scientifically) preferable to remove certain inter-word spaces and their corresponding virāmas, and to instead use ligatures. For example:
+For the purpose of printing Indic scripts, it's often aesthetically (if not always scientifically) preferable to remove certain inter-word spaces and their corresponding virāmas, and to instead use ligatures. For example:
 
 ~~~
-“asty eva” >> (“अस्त्य् एव”) >> “अस्त्येव”
+asty eva >> ( अस्त्य् एव ) >> अस्त्येव
 ~~~
 
 This is the default behavior for transliterating to Indic scripts in `skrutable`. In the code, the regular expressions governing this can be found in `virAma_avoidance.py`, and the overall setting can be toggled in `config.py`.
@@ -179,9 +179,9 @@ In the works as a fourth `skrutable` functionality (after transliteration, scans
 
 ## using as local web app
 
-For doing more data-heavy processing that is still user-friendly, you may wish to run the front end locally on your own machine. If so, you'll also need to download the [separate front-end repo](https://github.com/tylergneill/skrutable_front_end). This package relies on importing `skrutable` as a library (see hint on `sys.path` above). With both of these in place (and don't forget to also `pip install flask`), go to the folder with the front-end flask app and run the commands in launch.sh. You can then access `skrutable` in your browser at [http://127.0.0.1:5000/](http://127.0.0.1:5000/).
+For doing more data-heavy processing that is still user-friendly, you may wish to run the front end locally on your own machine. If so, you'll also need to download the [separate front-end repo](https://github.com/tylergneill/skrutable_front_end). This package relies on importing `skrutable` as a library (see hint on `sys.path` above). With both of these in place (and don't forget to also `pip install flask`), go to the folder with the front-end Flask app and run the commands in `launch.sh`. You can then access `skrutable` in your browser at `http://127.0.0.1:5000`.
 
-See [here](https://flask.palletsprojects.com/en/1.1.x/quickstart/) for more instructions on flask, or [ask me](#feedback).
+See [here](https://flask.palletsprojects.com/en/1.1.x/quickstart/) for more instructions on Flask, or [ask me](#feedback).
 
 
 ## using as command-line script
