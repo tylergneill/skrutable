@@ -13,7 +13,7 @@ tadAtmAnaM sfjAmyaham"""
 	VT = VerseTester()
 	VT.test_as_anuzwuB(V)
 	output = V.meter_label
-	# curr_func = inspect.stack()[0][3]
+	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = "anuṣṭubh (ab: pathyā, cd: pathyā)"
 	assert output == expected_output
@@ -27,7 +27,7 @@ tadAtmAnaM sfjAmyaham"""
 	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_hard')
 	output = object_result.meter_label
 	output = output[:8]
-	# curr_func = inspect.stack()[0][3]
+	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = "anuṣṭubh"
 	assert output == expected_output
@@ -42,7 +42,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	VT = VerseTester()
 	VT.count_pAdasamatva(V)
 	output = VT.pAdasamatva_count # int
-	# curr_func = inspect.stack()[0][3]
+	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = 4
 	assert output == expected_output
@@ -56,7 +56,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 # 	V = S.scan(input_string, from_scheme='SLP')
 # 	VT = VerseTester()
 # 	output = VT.test_as_upajAti(V)
-# 	# curr_func = inspect.stack()[0][3]
+# 	curr_func = inspect.stack()[0][3]
 # 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 # 	expected_output = "upajāti"
 # 	assert output[:7] == expected_output
@@ -69,7 +69,7 @@ parasparaM saMvadatAM KalAnAM
 mOnaM viDeyaM satataM suDIBiH"""
 	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_hard')
 	output = object_result.summarize()
-	# curr_func = inspect.stack()[0][3]
+	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = "upajāti"
 
@@ -80,7 +80,7 @@ māmakāḥ pāṇḍavāś caiva kim akurvata sañjaya //"""
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_hard')
 	output = object_result.summarize()
 	truncated_output = object_result.meter_label[:8]
-	# curr_func = inspect.stack()[0][3]
+	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = "anuṣṭubh"
 	assert truncated_output == expected_output
@@ -96,7 +96,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	VT.count_pAdasamatva(V)
 	VT.evaluate_samavftta(V)
 	output = V.meter_label[:10]
-	# curr_func = inspect.stack()[0][3]
+	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = "indravajrā"
 	assert output == expected_output
@@ -113,7 +113,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	VT.count_pAdasamatva(V)
 	VT.evaluate_samavftta(V)
 	output = V.identification_score
-	# curr_func = inspect.stack()[0][3]
+	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = 7
 	assert output == expected_output
@@ -128,7 +128,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	VT = VerseTester()
 	VT.evaluate_upajAti(V)
 	output = V.identification_score
-	# curr_func = inspect.stack()[0][3]
+	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = 8
 	assert output == expected_output
@@ -146,7 +146,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	VT.evaluate_upajAti(V)
 	output = V.identification_score
 	other_output = V.meter_label
-	# curr_func = inspect.stack()[0][3]
+	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(other_output) + '\n\n')
 	expected_output = 8
 	assert output == expected_output
@@ -164,7 +164,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	VT.evaluate_upajAti(V)
 	output = V.identification_score
 	other_output = V.meter_label
-	# curr_func = inspect.stack()[0][3]
+	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = 6
 	assert output == expected_output
@@ -179,7 +179,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	VT = VerseTester()
 	VT.test_as_samavftta_etc(V)
 	output = V.identification_score
-	# curr_func = inspect.stack()[0][3]
+	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = 8
 	assert output == expected_output
@@ -196,7 +196,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	VT.test_as_samavftta_etc(V)
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
-	print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = 8 # because within triṣṭubh
 	assert output == expected_output
 
@@ -212,7 +212,7 @@ kuSizyamaDyApayataH kuto yaSaH"""
 	VT.test_as_samavftta_etc(V)
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
-	print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = 7 # because not within triṣṭubh
 	assert output == expected_output
 
@@ -230,7 +230,7 @@ mOnaM viDeyaM satataM suDIBiH""" # id_score == 8
 	output = V.identification_score
 	other_output = V.meter_label
 	curr_func = inspect.stack()[0][3]
-	print("\n\n%s OUTPUT:\n" % curr_func + str(other_output) + '\n\n')
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(other_output) + '\n\n')
 	expected_output = 9
 	assert output == expected_output
 
@@ -244,7 +244,7 @@ sarvaM yasya vaSAdagAt smftipaTaM kAlAya tasmE namaH"""
 	output = object_result.meter_label
 	truncated_output = output[:16]
 	curr_func = inspect.stack()[0][3]
-	print("\n\n%s OUTPUT:\n" % curr_func + str(truncated_output) + '\n\n')
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(truncated_output) + '\n\n')
 	expected_output = "śārdūlavikrīḍitā"
 	assert truncated_output == expected_output
 
@@ -258,7 +258,24 @@ te 'vasthitāḥ pramukhe dhārtarāṣṭrāḥ //"""
 	output = object_result.meter_label
 	truncated_output = output
 	curr_func = inspect.stack()[0][3]
-	import pdb; pdb.set_trace()
-	print("\n\n%s OUTPUT:\n" % curr_func + str(truncated_output) + '\n\n')
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(truncated_output) + '\n\n')
 	# expected_output = "śārdūlavikrīḍitā"
 	assert truncated_output != None
+
+def test_find_meter():
+	MI = MeterIdentifier()
+	input_string = """tadA yadA yadA hi Darmasya
+glAnirBavati BArata
+aByutTAnamaDarmasya
+tadAtmAnaM sfjAmyaham tadA blA blA blA
+yasya kasya taror mUlaM yena kenApi miSritam |
+yasmE kasmE pradAtavyaM yad vA tad vA Bavizyati ||"""
+	# string_result_list = MI.find_meter(input_string, from_scheme='SLP')
+	# output = len(string_result_list)
+	object_result_list = MI.find_meter(input_string, from_scheme='SLP')
+	output = len(object_result_list)
+	other_output = object_result_list
+	curr_func = inspect.stack()[0][3]
+	print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	expected_output = 4
+	# assert output == expected_output

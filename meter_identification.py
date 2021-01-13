@@ -692,6 +692,38 @@ class MeterIdentifier(object):
 
 		return Verses_found
 
+
+	def find_meter(self, rw_str, from_scheme=None):
+
+		self.Scanner = S = Sc()
+		tmp_V = S.scan(rw_str, from_scheme=from_scheme)
+		all_weights_one_line = tmp_V.syllable_weights.replace('\n','')
+		all_syllables_one_line = tmp_V.text_syllabified.replace('\n','')
+
+		pathyA_odd = list(meter_patterns.anuzwuB_pAda['odd'].keys())[0][1:-1]
+		even = meter_patterns.anuzwuB_pAda['even'][1:-1]
+		overall_pattern = pathyA_odd + even
+		# regex = re.compile('(?=(%s))' % overall_pattern) # > e.g. [(2, 2), (18, 18)]
+		regex = re.compile('%s' % overall_pattern) # > e.g. [(2, 18), (18, 34)]
+
+		# matches = re.findall(regex, all_weights_one_line) # > e.g. ['lglglgglgglllgll', 'gggllggllggglglg']
+		matches = re.finditer(regex, all_weights_one_line)
+		match_index_pairs = [ (m.start(0), m.end(0)) for m in matches ] # > e.g. [(2, 18), (18, 34)]
+
+		match_strings = []
+		syllables = all_syllables_one_line.split(' ')
+		for mip in match_index_pairs:
+			match_strings.append( ''.join(syllables[ mip[0]:mip[1] ]) )
+
+		verses_found = []
+		for ms in match_strings:
+			V = self.identify_meter(ms, from_scheme='SLP', resplit_option='resplit_hard')
+			verses_found.append(V)
+
+		return verses_found
+
+
+
 	def identify_meter(self, rw_str, resplit_option=default_resplit_option, from_scheme=None):
 		"""
 		User-facing method, manages overall identification procedure:
