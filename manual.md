@@ -209,12 +209,12 @@ These keywords are shared between the command-line and library interfaces:
 * scansion: show_weights, show_morae, show_gaRas, show_alignment, show_label
 * meter identification: resplit_option
 
-See the code documentation in the respective modules for more information.
+See the documentation in the code of the respective modules for more information.
 
 
 ## using as library
 
-From each respective module (`transliteration.py`, `scansion.py`, `meter_identification.py`), import the respective object constructor (`Transliterator`, `Scanner`, `MeterIdentifier`), instantiate the object, and use its primary methods (`transliterate()`, `scan()`, `identify_meter()`). Transliteration returns a string, whereas scansion and meter identification return `Scansion.Verse` objects, which contain (among other things) a `.meter_label` attribute and a `summarize()` method.
+From each respective module (`transliteration.py`, `scansion.py`, `meter_identification.py`), import the respective object constructor (`Transliterator`, `Scanner`, `MeterIdentifier`), instantiate the object, and call its primary methods (`transliterate()`, `scan()`, `identify_meter()`). Transliteration returns a string, whereas scansion and meter identification return `Scansion.Verse` objects, which contain (among other things) a `.meter_label` attribute and a `summarize()` method.
 
 1. transliteration, Transliterator, transliterate()
 ~~~
