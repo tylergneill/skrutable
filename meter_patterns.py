@@ -222,22 +222,12 @@ samavfttas_by_family_and_gaRa = {
 
 }
 
-
-# Note: Not used yet.
-ardhasamavfttas_by_gaRas = {
-# from "Peter's meters"
-'nnrl(g|l)' : 'aparavaktra (ac 11)',
-'njj(r|B)' : 'aparavaktra (bd 12)',
-'ssjg(g|l)' : 'aupacchandasika (ac 11)',
-'sBr(y|j)' : 'aupacchandasika (bd 12)',
-'nnr(y|j)' : 'puṣpitāgrā (ac 12)',
-'njjr(g|l)' : 'puṣpitāgrā (bd 13)',
-'ssj(g|l)' : 'viyoginī (ac 10)',
-'sBrl(g|l)' : 'viyoginī (bd 11)',
-
-# more from Hahn 2014
-'ssjg(g|l)' : 'mālābhāriṇī (ac 11)',
-'sBr(y|j)' : 'mālābhāriṇī (bd 12)',
+ardhasamavftta_by_odd_even_regex_tuple = {
+('nnrl(g|l)', 'njj(r|B)') : 'aparavaktra (1,3: nnrlg, 2,4: njjr)',
+('ssjg(g|l)', 'sBr(y|j)') : 'aupacchandasika (1,3: ssjgg, 2,4: sBry)',
+('nnr(y|j)', 'njjr(g|l)') : 'puṣpitāgrā (1,3: nnry, 2,4: njjrg)',
+('ssj(g|l)', 'sBrl(g|l)') : 'viyoginī (1,3: ssjg, 2,4: sBrlg)',
+('ssjg(g|l)', 'sBr(y|j)') : 'mālābhāriṇī (1,3: ssjgg, 2,4: sBry)',
 }
 
 

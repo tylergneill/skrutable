@@ -305,6 +305,54 @@ sA jayati sarasvatI devI"""
 	output = object_result.identification_score
 	other_output = object_result.meter_label
 	curr_func = inspect.stack()[0][3]
-	print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = 8
+	assert output == expected_output
+
+def test_evaluate_ardhasamavftta():
+	S = Scanner()
+	input_string = """iti vilapati pārthive pranaṣṭe
+karuṇataraṃ dviguṇaṃ ca rāmahetoḥ /
+vacanam anuniśamya tasya devī
+bhayam agamat punar eva rāmamātā //"""
+	V = S.scan(input_string, from_scheme='IAST')
+	VT = VerseTester()
+	VT.count_pAdasamatva(V)
+	VT.evaluate_ardhasamavftta(V)
+	output = V.identification_score
+	other_output = V.meter_label
+	curr_func = inspect.stack()[0][3]
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	expected_output = 8
+	assert output == expected_output
+
+def test_identify_meter_ardhasamavftta():
+	MI = MeterIdentifier()
+	input_string = """iti vilapati pārthive pranaṣṭe
+karuṇataraṃ dviguṇaṃ ca rāmahetoḥ /
+vacanam anuniśamya tasya devī
+bhayam agamat punar eva rāmamātā //"""
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_hard')
+	output = object_result.identification_score
+	other_output = object_result.meter_label
+	curr_func = inspect.stack()[0][3]
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	# import pdb; pdb.set_trace()
+	expected_output = 8
+	assert output == expected_output
+
+def test_identify_meter_vaMSasTa():
+	# after enabling ardhasamavftta
+	MI = MeterIdentifier()
+	input_string = """purā śaratsūryamarīcisaṃnibhān
+navāgrapuṅkhān sudṛḍhān nṛpātmajaḥ /
+sṛjaty amoghān viśikhān vadhāya te
+pradīyatāṃ dāśarathāya maithilī  //"""
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_hard')
+	output = object_result.identification_score
+	other_output = object_result.meter_label
+	curr_func = inspect.stack()[0][3]
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	# import pdb; pdb.set_trace()
+	expected_output = 9
 	assert output == expected_output

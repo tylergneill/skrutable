@@ -94,7 +94,7 @@ class VerseTester(object):
 
 		# make sure full four pādas
 		try: w_p[3]
-		except IndexError: return None
+		except IndexError: return 0
 
 		# test each half
 		pAdas_ab = self.test_as_anuzwuB_half(w_p[0], w_p[1])
@@ -148,10 +148,10 @@ class VerseTester(object):
 
 		# make sure full four pādas
 		try: wbp[3]
-		except IndexError: return
+		except IndexError: return 0
 
 		# avoid false positive if completely empty string argument list
-		if wbp[0] == wbp[1] == wbp[2] == wbp[3] == '': return
+		if wbp[0] == wbp[1] == wbp[2] == wbp[3] == '': return 0
 
 		# discard any empty strings
 		while '' in wbp: wbp.remove('')
@@ -323,7 +323,42 @@ class VerseTester(object):
 			potential_score = 4 + self.pAdasamatva_count # 2 >> 6, 3 >> 7
 
 		# may tie with pre-existing result (e.g., upajāti)
-		self.combine_results(Vrs, new_label=meter_label, new_score=7)
+		self.combine_results(Vrs, new_label=meter_label, new_score=potential_score)
+
+
+
+	def evaluate_ardhasamavftta(self, Vrs):
+		# sufficient pAdasamatva already assured, now just evaluate
+
+		wbp = Vrs.syllable_weights.split('\n') # weights by pāda
+
+		gs_to_id = Vrs.gaRa_abbreviations.split('\n') # gaRa abbreviation to id
+		odd_g_to_id = gs_to_id[0]
+		even_g_to_id = gs_to_id[1]
+
+		# look for match among regexes with same length
+		iterator = meter_patterns.ardhasamavftta_by_odd_even_regex_tuple.keys()
+		for (odd_gaRa_pattern, even_gaRa_pattern) in iterator:
+
+			regex_odd = re.compile(odd_gaRa_pattern)
+			regex_even = re.compile(even_gaRa_pattern)
+
+			if 	(
+				re.match(regex_odd, odd_g_to_id) and
+				re.match(regex_even, even_g_to_id)
+				):
+
+				meter_label = meter_patterns.ardhasamavftta_by_odd_even_regex_tuple[
+					(odd_gaRa_pattern, even_gaRa_pattern)
+				]
+				break
+
+		else:
+			meter_label = "ajñātārdhasamavṛttam" # i.e., might need to add to meter_patterns
+			meter_label += ' [%s, %s]' % (odd_g_to_id, even_g_to_id)
+
+		Vrs.meter_label = meter_label
+		Vrs.identification_score = 8
 
 
 	def evaluate_upajAti(self, Vrs):
@@ -356,7 +391,6 @@ class VerseTester(object):
 
 		# calculate what result could possibly score based on analysis so far
 		potential_score = 8
-		# import pdb; pdb.set_trace()
 		if 11 not in wbp_lens: # no triṣṭubh (can be mixed with jagatī)
 			potential_score -= 1
 		if 	(
@@ -422,7 +456,7 @@ class VerseTester(object):
 
 		# make sure full four pādas
 		try: wbp[3]
-		except IndexError: return
+		except IndexError: return 0
 
 		self.count_pAdasamatva(Vrs) # [0,2,3,4]
 
@@ -433,17 +467,16 @@ class VerseTester(object):
 		if self.pAdasamatva_count == 4:
 			# definitely checks out, id_score == 9
 			self.evaluate_samavftta(Vrs)
-			return # max score already reached
+			return 1 # max score already reached
 
 		# test perfect ardhasamavftta
-		# if ( self.pAdasamatva_count == 2
-		# 	 and weight_lines[0] == weight_lines[2]
-		# 	 and weight_lines[1] == weight_lines[3]
-		# 	 ):
-		# 	# will give id_score == 8
-		#	self.evaluate_ardhasamavftta(Vrs)
-		# 	# will involve looking for corresponding type
-		#	# max score not necessarily yet reached, don't return
+		if ( self.pAdasamatva_count == 2
+			 and wbp[0][:-1] == wbp[2][:-1]
+			 and wbp[1][:-1] == wbp[3][:-1] # exclude final anceps
+			 ):
+			# will give id_score == 8
+			self.evaluate_ardhasamavftta(Vrs)
+			# max score not necessarily yet reached, don't return
 
 		# test perfect viṣamavṛtta
 		# if self.pAdasamatva_count == 0 and self.is_vizamavftta(Vrs):
@@ -461,7 +494,7 @@ class VerseTester(object):
 			): # all same length or triṣṭubh-jagatī mix
 			# will give id_score in [8, 7], may tie with above
 			self.evaluate_upajAti(Vrs)
-			if Vrs.identification_score == 8: return # max score reached
+			if Vrs.identification_score == 8: return 1 # max score reached
 			# otherwise, max score not necessarily yet reached, don't return
 
 		# test imperfect samavftta
@@ -481,7 +514,10 @@ class VerseTester(object):
 			# will give id_score in [6, 5], may tie with above
 			self.evaluate_upajAti(Vrs)
 
-		return
+		if Vrs.meter_label != None:
+			return 1
+		else:
+			return 0
 
 	def test_as_jAti(self, Vrs):
 		"""
@@ -494,7 +530,7 @@ class VerseTester(object):
 		w_p = Vrs.syllable_weights.split('\n')
 		# make sure full four pādas
 		try: w_p[3]
-		except IndexError: return None
+		except IndexError: return 0
 
 		morae_by_pAda = Vrs.morae_per_line
 
@@ -529,7 +565,7 @@ class VerseTester(object):
 						break
 
 				else:  # if all four pAdas proven valid, i.e., if no breaks
-					Vrs.meter_label = jAti_name + " (jāti: %s)" % str(std_pattern)[1:-1]
+					Vrs.meter_label = jAti_name + " (%s)" % str(std_pattern)[1:-1]
 					Vrs.identification_score = 8
 					return 1
 
@@ -673,10 +709,9 @@ class MeterIdentifier(object):
 						)
 
 						# temp_V.meter_label = VrsTster.attempt_identification(temp_V)
-						attempt_result = VrsTster.attempt_identification(temp_V)
+						success = VrsTster.attempt_identification(temp_V)
 
-						if temp_V.meter_label != None:
-							# >> if attempt_result == 1:
+						if success:
 							Verses_found.append(temp_V)
 
 						if temp_V.identification_score == 9:
