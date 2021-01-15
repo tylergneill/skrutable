@@ -203,7 +203,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 def test_test_as_samavftta_etc_kudeSam_3():
 	S = Scanner()
 	# note "AsAdyā" instead of "AsAdya"
-	input_string = """kudeSamAsAdyā kuto 'rTasaYcayaH
+	input_string = """kudeSamAsAdyA kuto 'rTasaYcayaH
 kuputramAsAdya kuto jalAYjaliH
 kugehinIM prApya kuto gfhe suKam
 kuSizyamaDyApayataH kuto yaSaH"""
@@ -276,6 +276,35 @@ yasmE kasmE pradAtavyaM yad vA tad vA Bavizyati ||"""
 	output = len(object_result_list)
 	other_output = object_result_list
 	curr_func = inspect.stack()[0][3]
-	print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = 4
 	# assert output == expected_output
+
+def test_test_as_jAti():
+	S = Scanner()
+	input_string = """karabadarasadfSamaKilaM
+BuvanatalaM yatprasAdataH kavayaH
+paSyanti sUkzmamatayaH
+sA jayati sarasvatI devI"""
+	V = S.scan(input_string, from_scheme='SLP')
+	VT = VerseTester()
+	VT.test_as_jAti(V)
+	output = V.identification_score
+	curr_func = inspect.stack()[0][3]
+	print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	expected_output = 8
+	assert output == expected_output
+
+def test_identify_meter_jAti():
+	MI = MeterIdentifier()
+	input_string = """karabadarasadfSamaKilaM
+BuvanatalaM yatprasAdataH kavayaH
+paSyanti sUkzmamatayaH
+sA jayati sarasvatI devI"""
+	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_hard')
+	output = object_result.identification_score
+	other_output = object_result.meter_label
+	curr_func = inspect.stack()[0][3]
+	print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	expected_output = 8
+	assert output == expected_output

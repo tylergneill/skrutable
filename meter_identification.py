@@ -492,10 +492,9 @@ class VerseTester(object):
 		"""
 
 		w_p = Vrs.syllable_weights.split('\n')
-		try:
-			w_p[3]
-		except IndexError:
-			return None  # didn't find full four pādas
+		# make sure full four pādas
+		try: w_p[3]
+		except IndexError: return None
 
 		morae_by_pAda = Vrs.morae_per_line
 
@@ -506,7 +505,7 @@ class VerseTester(object):
 		"""
 			Test whether morae match patterns, with allowance on last syllable:
 				final light syllable of a jāti quarter CAN be counted as heavy,
-				but ONLY if absolutely necessary
+				but ONLY if necessary to fill out the meter
 				and NOT otherwise.
 		"""
 		for flex_pattern, std_pattern, jAti_name in meter_patterns.jAtis_by_morae:
@@ -530,10 +529,12 @@ class VerseTester(object):
 						break
 
 				else:  # if all four pAdas proven valid, i.e., if no breaks
-					return jAti_name + " (jāti)"
+					Vrs.meter_label = jAti_name + " (jāti: %s)" % str(std_pattern)[1:-1]
+					Vrs.identification_score = 8
+					return 1
 
 		else:  # if all patterns tested and nothing returned
-			return None
+			return 0
 
 	def attempt_identification(self, Vrs):
 		"""
@@ -568,8 +569,8 @@ class VerseTester(object):
 
 		# anuzwuB
 
-		test_result = self.test_as_anuzwuB(Vrs) # 1 if successful, 0 if not
-		if Vrs.meter_label != None: return 1
+		success = self.test_as_anuzwuB(Vrs) # 1 if successful, 0 if not
+		if success: return 1
 
 		# samavftta, upajAti, vizamavftta, ardhasamavftta
 
@@ -581,8 +582,8 @@ class VerseTester(object):
 		#  	return self.upajAti_result
 		# elif self.samavftta_result != None:
 		# 	return self.samavftta_result
-		test_result = self.test_as_samavftta_etc(Vrs)
-		if Vrs.meter_label != None: return 1
+		success = self.test_as_samavftta_etc(Vrs)
+		if success: return 1
 
 		# problem: because of above return behavior,
 		# currently not going to find any ardhasamavftta that is also jAti.
@@ -592,9 +593,8 @@ class VerseTester(object):
 
 		# jAti
 
-		# last remaining of old "VT._result" way of setting results
-		self.jAti_result = self.test_as_jAti(Vrs)
-		if self.jAti_result != None: return 1
+		success = self.test_as_jAti(Vrs)
+		if success: return 1
 
 		return 0 # all three tests failed
 
