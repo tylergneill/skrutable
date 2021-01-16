@@ -10,7 +10,7 @@ from copy import copy
 # load config variables
 config = load_config_dict_from_json_file()
 default_resplit_option = config["default_resplit_option"]  # e.g. "none"
-
+resplit_excludes_bc = config["resplit_excludes_bc"]  # e.g. True
 
 class VerseTester(object):
 	"""
@@ -676,22 +676,27 @@ class MeterIdentifier(object):
 				+ sss.join(syllable_list[cd_pAda_br:])
 				)
 
-	def wiggle_identify(	self, Vrs, syllable_list, VrsTster,
-						 ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len):
+	def wiggle_identify( self, Vrs, syllable_list, VrsTster,
+						 pAda_brs, quarter_len):
 		"""Returns a list for MeterIdentifier.Verses_found"""
 
-		ab_wiggle_iterator = self.wiggle_iterator(ab_pAda_br, quarter_len)
-		bc_wiggle_iterator = self.wiggle_iterator(bc_pAda_br, quarter_len)
-		cd_wiggle_iterator = self.wiggle_iterator(cd_pAda_br, quarter_len)
+		pos_iterators = {}
+		for k in ['ab', 'bc', 'cd']:
+			if k == 'bc' and resplit_excludes_bc == True:
+				pos_iterators['bc'] = [ pAda_brs['bc'] ] # i.e., do not wiggle bc
+			else:
+				pos_iterators[k] = self.wiggle_iterator(pAda_brs[k], quarter_len)
 
 		wiggle_resplit_output_buffer = ''
 		temp_V = None
 		S = Sc()
 		Verses_found = []
 
-		for pos_ab in ab_wiggle_iterator:
-			for pos_bc in bc_wiggle_iterator:
-				for pos_cd in cd_wiggle_iterator:
+		# times_wiggled = 0
+
+		for pos_ab in pos_iterators['ab']:
+			for pos_bc in pos_iterators['bc']:
+				for pos_cd in pos_iterators['cd']:
 
 					try:
 
@@ -700,6 +705,9 @@ class MeterIdentifier(object):
 
 						temp_V = copy(Vrs)
 						temp_V.text_syllabified = new_text_syllabified
+
+						# print(temp_V.text_syllabified.replace('\n','\t'))
+
 						temp_V.syllable_weights = S.scan_syllable_weights(
 							temp_V.text_syllabified)
 						temp_V.morae_per_line = S.count_morae(
@@ -710,11 +718,14 @@ class MeterIdentifier(object):
 
 						# temp_V.meter_label = VrsTster.attempt_identification(temp_V)
 						success = VrsTster.attempt_identification(temp_V)
+						# times_wiggled += 1
 
 						if success:
 							Verses_found.append(temp_V)
 
 						if temp_V.identification_score == 9:
+							# print("TIMES WIGGLED: ", times_wiggled)
+							# return Verses_found, times_wiggled
 							return Verses_found
 							# done when any perfect exemplar found
 							# for greater speed and efficiency
@@ -722,9 +733,12 @@ class MeterIdentifier(object):
 							 	# check whether finding multiple 9s
 								# check whether any temp_V breaks system
 
+
 					except IndexError:
 						continue
 
+		# print("TIMES WIGGLED: ", times_wiggled)
+		# return Verses_found, times_wiggled
 		return Verses_found
 
 
@@ -788,57 +802,69 @@ class MeterIdentifier(object):
 
 		self.VerseTester = VT = VerseTester()
 
-		if resplit_option == 'none':
+		# additional_times_wiggled = 0
 
-			attempt_result = VT.attempt_identification(V)
+		if resplit_option == 'none':
+			success = VT.attempt_identification(V)
+			# label and score set internally
 
 		elif resplit_option in ['resplit_hard', 'resplit_soft']:
 
-			if resplit_option == 'resplit_soft':
-				# capture user pāda breaks as indicated by newlines POSSIBLY OTHER CHARACTER
-				newline_indices = [m.start()
-								   for m in re.finditer('\n', V.text_syllabified)]
+			# in case of resplit_soft, capture user-provided pāda breaks (newline)
+			newline_indices = [
+				m.start() for m in re.finditer('\n', V.text_syllabified)
+				]
 
-				# make sure three newlines for four pādas
-				try: newline_indices[2]
-				except IndexError: return V   # PROBLEM, OUT-OF-DATE RETURN
-
-				ab_pAda_br = V.text_syllabified[:newline_indices[0]].count(
-					scansion_syllable_separator)
-				bc_pAda_br = V.text_syllabified[:newline_indices[1]].count(
-					scansion_syllable_separator)
-				cd_pAda_br = V.text_syllabified[:newline_indices[2]].count(
-					scansion_syllable_separator)
-
-			# make list, sans newlines, sans last scansion_syllable_separator
+			# make pure list of only syllables
 			syllable_list = (
 							V.text_syllabified.replace('\n', '')
 							).split(scansion_syllable_separator)
-
 			# discard any final separator(s)
 			try:
 				while syllable_list[-1] == '':
 					syllable_list.pop(-1)
 			except IndexError: pass # empty list...
 
+			# initialize length-based pāda breaks
+			pAda_brs = {}
 			total_syll_count = len(syllable_list)
 			quarter_len = int(total_syll_count / 4)
+			pAda_brs['ab'], pAda_brs['bc'], pAda_brs['cd'] = (
+				[i * quarter_len for i in [1, 2, 3]]
+				)
 
-			if resplit_option == 'resplit_hard':
-				# discard user pāda breaks, initialize length-based ones
-				ab_pAda_br, bc_pAda_br, cd_pAda_br = (
-					[i * quarter_len for i in [1, 2, 3]])
+			# possible override some of these breaks and mark as constant
+			if resplit_option == 'resplit_soft' and len(newline_indices) == 3:
+				# full three breaks provided (ab, bc, cd), override all
 
-			self.Verses_found = self.wiggle_identify(V, syllable_list, VT,
-													 ab_pAda_br, bc_pAda_br, cd_pAda_br, quarter_len)
+				pAda_brs['ab'], pAda_brs['bc'], pAda_brs['cd'] = (
+					V.text_syllabified[:newline_indices[i]].count(
+						scansion_syllable_separator
+						) for i in [0, 1, 2]
+					)
 
-			# pick best match, i.e. Verse with highest identification_score
+			elif resplit_option == 'resplit_soft' and len(newline_indices) == 1:
+				# only one break provided, assume bc, override that one, keep other two
+
+				pAda_brs['bc'] = V.text_syllabified[:newline_indices[0]].count(
+					scansion_syllable_separator)
+
+			# use initial Verse to generate potentially large number of others Verses
+			# store their respective results internally, collect overall list
+			# self.Verses_found, additional_times_wiggled = ...
+			self.Verses_found = self.wiggle_identify(
+				V, syllable_list, VT,
+				pAda_brs, quarter_len
+				)
+
+			# pick best match, i.e. resulting Verse with highest identification_score
 			if len(self.Verses_found) > 0:
 				self.Verses_found.sort(key=lambda x: x.identification_score, reverse=True)
-				V = self.Verses_found[0]
+				V = self.Verses_found[0] # replace initial Verse object
 
-		if V.meter_label == None:
+		if V.meter_label == None: # initial Verse label still not populated
 			V.meter_label = 'na kiṃcid adhyavasitam'  # do not return None
 			V.identification_score = 1 # did at least try
 
+		# return V, additional_times_wiggled
 		return V

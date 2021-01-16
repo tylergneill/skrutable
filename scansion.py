@@ -10,6 +10,7 @@ import re
 # load config variables
 config = load_config_dict_from_json_file()
 scansion_syllable_separator = config["scansion_syllable_separator"] # e.g. " "
+additional_newline_strings = config["additional_newline_strings"]  # e.g. ["\t", ";"]
 
 class Verse(object):
 	"""
@@ -201,14 +202,15 @@ class Scanner(object):
 
 		Returns result as string.
 		"""
-		result = cntnts
-		for c in list(set(result)):
-			if c not in phonemes.character_set[scheme_in]:
-				result = result.replace(c,'')
-		SD = SchemeDetector()
-		result_scheme = SD.detect_scheme(result)
-		return result
 
+		for chr in additional_newline_strings:
+			cntnts = cntnts.replace(chr, '\n')
+
+		for c in list(set(cntnts)):
+			if c not in phonemes.character_set[scheme_in]:
+				cntnts = cntnts.replace(c,'')
+
+		return cntnts
 
 	def syllabify_text(self, txt_SLP):
 		"""
