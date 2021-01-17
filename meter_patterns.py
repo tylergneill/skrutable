@@ -1,4 +1,4 @@
-(g|l)' :"""
+"""
 	anuṣṭubh
 
 	Rules for structure of even pāda (more rigid):
@@ -317,7 +317,7 @@ samavfttas_by_family_and_gaRa = {
 
 ardhasamavftta_by_odd_even_regex_tuple = {
 ('nnrl(g|l)', 'njj(r|B)') : 'aparavaktra (1,3: nnrlg, 2,4: njjr)', # aka vaitālīya
-('sssl(g|l)', 'BBBg(g|l)' : 'upacitra (1,3: ssslg, 2,4: BBBgg)',
+('sssl(g|l)', 'BBBg(g|l)') : 'upacitra (1,3: ssslg, 2,4: BBBgg)',
 ('nnr(y|j)', 'njjr(g|l)') : 'puṣpitāgrā (1,3: nnry, 2,4: njjrg)', # aka aupacchandasika
 ('ssj(g|l)', 'sBrl(g|l)') : 'viyoginī (1,3: ssjg, 2,4: sBrlg)', # aka vaitālīya, sundarī
 ('sss(g|l)', 'BBBg(g|l)') : 'vegavatī (1,3: sssg, 2,4: BBBgg)',

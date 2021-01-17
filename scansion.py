@@ -10,7 +10,7 @@ import re
 # load config variables
 config = load_config_dict_from_json_file()
 scansion_syllable_separator = config["scansion_syllable_separator"] # e.g. " "
-additional_newline_strings = config["additional_newline_strings"]  # e.g. ["\t", ";"]
+additional_pAda_separators = config["additional_pAda_separators"]  # e.g. ["\t", ";"]
 
 class Verse(object):
 	"""
@@ -203,7 +203,7 @@ class Scanner(object):
 		Returns result as string.
 		"""
 
-		for chr in additional_newline_strings:
+		for chr in additional_pAda_separators:
 			cntnts = cntnts.replace(chr, '\n')
 
 		for c in list(set(cntnts)):

@@ -10,7 +10,7 @@ from copy import copy
 # load config variables
 config = load_config_dict_from_json_file()
 default_resplit_option = config["default_resplit_option"]  # e.g. "none"
-resplit_excludes_bc = config["resplit_excludes_bc"]  # e.g. True
+resplit_lite_keep_midpoint = config["resplit_lite_keep_midpoint"]  # e.g. True
 
 class VerseTester(object):
 	"""
@@ -34,6 +34,7 @@ class VerseTester(object):
 		self.upajAti_result = None # string
 		# >> samavftta_and_or_upajAti_result = None # string
 		self.jAti_result = None # string
+		self.resplit_option = default_resplit_option
 
 	def combine_results(self, Vrs, new_label, new_score):
 		old_label = Vrs.meter_label or ''
@@ -650,7 +651,7 @@ class MeterIdentifier(object):
 		self.VerseTester = None
 		self.Verses_found = []  # list of Verse objects which passed VerseTester
 
-	def wiggle_iterator(self, start_pos, part_len):
+	def wiggle_iterator(self, start_pos, part_len, resplit_option):
 		"""
 		E.g., if len(pāda)==10,
 		then from the breaks between each pāda,
@@ -659,7 +660,11 @@ class MeterIdentifier(object):
 		"""
 
 		iter_list = [start_pos]
-		max_wiggle_distance = int(part_len / 2 + 1)
+		if resplit_option == 'resplit_max':
+			denominator = 2 # wiggle as far as one half of part_len
+		elif resplit_option == 'resplit_lite':
+			denominator = 4 # wiggle as far as one quarter of part_len
+		max_wiggle_distance = int(part_len / denominator + 1)
 		for i in range(1, max_wiggle_distance):
 			iter_list.append(start_pos+i)
 			iter_list.append(start_pos-i)
@@ -682,17 +687,24 @@ class MeterIdentifier(object):
 
 		pos_iterators = {}
 		for k in ['ab', 'bc', 'cd']:
-			if k == 'bc' and resplit_excludes_bc == True:
+			if  (
+				VrsTster.resplit_option == 'resplit_lite' and
+				k == 'bc' and
+				resplit_lite_keep_midpoint == True
+				):
 				pos_iterators['bc'] = [ pAda_brs['bc'] ] # i.e., do not wiggle bc
 			else:
-				pos_iterators[k] = self.wiggle_iterator(pAda_brs[k], quarter_len)
+				pos_iterators[k] = self.wiggle_iterator(
+					pAda_brs[k], quarter_len,
+					resplit_option=VrsTster.resplit_option
+					)
 
 		wiggle_resplit_output_buffer = ''
 		temp_V = None
 		S = Sc()
 		Verses_found = []
 
-		# times_wiggled = 0
+		times_wiggled = 0
 
 		for pos_ab in pos_iterators['ab']:
 			for pos_bc in pos_iterators['bc']:
@@ -718,15 +730,15 @@ class MeterIdentifier(object):
 
 						# temp_V.meter_label = VrsTster.attempt_identification(temp_V)
 						success = VrsTster.attempt_identification(temp_V)
-						# times_wiggled += 1
+						times_wiggled += 1
 
 						if success:
 							Verses_found.append(temp_V)
 
 						if temp_V.identification_score == 9:
 							# print("TIMES WIGGLED: ", times_wiggled)
-							# return Verses_found, times_wiggled
-							return Verses_found
+							return Verses_found, times_wiggled
+							# return Verses_found
 							# done when any perfect exemplar found
 							# for greater speed and efficiency
 							# disable for debugging:
@@ -738,8 +750,8 @@ class MeterIdentifier(object):
 						continue
 
 		# print("TIMES WIGGLED: ", times_wiggled)
-		# return Verses_found, times_wiggled
-		return Verses_found
+		return Verses_found, times_wiggled
+		# return Verses_found
 
 
 	def find_meter(self, rw_str, from_scheme=None):
@@ -766,7 +778,7 @@ class MeterIdentifier(object):
 
 		verses_found = []
 		for ms in match_strings:
-			V = self.identify_meter(ms, from_scheme='SLP', resplit_option='resplit_hard')
+			V = self.identify_meter(ms, from_scheme='SLP', resplit_option='resplit_max')
 			verses_found.append(V)
 
 		return verses_found
@@ -785,8 +797,8 @@ class MeterIdentifier(object):
 
 		four segmentation modes:
 				1) none: uses three newlines exactly as provided in input
-				2) resplit_hard: discards input newlines, resplits based on overall length
-				3) resplit_soft: initializes length-based resplit with input newlines
+				2) resplit_max: discards input newlines, resplits based on overall length
+				3) resplit_lite: initializes length-based resplit with input newlines
 				4) single_pAda: evaluates input as single pAda (verse quarter)
 
 		order
@@ -801,16 +813,17 @@ class MeterIdentifier(object):
 		V = S.scan(rw_str, from_scheme=from_scheme)
 
 		self.VerseTester = VT = VerseTester()
+		self.VerseTester.resplit_option = resplit_option
 
-		# additional_times_wiggled = 0
+		additional_times_wiggled = 0
 
 		if resplit_option == 'none':
 			success = VT.attempt_identification(V)
 			# label and score set internally
 
-		elif resplit_option in ['resplit_hard', 'resplit_soft']:
+		elif resplit_option in ['resplit_max', 'resplit_lite']:
 
-			# in case of resplit_soft, capture user-provided pāda breaks (newline)
+			# in case of resplit_lite, capture user-provided pāda breaks (newline)
 			newline_indices = [
 				m.start() for m in re.finditer('\n', V.text_syllabified)
 				]
@@ -834,7 +847,7 @@ class MeterIdentifier(object):
 				)
 
 			# possible override some of these breaks and mark as constant
-			if resplit_option == 'resplit_soft' and len(newline_indices) == 3:
+			if resplit_option == 'resplit_lite' and len(newline_indices) == 3:
 				# full three breaks provided (ab, bc, cd), override all
 
 				pAda_brs['ab'], pAda_brs['bc'], pAda_brs['cd'] = (
@@ -843,7 +856,7 @@ class MeterIdentifier(object):
 						) for i in [0, 1, 2]
 					)
 
-			elif resplit_option == 'resplit_soft' and len(newline_indices) == 1:
+			elif resplit_option == 'resplit_lite' and len(newline_indices) == 1:
 				# only one break provided, assume bc, override that one, keep other two
 
 				pAda_brs['bc'] = V.text_syllabified[:newline_indices[0]].count(
@@ -851,11 +864,11 @@ class MeterIdentifier(object):
 
 			# use initial Verse to generate potentially large number of others Verses
 			# store their respective results internally, collect overall list
-			# self.Verses_found, additional_times_wiggled = ...
-			self.Verses_found = self.wiggle_identify(
+			self.Verses_found, additional_times_wiggled = self.wiggle_identify(
 				V, syllable_list, VT,
 				pAda_brs, quarter_len
 				)
+			# self.Verses_found =
 
 			# pick best match, i.e. resulting Verse with highest identification_score
 			if len(self.Verses_found) > 0:
@@ -866,5 +879,5 @@ class MeterIdentifier(object):
 			V.meter_label = 'na kiṃcid adhyavasitam'  # do not return None
 			V.identification_score = 1 # did at least try
 
-		# return V, additional_times_wiggled
-		return V
+		return V, additional_times_wiggled
+		# return V
