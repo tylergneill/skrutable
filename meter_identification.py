@@ -704,7 +704,7 @@ class MeterIdentifier(object):
 		S = Sc()
 		Verses_found = []
 
-		times_wiggled = 0
+		# identification_attempts = 0 # performance testing
 
 		for pos_ab in pos_iterators['ab']:
 			for pos_bc in pos_iterators['bc']:
@@ -730,15 +730,14 @@ class MeterIdentifier(object):
 
 						# temp_V.meter_label = VrsTster.attempt_identification(temp_V)
 						success = VrsTster.attempt_identification(temp_V)
-						times_wiggled += 1
+						# identification_attempts += 1 # performance testing
 
 						if success:
 							Verses_found.append(temp_V)
 
 						if temp_V.identification_score == 9:
-							# print("TIMES WIGGLED: ", times_wiggled)
-							return Verses_found, times_wiggled
-							# return Verses_found
+							# return Verses_found, identification_attempts # performance testing
+							return Verses_found
 							# done when any perfect exemplar found
 							# for greater speed and efficiency
 							# disable for debugging:
@@ -749,9 +748,8 @@ class MeterIdentifier(object):
 					except IndexError:
 						continue
 
-		# print("TIMES WIGGLED: ", times_wiggled)
-		return Verses_found, times_wiggled
-		# return Verses_found
+		# return Verses_found, identification_attempts # performance testing
+		return Verses_found
 
 
 	def find_meter(self, rw_str, from_scheme=None):
@@ -815,7 +813,7 @@ class MeterIdentifier(object):
 		self.VerseTester = VT = VerseTester()
 		self.VerseTester.resplit_option = resplit_option
 
-		additional_times_wiggled = 0
+		# additional_identification_attempts = 0 # performance testing
 
 		if resplit_option == 'none':
 			success = VT.attempt_identification(V)
@@ -864,11 +862,11 @@ class MeterIdentifier(object):
 
 			# use initial Verse to generate potentially large number of others Verses
 			# store their respective results internally, collect overall list
-			self.Verses_found, additional_times_wiggled = self.wiggle_identify(
+			# self.Verses_found, additional_identification_attempts = ... # performance testing
+			self.Verses_found =	self.wiggle_identify(
 				V, syllable_list, VT,
 				pAda_brs, quarter_len
 				)
-			# self.Verses_found =
 
 			# pick best match, i.e. resulting Verse with highest identification_score
 			if len(self.Verses_found) > 0:
@@ -879,5 +877,5 @@ class MeterIdentifier(object):
 			V.meter_label = 'na kiṃcid adhyavasitam'  # do not return None
 			V.identification_score = 1 # did at least try
 
-		return V, additional_times_wiggled
-		# return V
+		# return V, additional_identification_attempts # performance testing
+		return V
