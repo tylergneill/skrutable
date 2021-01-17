@@ -1,4 +1,4 @@
-"""
+(g|l)' :"""
 	anuṣṭubh
 
 	Rules for structure of even pāda (more rigid):
@@ -130,6 +130,10 @@ samavfttas_by_gaRas = {
 # 23-syllable
 'njjjjjjl(g|l)' : 'śravaṇābharaṇam', # also virājitam
 
+# 24
+
+# 25
+
 }
 
 def choose_heavy_gaRa_pattern(gaRa_pattern):
@@ -142,80 +146,169 @@ def choose_heavy_gaRa_pattern(gaRa_pattern):
 
 samavfttas_by_family_and_gaRa = {
 
-0: { }, 1: { }, 2: { }, 3: { }, 4: { }, 5: { }, 6: { }, 7: { },
+0: { }, 1: { }, 2: { }, 3: { },
 
-8: 	{
-	'jrl(g|l)' : 'pramāṇikā',
+4: 	{
+	'm(g|l)' : 'kanyā', # also 'gm'
 	},
 
-9:	{ }, 10: { },
+5: 	{
+	'bg(g|l)' : 'paṅkti',
+	},
+
+6: 	{
+	't(y|j)' : 'tanumadhyamā',
+	'm(m|t)' : 'vidyullekhā', # also 'vāṇī'
+	'n(y|j)' : 'śaśivadanā',
+	'y(y|j)' : 'somarājī',
+	},
+
+7: 	{
+	'js(g|l)' : 'kumāralalitā',
+	'ms(g|l)' : 'madalekhā',
+	'nn(g|l)' : 'madhumatī',
+	},
+
+8: 	{
+	'nBl(g|l)' : 'gajagati',
+	'jrl(g|l)' : 'pramāṇikā',
+	'Btl(g|l)' : 'māṇavaka',
+	'mmg(g|l)' : 'vidyumālā',
+	# 'rjgl' : 'samānikā', # also glrj... ends in light?
+	},
+
+9:	{
+	'nn(m|t)' : 'bhujagaśiṣubhṛtā',
+	'sj(r|B)' : 'bhujaṅgasaṅgatā',
+	'Bm(s|n)' : 'maṇimadhya',
+	},
+
+10: {
+	'njn(g|l)' : 'tvaritagati',
+	'mBs(g|l)' : 'mattā',
+	'Bms(g|l)' : 'rukmavatī',
+	},
 
 11:	{
 	'ttjg(g|l)' : 'indravajrā',
 	'jtjg(g|l)' : 'upendravajrā',
-	'mttg(g|l)' : 'śālinī',
+	'BBBg(g|l)' : 'dodhaka',
+	'mBnl(g|l)' : 'bhramaravilasita',
 	'rnrl(g|l)' : 'rathoddhatā',
-	'sssl(g|l)' : 'upacitra',
+	'mBtg(g|l)' : 'vātormī',
+	'mttg(g|l)' : 'śālinī',
+	'rnBg(g|l)' : 'svāgatā',
 	},
 
 12: {
-	'sss(s|n)' : 'toṭakam',
-	'nBB(r|B)' : 'drūtavilambitam',
-	'yyy(y|j)' : 'bhujaṅgaprayātam',
-	'jtj(r|B)' : 'vaṃśastha',
 	'ttj(r|B)' : 'indravaṃśā',
-	'rrr(r|B)' : 'sragviṇī',
+	'rnB(s|n)' : 'candravatma',
+	'mBs(m|t)' : 'jaladharamālā',
+	'jsj(s|n)' : 'jaloddhatagati',
+	'njj(y|j)' : 'tāmarasa',
+	'sss(s|n)' : 'toṭaka',
+	'nBB(r|B)' : 'drūtavilambita',
+	'nnr(r|B)' : 'prabhā', # aka mandākinī
 	'sjs(s|n)' : 'pramitākṣarā',
+	'yyy(y|j)' : 'bhujaṅgaprayāta',
+	'tyt(y|j)' : 'maṇimālā',
+	'njj(r|B)' : 'mālatī',
+	'jtj(r|B)' : 'vaṃśastha',
 	'mmy(y|j)' : 'vaiśvadevī',
-	# drutavilambita
+	'rrr(r|B)' : 'sragviṇī',
+
 	},
 
 13: {
+	'sjss(g|l)' : 'kalahaṃsa', # aka siṃhanāda, kuṭajā
+	'nntt(g|l)' : 'kṣamā', # aka candrikā, utpalinī
 	'mnjr(g|l)' : 'praharṣiṇī',
-	'jBsj(g|l)' : 'rucirā',
-	'sjsj(g|l)' : 'mañjubhāṣiṇī',
+	'sjsj(g|l)' : 'mañjubhāṣiṇī', # aka sunandinī, prabodhitā
+	'mtys(g|l)' : 'mattamayūra',
+	'jBsj(g|l)' : 'rucirā', # aka prabhāvatī
 	},
 
 14: {
+	'nnrsl(g|l)' : 'aparājitā',
+	'mtnsg(g|l)' : 'asaṃbādhā',
+	'sjsyl(g|l)' : 'pathyā', # aka mañjarī
+	'njBjl(g|l)' : 'pramadā', # aka kurarīrutā
+	'nnBnl(g|l)' : 'praharaṇakalikā',
+	'mBnyg(g|l)' : 'madhyakṣāmā', # aka haṃsaśyenī, kuṭila
 	'tBjjg(g|l)' : 'vasantatilaka',
+	'mtnmg(g|l)' : 'vāsantī',
 	},
 
 15: {
+	'rjrj(r|B)' : 'tūṇaka',
 	'nnmy(y|j)' : 'mālinī',
+	'mmmm(m|t)' : 'līlākhela',
+	'nnnn(s|n)' : 'śaśikalā',
 	},
 
 16: {
+	'rjrjr(g|l)' : 'citra',
 	'jrjrj(g|l)' : 'pañcacāmaram',
+	'njBjr(g|l)' : 'vāṇinī',
 	},
 
 17: {
+	'ssjBjg(g|l)' : 'citralekhā', # aka atiśāyinī
+	'njBjjl(g|l)' : 'narkuṭaka', # aka nardaṭaka
+	'jsjsyl(g|l)' : 'pṛthvī',
 	'mBnttg(g|l)' : 'mandākrāntā',
+	'BrnBnl(g|l)' : 'vaṃśapatrapatita',
 	'ymnsBl(g|l)' : 'śikhariṇī',
 	'nsmrsl(g|l)' : 'hariṇī',
-	'jsjsyl(g|l)' : 'pṛthvī',
-	'njBjjl(g|l)' : 'narkuṭaka',
 	},
 
-18: { },
+18: {
+	'mtnyy(y|j)' : 'kusumitalatāvellitā',
+	'mBnyy(y|j)' : 'citralekhā',
+	'njBjr(r|B)' : 'nandana',
+	'nnrrr(r|B)' : 'nārāca',
+	'msjst(s|n)' : 'śārdūlalalita',
+	},
 
 19: {
-	'msjstt(g|l)' : 'śārdūlavikrīḍitā',
+	'ymnsrr(g|l)' : 'meghavispūrjitā',
+	'msjstt(g|l)' : 'śārdūlavikrīḍitā', # aka śārdūlavikrīḍita
+	'mrBnmn(g|l)' : 'sumadhurā',
+	'mrBnyn(g|l)' : 'surasā',
 	},
 
-20: { },
+20: {
+	'sjjBrsl(g|l)' : 'gītikā',
+	'mrBnyBl(g|l)' : 'suvadanā',
+	},
 
 21: {
+	'njBjjj(r|B)' : 'pañcakāvalī', # aka sarasī, dhṛtaśrī
 	'mrBnyy(y|j)' : 'sragdharā',
 	},
 
-22: { },
+22: {
+	'mmtnnns(g|l)' : 'haṃsī', # also mmggnnnngg
+	},
 
 23: {
+	'njBjBjBl(g|l)' : 'adritanayā',
 	'njjjjjjl(g|l)' : 'śravaṇābharaṇam', # also virājitam
 	},
 
-24: { }, 25: { }, 26: { },
+24: {
+	'BtnsBBn(y|j)' : 'tanvī',
+	},
 
+25: {
+	'BmsBnnnn(g|l)' : 'krauñcapadā',
+	},
+
+26: {
+	'mmtnnnrsl(g|l)' : 'bhujaṅgavijṛmbhita',
+	},
+
+# rest "daṇḍaka"
 27: { }, 28: { }, 29: { }, 30: { },
 
 31: { }, 32: { }, 33: { }, 34: { }, 35: { }, 36: { }, 37: { },
@@ -223,10 +316,12 @@ samavfttas_by_family_and_gaRa = {
 }
 
 ardhasamavftta_by_odd_even_regex_tuple = {
-('nnrl(g|l)', 'njj(r|B)') : 'aparavaktra (1,3: nnrlg, 2,4: njjr)',
-('ssjg(g|l)', 'sBr(y|j)') : 'aupacchandasika (1,3: ssjgg, 2,4: sBry)',
-('nnr(y|j)', 'njjr(g|l)') : 'puṣpitāgrā (1,3: nnry, 2,4: njjrg)',
-('ssj(g|l)', 'sBrl(g|l)') : 'viyoginī (1,3: ssjg, 2,4: sBrlg)',
+('nnrl(g|l)', 'njj(r|B)') : 'aparavaktra (1,3: nnrlg, 2,4: njjr)', # aka vaitālīya
+('sssl(g|l)', 'BBBg(g|l)' : 'upacitra (1,3: ssslg, 2,4: BBBgg)',
+('nnr(y|j)', 'njjr(g|l)') : 'puṣpitāgrā (1,3: nnry, 2,4: njjrg)', # aka aupacchandasika
+('ssj(g|l)', 'sBrl(g|l)') : 'viyoginī (1,3: ssjg, 2,4: sBrlg)', # aka vaitālīya, sundarī
+('sss(g|l)', 'BBBg(g|l)') : 'vegavatī (1,3: sssg, 2,4: BBBgg)',
+('sssl(g|l)', 'nBB(r|B)') : 'hariṇaplutā (1,3: ssjgg, 2,4: sBry)',
 ('ssjg(g|l)', 'sBr(y|j)') : 'mālābhāriṇī (1,3: ssjgg, 2,4: sBry)',
 }
 
@@ -238,7 +333,9 @@ ardhasamavftta_by_odd_even_regex_tuple = {
 jAtis_by_morae = [
 ['\[(12|11), (18|17), (12|11), (15|14)\]', [12, 18, 12, 15], 'āryā'],
 ['\[(12|11), (18|17), (12|11), (18|17)\]', [12, 18, 12, 18], 'gīti'],
-['\[(12|11), (15|14), (12|11), (18|17)\]', [12, 15, 12, 18], 'udgīti'],
 ['\[(12|11), (15|14), (12|11), (15|14)\]', [12, 15, 12, 15], 'upagīti'],
-['\[(16|15), (16|15), (16|15), (16|15)\]', [16, 16, 16, 16], 'mātrāsamaka'],
+['\[(12|11), (15|14), (12|11), (18|17)\]', [12, 15, 12, 18], 'udgīti'],
+['\[(12|11), (20|19), (12|11), (20|19)\]', [12, 20, 12, 20], 'āryāgīti'],
+# ['\[(14|13), (16|15), (14|13), (16|15)\]', [12, 18, 12, 18], 'vaitālīya'], # more rules...
+# ['\[(16|15), (16|15), (16|15), (16|15)\]', [16, 16, 16, 16], 'mātrāsamaka'], # more rules...
 ]
