@@ -1,10 +1,10 @@
 {
 "default_scheme_in": "IAST",
 "default_scheme_out": "IAST",
+"default_resplit_option": "resplit_lite",
 "avoid_virAma_indic_scripts": true,
 "avoid_virAma_all_scripts": false,
 "scansion_syllable_separator": " ",
 "additional_pAda_separators": ["\t", ";", " / "],
-"resplit_lite_keep_midpoint": false,
-"default_resplit_option": "resplit_max"
+"resplit_lite_keep_midpoint": true
 }
