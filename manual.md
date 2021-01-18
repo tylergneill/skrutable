@@ -168,37 +168,17 @@ For doing more data-heavy processing that is still user-friendly, you may wish t
 See [here](https://flask.palletsprojects.com/en/1.1.x/quickstart/) for more instructions on Flask, or [ask me](#feedback).
 
 
-## using as command-line script
-
-Make a copy of `skrutable_one.py` and put it the same location as your desired input file. Then just run `skrutable_one.py` at the command line (e.g., Terminal) with the proper arguments. Examples:
-
-1. transliterate to Bengali script:
-~~~
-python skrutable_one.py --transliterate FILENAME.txt from_scheme=IAST to_scheme=BENGALI
-~~~
-
-2. identify meter for a single verse:
-~~~
-python skrutable_one.py --identify_meter FILENAME.txt from_scheme=IAST
-~~~
-
-3. identify meter for a whole file (one verse per line):
-~~~
-python skrutable_one.py --identify_meter --whole_file FILENAME.txt from_scheme=IAST
-~~~
-
-These keywords are shared between the command-line and library interfaces:
-
-* transliteration: from_scheme, to_scheme, IAST, HK, SLP, ITRANS, VH, WX, IASTreduced, DEV, BENGALI, GUJARATI
-* scansion: show_weights, show_morae, show_gaRas, show_alignment, show_label
-* meter identification: resplit_option
-
-See the documentation in the code of the respective modules for more information.
-
-
 ## using as library
 
 From each respective module (`transliteration.py`, `scansion.py`, `meter_identification.py`), import the respective object constructor (`Transliterator`, `Scanner`, `MeterIdentifier`), instantiate the object, and call its primary methods (`transliterate()`, `scan()`, `identify_meter()`). Transliteration returns a string, whereas scansion and meter identification return `Scansion.Verse` objects, which contain (among other things) a `.meter_label` attribute and a `summarize()` method.
+
+The following are the important function parameters:
+
+* transliteration: from_scheme, to_scheme (IAST, HK, SLP, ITRANS, VH, WX, IASTreduced, DEV, BENGALI, GUJARATI)
+* scansion: show_weights, show_morae, show_gaRas, show_alignment, show_label
+* meter identification: resplit_option (none, resplit_lite, resplit_max)
+
+Examples:
 
 1. transliteration, Transliterator, transliterate()
 ~~~
@@ -233,7 +213,27 @@ Verse_result_3 = MI.identify_meter(input_string, from_scheme='IAST', resplit_opt
 print( Verse_result_3.summarize(show_morae=False) ) # default further 'show' options
 ~~~
 
-More examples can be found in the repo's `tests` folder (for use with `pytest`) and in the `jupyter_notebooks` folder.
+More examples of how to use the library can be found in the repo's `tests` folder (for use with `pytest`) and in the `jupyter_notebooks` folder.
+
+
+## using as command-line script
+
+Another way to run the code is the little command-line script `skrutable_one.py`. Here's how. Make a copy of `skrutable_one.py` and put it the same location as your desired input file. Then just run `skrutable_one.py` at the command line (e.g., Terminal) with the proper arguments. Examples:
+
+1. transliterate to Bengali script:
+~~~
+python skrutable_one.py --transliterate FILENAME.txt from_scheme=IAST to_scheme=BENGALI
+~~~
+
+2. identify meter for a single verse:
+~~~
+python skrutable_one.py --identify_meter FILENAME.txt resplit_option=none from_scheme=IAST
+~~~
+
+3. identify meter for a whole file (one verse per line):
+~~~
+python skrutable_one.py --identify_meter --whole_file FILENAME.txt resplit_option=resplit_lite from_scheme=IAST
+~~~
 
 
 # feedback
