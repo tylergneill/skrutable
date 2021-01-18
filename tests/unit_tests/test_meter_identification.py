@@ -1,7 +1,12 @@
+import inspect
+
 from skrutable.scansion import Scanner
 from skrutable.meter_identification import MeterIdentifier
 from skrutable.meter_identification import VerseTester
-import inspect
+from skrutable.config import load_config_dict_from_json_file
+
+config = load_config_dict_from_json_file()
+meter_scores = config["meter_scores"] # dict
 
 def test_test_as_anuzwuB():
 	S = Scanner()
@@ -24,7 +29,7 @@ def test_identify_anuzwuB_split():
 glAnirBavati BArata
 aByutTAnamaDarmasya
 tadAtmAnaM sfjAmyaham"""
-	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_hard')
+	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_max')
 	output = object_result.meter_label
 	output = output[:8]
 	curr_func = inspect.stack()[0][3]
@@ -67,7 +72,7 @@ def test_identify_meter_upajAti():
 virAjate kokilakUjitaM kim
 parasparaM saMvadatAM KalAnAM
 mOnaM viDeyaM satataM suDIBiH"""
-	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_hard')
+	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_max')
 	output = object_result.summarize()
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
@@ -77,7 +82,7 @@ def test_identify_meter_Darmakzetre():
 	MI = MeterIdentifier()
 	input_string = """dharmakṣetre kurukṣetre samavetā yuyutsavaḥ /
 māmakāḥ pāṇḍavāś caiva kim akurvata sañjaya //"""
-	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_hard')
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_max')
 	output = object_result.summarize()
 	truncated_output = object_result.meter_label[:8]
 	curr_func = inspect.stack()[0][3]
@@ -166,7 +171,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	other_output = V.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = 6
+	expected_output = meter_scores["upajāti, triṣṭubh, imperfect"]
 	assert output == expected_output
 
 def test_test_as_samavftta_etc_kolAhale():
@@ -254,7 +259,7 @@ def test_identify_meter_trizwuB_jagatI_saMkara():
 yad vā jayema yadi vā no jayeyuḥ /
 yān eva hatvā na jijīviṣāmas;
 te 'vasthitāḥ pramukhe dhārtarāṣṭrāḥ //"""
-	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_hard')
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_max')
 	output = object_result.meter_label
 	truncated_output = output
 	curr_func = inspect.stack()[0][3]
@@ -333,7 +338,7 @@ bhayam agamat punar eva rāmamātā //"""
 # karuṇataraṃ dviguṇaṃ ca rāmahetoḥ /
 # vacanam anuniśamya tasya devī
 # bhayam agamat punar eva rāmamātā //"""
-# 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_hard')
+# 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_max')
 # 	output = object_result.identification_score
 # 	other_output = object_result.meter_label
 # 	curr_func = inspect.stack()[0][3]
@@ -349,7 +354,7 @@ def test_identify_meter_vaMSasTa():
 navāgrapuṅkhān sudṛḍhān nṛpātmajaḥ /
 sṛjaty amoghān viśikhān vadhāya te
 pradīyatāṃ dāśarathāya maithilī  //"""
-	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_hard')
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_max')
 	output = object_result.identification_score
 	other_output = object_result.meter_label
 	curr_func = inspect.stack()[0][3]
@@ -382,12 +387,12 @@ parasparaM saMvadatAM KalAnAM / mOnaM viDeyaM satataM suDIBiH"""
 	expected_output = "upajāti"
 	assert truncated_output == expected_output
 
-def test_resplit_soft_upajAti_kolAhale():
+def test_resplit_lite_upajAti_kolAhale():
 	MI = MeterIdentifier()
 	input_string = """sampūrṇakumbho na karoti ; ardho ghaṭo ghoṣamupaiti nūnam
 vidvānkulīno na karoti garvaṃ / jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	# print()
-	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_soft')
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite')
 	output = object_result.summarize()
 	truncated_output = object_result.meter_label[:10]
 	curr_func = inspect.stack()[0][3]
@@ -395,14 +400,14 @@ vidvānkulīno na karoti garvaṃ / jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	expected_output = "indravajrā"
 	assert truncated_output == expected_output
 
-def test_resplit_soft_jAti():
+def test_resplit_lite_jAti():
 	MI = MeterIdentifier()
 	input_string = """karabadarasadfSamaKilaM
 BuvanatalaM yatprasAdataH kavayaH
 paSyanti sUkzmamatayaH
 sA jayati sarasvatI devI"""
 	# print()
-	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_soft')
+	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_lite')
 	output = object_result.summarize()
 	truncated_output = object_result.meter_label[:4]
 	curr_func = inspect.stack()[0][3]
@@ -410,14 +415,14 @@ sA jayati sarasvatI devI"""
 	expected_output = "āryā"
 	assert truncated_output == expected_output
 
-# def test_resplit_soft_ardhasamavftta():
+# def test_resplit_lite_ardhasamavftta():
 # 	MI = MeterIdentifier()
 # 	input_string = """iti vilapati pārthive pranaṣṭe
 # karuṇataraṃ dviguṇaṃ ca rāmahetoḥ /
 # vacanam anuniśamya tasya devī
 # bhayam agamat punar eva rāmamātā //"""
 # 	# print()
-# 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_hard')
+# 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_max')
 # 	output = object_result.summarize()
 # 	truncated_output = object_result.meter_label[:10]
 # 	curr_func = inspect.stack()[0][3]
@@ -426,17 +431,29 @@ sA jayati sarasvatI devI"""
 # 	assert truncated_output == expected_output
 
 
-def test_resplit_soft_anuzwuB():
+def test_resplit_lite_anuzwuB():
 	MI = MeterIdentifier()
 	input_string = """yadA yadA hi Darmasya
 glAnirBavati BArata
 aByutTAnamaDarmasya
 tadAtmAnaM sfjAmyaham"""
 	# print()
-	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_soft')
+	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_lite')
 	output = object_result.summarize()
 	truncated_output = object_result.meter_label[:8]
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = "anuṣṭubh"
+	assert truncated_output == expected_output
+
+def test_vaMSasTa_imperfect_not_upajAti():
+	MI = MeterIdentifier()
+	input_string = """tatas tu nīlo vijayī mahābalaḥ; praśasyamānaḥ svakṛtena karmaṇā / sametya rāmeṇa salakṣmaṇena; prahṛṣṭarūpas tu babhūva yūthapaḥ // 6.046.051""" # R
+	# print()
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='none')
+	output = object_result.summarize()
+	truncated_output = object_result.meter_label[:9]
+	curr_func = inspect.stack()[0][3]
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	expected_output = "vaṃśastha"
 	assert truncated_output == expected_output

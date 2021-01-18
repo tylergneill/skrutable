@@ -11,6 +11,7 @@ from copy import copy
 config = load_config_dict_from_json_file()
 default_resplit_option = config["default_resplit_option"]  # e.g. "none"
 resplit_lite_keep_midpoint = config["resplit_lite_keep_midpoint"]  # e.g. True
+meter_scores = config["meter_scores"] # dict
 
 class VerseTester(object):
 	"""
@@ -107,18 +108,18 @@ class VerseTester(object):
 
 		if pAdas_ab != None and pAdas_cd != None:
 			Vrs.meter_label = "anuṣṭubh (ab: " + pAdas_ab + ", cd: " + pAdas_cd + ")"
-			Vrs.identification_score = 9
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves perfect)"]
 			return 1
 
 		# one half imperfect
 
 		elif pAdas_ab == None and pAdas_cd != None:
 			Vrs.meter_label = "anuṣṭubh (ab: asamīcīna, cd: " + pAdas_cd + ")"
-			Vrs.identification_score = 8
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			return 1
 		elif pAdas_ab != None and pAdas_cd == None:
 			Vrs.meter_label = "anuṣṭubh (ab: " + pAdas_ab + ", cd: asamīcīna)"
-			Vrs.identification_score = 8
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			return 1
 
 		# currently cannot do both halves imperfect
@@ -128,7 +129,7 @@ class VerseTester(object):
 		pAdas_ab = self.test_as_anuzwuB_half(w_p[0]+w_p[1], w_p[2]+w_p[3])
 		if pAdas_ab != None:
 			Vrs.meter_label = "anuṣṭubh (ardham eva: " + pAdas_ab + ")"
-			Vrs.identification_score = 9
+			Vrs.identification_score = meter_scores["anuṣṭubh, half, single half perfect)"]
 			return 1
 
 		# currently cannot do just a single imperfect half
@@ -317,14 +318,17 @@ class VerseTester(object):
 			meter_label = "ajñātasamavṛttam" # i.e., might need to add to meter_patterns
 			meter_label += ' [%s]' % g_to_id
 
-		potential_score = 9
+		score = meter_scores["samavṛtta, perfect"]
 
-		if self.pAdasamatva_count in [2, 3]:
-			meter_label += " (? %d eva pādāḥ yuktāḥ)" % self.pAdasamatva_count
-			potential_score = 4 + self.pAdasamatva_count # 2 >> 6, 3 >> 7
+		if self.pAdasamatva_count == 3:
+			meter_label += " (? 3 eva pādāḥ yuktāḥ)"
+			score = meter_scores["samavṛtta, imperfect (3)"]
+		if self.pAdasamatva_count == 2:
+			meter_label += " (? 2 eva pādāḥ yuktāḥ)"
+			score = meter_scores["samavṛtta, imperfect (2)"]
 
 		# may tie with pre-existing result (e.g., upajāti)
-		self.combine_results(Vrs, new_label=meter_label, new_score=potential_score)
+		self.combine_results(Vrs, new_label=meter_label, new_score=score)
 
 
 
@@ -359,7 +363,7 @@ class VerseTester(object):
 			meter_label += ' [%s, %s]' % (odd_g_to_id, even_g_to_id)
 
 		Vrs.meter_label = meter_label
-		Vrs.identification_score = 8
+		Vrs.identification_score = meter_scores["ardhasamavṛtta, perfect"]
 
 
 	def evaluate_upajAti(self, Vrs):
@@ -387,12 +391,14 @@ class VerseTester(object):
 					to_exclude.append(i)
 			for i in reversed(to_exclude): # delete in descending index order, avoid index errors
 				del wbp[i]
+
 				del wbp_lens[i]
 				del gs_to_id[i]
 
 		# calculate what result could possibly score based on analysis so far
-		potential_score = 8
-		if 11 not in wbp_lens: # no triṣṭubh (can be mixed with jagatī)
+		potential_score = meter_scores["upajāti, triṣṭubh, perfect"]
+
+		if 11 not in wbp_lens: # no triṣṭubh (could be mixed with jagatī)
 			potential_score -= 1
 		if 	(
 				len(wbp_lens) != 4 and
@@ -404,6 +410,7 @@ class VerseTester(object):
 		if potential_score < Vrs.identification_score:
 			# not going to beat pre-existing result (e.g. 7 from imperfect samavftta)
 			return
+
 
 		# for however many pādas remain, produce labels as possible
 		meter_labels = []
@@ -430,11 +437,23 @@ class VerseTester(object):
 		unique_meter_labels = list(set(meter_labels)) # de-dupe
 		combined_meter_labels = ', '.join(unique_meter_labels)
 
-		# again, special treatment for triṣṭubh-jagatī mix
-		if unique_sorted_lens == [11, 12]:
-			family = "triṣṭubh-jagatī-saṃkara"
+		# assign scores and labels
+		family = meter_patterns.samavftta_family_names[ wbp_lens[0] ]
+
+		if len(wbp_lens) == 4 and unique_sorted_lens == [11]:
+			score = meter_scores["upajāti, triṣṭubh, perfect"]
+		elif unique_sorted_lens == [11, 12]:
+			score = meter_scores["upajāti, triṣṭubh-jagatī-saṃkara, perfect"]
+			family = "triṣṭubh-jagatī-saṃkara" # overwrite
+		elif len(wbp_lens) == 4 and 11 not in unique_sorted_lens:
+			score = meter_scores["upajāti, non-triṣṭubh, perfect"]
+		elif len(wbp_lens) in [2,3] and wbp_lens.count(11) == len(wbp_lens):
+			score = meter_scores["upajāti, triṣṭubh, imperfect"]
+		elif len(wbp_lens) in [2,3] and 11 not in wbp_lens:
+			score = meter_scores["upajāti, non-triṣṭubh, imperfect"]
 		else:
-			family = meter_patterns.samavftta_family_names[ wbp_lens[0] ]
+			# nothing
+			score = 1
 
 		overall_meter_label = "upajāti (%s: %s)" % (
 			family,
@@ -444,10 +463,10 @@ class VerseTester(object):
 		if 	(
 				len(wbp_lens) != 4 and
 				unique_sorted_lens != [11, 12]
-			): # not perfect
+			): # not perfect and also not triṣṭubh-jagatī-saṃkara
 			overall_meter_label += " (? %d eva pādāḥ yuktāḥ)" % len(wbp_lens)
 
-		self.combine_results(Vrs, overall_meter_label, potential_score)
+		self.combine_results(Vrs, overall_meter_label, score)
 
 
 	def test_as_samavftta_etc(self, Vrs):
@@ -474,6 +493,8 @@ class VerseTester(object):
 		if ( self.pAdasamatva_count == 2
 			 and wbp[0][:-1] == wbp[2][:-1]
 			 and wbp[1][:-1] == wbp[3][:-1] # exclude final anceps
+
+			 and wbp_lens.count(11) != 4 # bc triṣṭubh upajāti so common
 			 ):
 			# will give id_score == 8
 			self.evaluate_ardhasamavftta(Vrs)
@@ -489,13 +510,10 @@ class VerseTester(object):
 
 		unique_sorted_lens = list(set(wbp_lens))
 		unique_sorted_lens.sort()
-		if 	(
-			len(unique_sorted_lens) == 1 or
-			unique_sorted_lens == [11, 12]
-			): # all same length or triṣṭubh-jagatī mix
+		if 	len(unique_sorted_lens) == 1: # all same length
 			# will give id_score in [8, 7], may tie with above
 			self.evaluate_upajAti(Vrs)
-			if Vrs.identification_score == 8: return 1 # max score reached
+			if Vrs.identification_score == 8: return 1 # best score compared to below
 			# otherwise, max score not necessarily yet reached, don't return
 
 		# test imperfect samavftta
@@ -509,12 +527,13 @@ class VerseTester(object):
 
 		# test imperfect upajāti
 		if (
-			len( list(set(wbp_lens)) ) in [2, 3] and
-			unique_sorted_lens != [11, 12]
-			): # not all same length and not triṣṭubh-jagatī mix
-			# will give id_score in [6, 5], may tie with above
+			len( list(set(wbp_lens)) ) in [2, 3] or
+			unique_sorted_lens == [11, 12]
+			): # either not all same length or triṣṭubh-jagatī mix
+			# will give id_score in [6, 5, 4], may tie with above
 			self.evaluate_upajAti(Vrs)
 
+		# return success
 		if Vrs.meter_label != None:
 			return 1
 		else:
@@ -567,8 +586,10 @@ class VerseTester(object):
 
 				else:  # if all four pAdas proven valid, i.e., if no breaks
 					Vrs.meter_label = jAti_name + " (%s)" % str(std_pattern)[1:-1]
-					Vrs.identification_score = 8
+					Vrs.identification_score = meter_scores["jāti, perfect"]
 					return 1
+
+				# soon: implement imperfect jāti, score == meter_scores["jāti, imperfect"]
 
 		else:  # if all patterns tested and nothing returned
 			return 0
@@ -735,7 +756,7 @@ class MeterIdentifier(object):
 						if success:
 							Verses_found.append(temp_V)
 
-						if temp_V.identification_score == 9:
+						if temp_V.identification_score == meter_scores["max score"]:
 							# return Verses_found, identification_attempts # performance testing
 							return Verses_found
 							# done when any perfect exemplar found
@@ -780,7 +801,6 @@ class MeterIdentifier(object):
 			verses_found.append(V)
 
 		return verses_found
-
 
 
 	def identify_meter(self, rw_str, resplit_option=default_resplit_option, from_scheme=None):
@@ -875,7 +895,7 @@ class MeterIdentifier(object):
 
 		if V.meter_label == None: # initial Verse label still not populated
 			V.meter_label = 'na kiṃcid adhyavasitam'  # do not return None
-			V.identification_score = 1 # did at least try
+			V.identification_score = meter_scores["none found"] # did at least try
 
 		# return V, additional_identification_attempts # performance testing
 		return V

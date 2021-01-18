@@ -1,4 +1,5 @@
 from skrutable.scansion import Scanner
+import inspect
 
 # def test_Verse_summarize_Darmakzetre_IAST():
 # 	input = """dharmakṣetre kurukṣetre samavetā yuyutsavaḥ /
