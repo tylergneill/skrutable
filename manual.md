@@ -93,7 +93,7 @@ For the concepts and traditional conventions in Sanskrit prosody on which this p
 The most important terms in short:
 * laghu (l) / guru (g): metrically light / heavy syllable
 * mora: value of 1 for each light syllable and 2 for each heavy syllable
-* gaṇa: [traditional abbreviation](https://en.wikipedia.org/wiki/Sanskrit_prosody#Ga%E1%B9%87a) for [trisyllable group](https://en.wikipedia.org/wiki/Foot_(prosody))
+* gaṇa: [traditional abbreviation](https://en.wikipedia.org/wiki/Sanskrit_prosody#Ga%E1%B9%87a) — ya ma ta ra ja bha na sa la ga — for [trisyllable group](https://en.wikipedia.org/wiki/Foot_(prosody))
 * śloka: verse consisting of 8 syllables (or *akṣaras*) per quarter (or *pāda*) in partly constrained pattern of light/heavy
 * samavṛtta: verse containing four quarters with the same number of syllables in each
 * jāti: verse containing four quarters with set patterns of total moraic length
