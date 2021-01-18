@@ -444,7 +444,7 @@ class VerseTester(object):
 			score = meter_scores["upajāti, triṣṭubh, perfect"]
 		elif unique_sorted_lens == [11, 12]:
 			score = meter_scores["upajāti, triṣṭubh-jagatī-saṃkara, perfect"]
-			family = "triṣṭubh-jagatī-saṃkara" # overwrite
+			family = "triṣṭubh-jagatī-saṃkara?" # overwrite
 		elif len(wbp_lens) == 4 and 11 not in unique_sorted_lens:
 			score = meter_scores["upajāti, non-triṣṭubh, perfect"]
 		elif len(wbp_lens) in [2,3] and wbp_lens.count(11) == len(wbp_lens):
