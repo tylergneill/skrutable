@@ -90,18 +90,18 @@ Note that I use “encoding” here in the sense of UTF-8 and “script” in th
 
 For the concepts and traditional conventions in Sanskrit prosody on which this part of `skrutable` is based, see above all the appendix of V.S. Apte's *Practical Sanskrit-English dictionary*, 1890, pp. 1179ff. ([on Archive](https://archive.org/details/ldpd_7285627_000/page/n1195/mode/2up))
 
-In short:
+The most important terms in short:
 * laghu (l) / guru (g): metrically light / heavy syllable
 * mora: value of 1 for each light syllable and 2 for each heavy syllable
 * gaṇa: [traditional abbreviation](https://en.wikipedia.org/wiki/Sanskrit_prosody#Ga%E1%B9%87a) for [trisyllable group](https://en.wikipedia.org/wiki/Foot_(prosody))
-* śloka: verse consisting of 8 syllables (or *akṣaras*) per quarter (or *pāda*) following particular pattern of constraints
-* samavṛtta: verse containing four quarters of equal syllable length
-* jāti: verse containing quarters with set pattern of total moraic length
+* śloka: verse consisting of 8 syllables (or *akṣaras*) per quarter (or *pāda*) in partly constrained pattern of light/heavy
+* samavṛtta: verse containing four quarters with the same number of syllables in each
+* jāti: verse containing four quarters with set patterns of total moraic length
 
 
 # related projects
 
-There are numerous related projects which some users may find preferable to `skrutable` in certain respects (e.g., more script support, different meter guesses, easier to install, etc.) Here are my recommended highlights.
+There are numerous related projects which users may find preferable to `skrutable` in certain respects (e.g., more script support, different guesses for imperfect meters, easier to install, etc.) Here are my recommended highlights.
 
 Scheme Detection | Transliteration | Scansion & Meter Identification | Main Author
 -------- | ---------- | --------- | --------
@@ -116,9 +116,7 @@ Scheme Detection | Transliteration | Scansion & Meter Identification | Main Auth
 
 # encoding normalization
 
-Some schemes have internal options. For example, at the level of encoding, IAST is sometimes represented in UTF-8 with combining diacritics, sometimes with precomposed combinations. Alternatively, at the level of the scheme itself, ITRANS writes vocalic r (ṛ, ऋ) as 'Ri', 'RRi', or 'R^i.
-
-Because `skrutable` transliterates by way of SLP, and because it must output a single option, you can use round-trip transliteration (e.g., IAST-IAST) to normalize such variation. For example:
+Some schemes have internal options. For example, at the level of encoding, IAST is sometimes represented in UTF-8 with combining diacritics, sometimes with precomposed combinations. Alternatively, at the level of the scheme itself, ITRANS writes vocalic r (ṛ, ऋ) as 'Ri', 'RRi', or 'R^i. Because `skrutable` transliterates by way of SLP, and because it must output a single option, you can use round-trip transliteration (e.g., IAST-IAST) to normalize such variation. For example:
 
 ~~~
 "rāmaḥ" == 'r' + 'a' + '¯' (U+0304) + 'm' + 'a' + 'h' + '.' (U+0323)
@@ -138,20 +136,6 @@ asty eva >> ( अस्त्य् एव ) >> अस्त्येव
 ~~~
 
 This is the default behavior for transliterating to Indic scripts in `skrutable`. In the code, the regular expressions governing this can be found in `virAma_avoidance.py`, and the overall setting can be toggled in `config.py`.
-
-
-# scheme auto-detection
-
-(*Currently under development*)
-
-`skrutable`'s scheme auto-detection is primarily frequency-based for robustness. Only where this fails (e.g., for very short inputs) does it rely on singly-occurring distinctive characters. In the code, the default behavior can be toggled in `config.py`.
-
-
-# sandhi and compound splitting
-
-(*Currently under development*)
-
-In the works as a fourth `skrutable` functionality (after transliteration, scansion, and meter identification) is a wrapper for the pre-trained model of the powerful neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), by Hellwig and Nehrdich, which produces good, usable splitting results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)) but which has so far not yet been easily available (command-line only, `Python 3.5.9`, `TensorFlow`).
 
 
 # using the code
@@ -220,31 +204,36 @@ From each respective module (`transliteration.py`, `scansion.py`, `meter_identif
 ~~~
 from skrutable.transliteration import Transliterator
 T = Transliterator()
-string_result_1 = T.transliterate( input_string ) # default settings
-string_result_2 = T.transliterate( input_string, to_scheme='BENGALI' )
-string_result_3 = T.transliterate( input_string, from_scheme='BENGALI', to_scheme='HK' )
-string_result_4 = T.transliterate( input_string, from_scheme='auto', to_scheme='ITRANS' )
+string_result_1 = T.transliterate( input_string ) # default from_scheme, to_scheme
+string_result_2 = T.transliterate( input_string, to_scheme='BENGALI' ) # default from_scheme
+string_result_3 = T.transliterate( input_string, from_scheme='HK', to_scheme='BENGALI')
 ~~~
 
 2. scansion, Scanner, scan()
 ~~~
 from skrutable.scansion import Scanner
 S = Scanner()
-Verse_result = S.scan( input_string )
-print( Verse_result.summarize() )
+Verse_result_1 = S.scan( input_string ) # default from_scheme, show options
+print( Verse_result_1.summarize() )
+Verse_result_2 = S.scan( input_string, from_scheme='DEV') 
+print( Verse_result_2.summarize() ) # default 'show' options
+Verse_result_3 = S.scan( input_string, from_scheme='DEV') 
+print( Verse_result_3.summarize(show_alignment=False) ) # default further 'show' options
 ~~~
 
 3. meter_identification, MeterIdentifier, identify_meter()
 ~~~
 from skrutable.meter_identification import MeterIdentifier
 MI = MeterIdentifier()
-Verse_result_1 = MI.identify_meter( input_string ) # default settings
-print( Verse_result_1.summarize() )
-Verse_result_2 = MI.identify_meter(input_string, resplit_option='resplit_hard', from_scheme='IAST')
-print( Verse_result_2.meter_label() )
+Verse_result_1 = MI.identify_meter(input_string) # default from_scheme, resplit_option
+print( Verse_result_1.meter_label() )
+Verse_result_2 = MI.identify_meter(input_string, resplit_option='none') # default from_scheme
+print( Verse_result_2.summarize() ) # default 'show' options
+Verse_result_3 = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite')
+print( Verse_result_3.summarize(show_morae=False) ) # default further 'show' options
 ~~~
 
-More examples can be found in the repo's `tests` folder (for use with `pytest`).
+More examples can be found in the repo's `tests` folder (for use with `pytest`) and in the `jupyter_notebooks` folder.
 
 
 # feedback
