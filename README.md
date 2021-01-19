@@ -1,6 +1,6 @@
 # Skrutable
 
-A toolkit and online workbench for text processing in Sanskrit.
+A toolkit and online workbench providing transliteration, scansion, and meter identification for Sanskrit text.
 
 See [manual.md](./manual.md) for instructions.
 
