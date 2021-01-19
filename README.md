@@ -1,4 +1,4 @@
-# Skrutable
+# skrutable
 
 A toolkit and online workbench providing transliteration, scansion, and meter identification for Sanskrit text.
 
