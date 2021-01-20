@@ -49,7 +49,7 @@ GUJARATI_consonants = ['ક', 'ખ', 'ગ', 'ઘ', 'ઙ','ચ', 'છ', 'જ', '�
 SLP_and_indic_consonants =   (  SLP_consonants + DEV_consonants +
                                 BENGALI_consonants + GUJARATI_consonants )
 
-# build character sets for use in e.g. scansion
+# build character sets for use in cleaning for scansion
 
 Roman_upper = [chr(n) for n in range(65,91)]
 Roman_lower = [chr(n) for n in range(97,123)]
@@ -58,7 +58,9 @@ SLP_chars = ( [ c for c in Roman_upper if c not in ['L','V','Z'] ]
         + Roman_lower )
 
 IAST_chars = ( [c for c in Roman_lower if c not in ['f','q','w','x','z'] ]
-        + ["'",'ñ','ā','ī','ś','ū','ḍ','ḥ','ḷ','ḹ','ṃ','ṅ','ṇ','ṛ','ṝ','ṣ','ṭ'] )
+        + ["'",'ñ','ā','ī','ś','ū','ḍ','ḥ','ḷ','ḹ','ṃ','ṅ','ṇ','ṛ','ṝ','ṣ','ṭ','ẖ', 'ḫ']
+		+ ['̄', '́', '̇', '̣', '̥', '̱', '̮', '̱', 'ṁ', 'ē', 'ō'] ) # also accept ISO etc. alternates
+		# need to add more in case of capital letters, etc.; see scheme_maps.IAST_SLP
 
 HK_chars = ( ['A','D','G','H','I','J','M','N','R','S','T','U']
         + [c for c in Roman_lower if c not in ['f','q','w','x'] ] )
