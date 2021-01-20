@@ -316,13 +316,13 @@ samavfttas_by_family_and_gaRa = {
 }
 
 ardhasamavftta_by_odd_even_regex_tuple = {
-('nnrl(g|l)', 'njj(r|B)') : 'aparavaktra (1,3: nnrlg, 2,4: njjr)', # aka vaitālīya
-('sssl(g|l)', 'BBBg(g|l)') : 'upacitra (1,3: ssslg, 2,4: BBBgg)',
-('nnr(y|j)', 'njjr(g|l)') : 'puṣpitāgrā (1,3: nnry, 2,4: njjrg)', # aka aupacchandasika
-('ssj(g|l)', 'sBrl(g|l)') : 'viyoginī (1,3: ssjg, 2,4: sBrlg)', # aka vaitālīya, sundarī
-('sss(g|l)', 'BBBg(g|l)') : 'vegavatī (1,3: sssg, 2,4: BBBgg)',
-('sssl(g|l)', 'nBB(r|B)') : 'hariṇaplutā (1,3: ssjgg, 2,4: sBry)',
-('ssjg(g|l)', 'sBr(y|j)') : 'mālābhāriṇī (1,3: ssjgg, 2,4: sBry)',
+('nnrl(g|l)', 'njj(r|B)') : 'aparavaktra = [11: nnrlg] 1,3 + [12: njjr] 2,4', # aka vaitālīya
+('sssl(g|l)', 'BBBg(g|l)') : 'upacitra = [11: ssslg] 1,3 + [11: BBBgg] 2,4',
+('nnr(y|j)', 'njjr(g|l)') : 'puṣpitāgrā = [12: nnry] 1,3 + [12: njjrg] 2,4', # aka aupacchandasika
+('ssj(g|l)', 'sBrl(g|l)') : 'viyoginī = [10: ssjg] 1,3 + [11: sBrlg] 2,4', # aka vaitālīya, sundarī
+('sss(g|l)', 'BBBg(g|l)') : 'vegavatī = [10: sssg] 1,3 + [11: BBBgg] 2,4',
+('sssl(g|l)', 'nBB(r|B)') : 'hariṇaplutā = [11: ssjgg] 1,3 + [12: nBBr] 2,4',
+('ssjg(g|l)', 'sBr(y|j)') : 'mālābhāriṇī = [11: ssjgg] 1,3 + [12: sBry] 2,4',
 }
 
 

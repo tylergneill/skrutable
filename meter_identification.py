@@ -309,14 +309,15 @@ class VerseTester(object):
 			if re.match(regex, g_to_id):
 
 				meter_label = meter_patterns.samavfttas_by_family_and_gaRa[len(w_to_id)][gaRa_pattern]
-				meter_label += ' [%s]' % (
+				meter_label += ' [%d: %s]' % (
+				len(w_to_id),
 				meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
 				)
 				break
 
 		else:
 			meter_label = "ajñātasamavṛttam" # i.e., might need to add to meter_patterns
-			meter_label += ' [%s]' % g_to_id
+			meter_label += ' [%d: %s]' % ( len(g_to_id), g_to_id )
 
 		score = meter_scores["samavṛtta, perfect"]
 
@@ -391,7 +392,6 @@ class VerseTester(object):
 					to_exclude.append(i)
 			for i in reversed(to_exclude): # delete in descending index order, avoid index errors
 				del wbp[i]
-
 				del wbp_lens[i]
 				del gs_to_id[i]
 
@@ -416,21 +416,22 @@ class VerseTester(object):
 		meter_labels = []
 		for i, g_to_id in enumerate(gs_to_id):
 
-			for gaRa_pattern in meter_patterns.samavfttas_by_family_and_gaRa[wbp_lens[0]].keys():
+			for gaRa_pattern in meter_patterns.samavfttas_by_family_and_gaRa[wbp_lens[i]].keys():
 
 				regex = re.compile(gaRa_pattern)
 
 				if re.match(regex, g_to_id):
 
-					meter_label = meter_patterns.samavfttas_by_family_and_gaRa[wbp_lens[0]][gaRa_pattern]
-					meter_label += ' [%s]' % (
+					meter_label = meter_patterns.samavfttas_by_family_and_gaRa[wbp_lens[i]][gaRa_pattern]
+					meter_label += ' [%d: %s]' % (
+					wbp_lens[i],
 					meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
 					)
 					break
 
 			else:
 				meter_label = "ajñātam" # i.e., might need to add to meter_patterns
-				meter_label += ' [%s]' % g_to_id
+				meter_label += ' [%d: %s]' % ( wbp_lens[i], g_to_id )
 
 			meter_labels.append(meter_label)
 
@@ -455,7 +456,7 @@ class VerseTester(object):
 			# nothing
 			score = 1
 
-		overall_meter_label = "upajāti (%s: %s)" % (
+		overall_meter_label = "upajāti %s: %s" % (
 			family,
 			combined_meter_labels
 			)
