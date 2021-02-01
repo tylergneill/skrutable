@@ -625,14 +625,14 @@ class VerseTester(object):
 
 		# anuzwuB
 
-		success = self.test_as_anuzwuB(Vrs) # 1 if successful, 0 if not
-		if success and Vrs.identification_score == meter_scores["max score"]:
+		success_anuzwuB = self.test_as_anuzwuB(Vrs) # 1 if successful, 0 if not
+		if success_anuzwuB and Vrs.identification_score == meter_scores["max score"]:
 			return 1
 
 		# samavftta, upajAti, vizamavftta, ardhasamavftta
 
-		success = self.test_as_samavftta_etc(Vrs)
-		if success and Vrs.identification_score >= 8: return 1
+		success_samavftta_etc = self.test_as_samavftta_etc(Vrs)
+		if success_samavftta_etc and Vrs.identification_score >= 8: return 1
 		# i.e., if upajāti or anything imperfect, also continue on to check jāti
 
 		# problem: how to change above handling for rare case
@@ -640,10 +640,12 @@ class VerseTester(object):
 
 		# jāti
 
-		success = self.test_as_jAti(Vrs)
-		if success: return 1
+		success_jAti = self.test_as_jAti(Vrs)
 
-		return 0 # all three tests failed
+		if success_anuzwuB or success_samavftta_etc or success_jAti:
+			return 1
+		else:
+			return 0
 
 
 class MeterIdentifier(object):
@@ -727,6 +729,7 @@ class MeterIdentifier(object):
 
 						# print()
 						# print(new_text_syllabified)
+						# import pdb; pdb.set_trace()
 
 						temp_V = copy(Vrs)
 						temp_V.text_syllabified = new_text_syllabified

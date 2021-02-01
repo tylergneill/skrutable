@@ -483,3 +483,17 @@ def test_identify_meter_jAti_resplit_max_keep_midpoint():
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = "āryā"
 	assert truncated_output == expected_output
+
+def test_identify_meter_samavftta_imperfect_resplit_lite_keep_mid():
+	MI = MeterIdentifier()
+	input_string = """guṇāpekṣāśūnyaṃ kathamidamupakrāntamatha vā
+kutopatyasnehaḥ kuṭilanayāniṣṇātamanasām ।
+idaṃ tvaidaṃparyaṃ yaduta nṛpaternarmasacivaḥ
+sutādānānmitraṃ bhavatu sa hi no nandana iti ॥"""
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
+	output = object_result.meter_label
+	truncated_output = output[:9]
+	curr_func = inspect.stack()[0][3]
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(truncated_output) + '\n\n')
+	expected_output = "śikhariṇī"
+	assert truncated_output == expected_output
