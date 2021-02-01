@@ -127,10 +127,10 @@ class Transliterator():
 
 			prev_char = curr_char
 
-		if curr_char in phonemes.SLP_consonants:
+		if prev_char in phonemes.SLP_consonants:
 			# line-final SLP consonant: final virāma needed
 			content_out += phonemes.virAmas[to_scheme]
-		elif curr_char in phonemes.SLP_and_indic_consonants:
+		elif prev_char in phonemes.SLP_and_indic_consonants:
 			# line-final Indic consonant: final 'a' needed
 			content_out += 'a'
 

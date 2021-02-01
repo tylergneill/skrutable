@@ -85,7 +85,7 @@ samavfttas_by_gaRas = {
 
 # 12-syllable jagatī
 'sss(s|n)' : 'toṭakam',
-'nBB(r|B)' : 'drūtavilambitam',
+'nBB(r|B)' : 'drutavilambitam',
 'yyy(y|j)' : 'bhujaṅgaprayātam',
 'jtj(r|B)' : 'vaṃśastha',
 'ttj(r|B)' : 'indravaṃśā',
@@ -207,7 +207,7 @@ samavfttas_by_family_and_gaRa = {
 	'jsj(s|n)' : 'jaloddhatagati',
 	'njj(y|j)' : 'tāmarasa',
 	'sss(s|n)' : 'toṭaka',
-	'nBB(r|B)' : 'drūtavilambita',
+	'nBB(r|B)' : 'drutavilambita',
 	'nnr(r|B)' : 'prabhā', # aka mandākinī
 	'sjs(s|n)' : 'pramitākṣarā',
 	'yyy(y|j)' : 'bhujaṅgaprayāta',

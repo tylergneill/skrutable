@@ -120,7 +120,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = 7
+	expected_output = meter_scores["samavṛtta, imperfect (3)"]
 	assert output == expected_output
 
 def test_evaluate_upajAti_kolAhale():
@@ -135,7 +135,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = 8
+	expected_output = meter_scores["upajāti, triṣṭubh, perfect"]
 	assert output == expected_output
 
 def test_evaluate_upajAti_kolAhala():
@@ -153,7 +153,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	other_output = V.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(other_output) + '\n\n')
-	expected_output = 8
+	expected_output = meter_scores["upajāti, triṣṭubh, perfect"]
 	assert output == expected_output
 
 def test_evaluate_upajAti_kolAha():
@@ -186,7 +186,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = 8
+	expected_output = meter_scores["upajāti, triṣṭubh, perfect"]
 	assert output == expected_output
 
 def test_test_as_samavftta_etc_sampUrRakumBo_3():
@@ -202,7 +202,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = 8 # because within triṣṭubh
+	expected_output = meter_scores["samavṛtta, imperfect (3)"]
 	assert output == expected_output
 
 def test_test_as_samavftta_etc_kudeSam_3():
@@ -218,7 +218,7 @@ kuSizyamaDyApayataH kuto yaSaH"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = 7 # because not within triṣṭubh
+	expected_output = meter_scores["samavṛtta, imperfect (3)"]
 	assert output == expected_output
 
 def test_combine_results_kolAhale():
@@ -236,8 +236,8 @@ mOnaM viDeyaM satataM suDIBiH""" # id_score == 8
 	other_output = V.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(other_output) + '\n\n')
-	expected_output = 9
-	assert output == expected_output
+	expected_output = meter_scores["upajāti, triṣṭubh, perfect"]
+	assert output == 9 # the "better" one
 
 def test_identify_meter_SArdUlavikrIqitA():
 	MI = MeterIdentifier()
@@ -297,7 +297,7 @@ sA jayati sarasvatI devI"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = 8
+	expected_output = meter_scores["jāti, perfect"]
 	assert output == expected_output
 
 def test_identify_meter_jAti():
@@ -312,7 +312,7 @@ sA jayati sarasvatI devI"""
 	other_output = object_result.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = 8
+	expected_output = meter_scores["jāti, perfect"]
 	assert output == expected_output
 
 def test_evaluate_ardhasamavftta():
@@ -329,7 +329,7 @@ bhayam agamat punar eva rāmamātā //"""
 	other_output = V.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = 8
+	expected_output = meter_scores["ardhasamavṛtta, perfect"]
 	assert output == expected_output
 
 # def test_identify_meter_ardhasamavftta():
@@ -360,7 +360,7 @@ pradīyatāṃ dāśarathāya maithilī  //"""
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	# import pdb; pdb.set_trace()
-	expected_output = 9
+	expected_output = meter_scores["samavṛtta, perfect"]
 	assert output == expected_output
 
 def test_identify_meter_no_split_additional_newline_chrs_Darmakzetre():
@@ -387,9 +387,9 @@ parasparaM saMvadatAM KalAnAM / mOnaM viDeyaM satataM suDIBiH"""
 	expected_output = "upajāti"
 	assert truncated_output == expected_output
 
-def test_resplit_lite_upajAti_kolAhale():
+def test_resplit_lite_samavftta():
 	MI = MeterIdentifier()
-	input_string = """sampūrṇakumbho na karoti ; ardho ghaṭo ghoṣamupaiti nūnam
+	input_string = """sampūrṇakumbho na karoti śabdam ; ardho ghaṭo ghoṣamupaiti nūnam
 vidvānkulīno na karoti garvaṃ / jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	# print()
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite')
@@ -456,4 +456,30 @@ def test_vaMSasTa_imperfect_not_upajAti():
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = "vaṃśastha"
+	assert truncated_output == expected_output
+
+def test_identify_meter_jAti_resplit_lite():
+	MI = MeterIdentifier()
+	input_string = """स्वः स्वर्गः सुरसद्म त्रिदशावासस्त्रिविष्टपं त्रिदिवम्
+द्यौर्गौरमर्त्यभुवनं नाकः स्यादूर्ध्वलोकश्च"""
+	# print()
+	object_result = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_lite', )
+	output = object_result.summarize()
+	truncated_output = object_result.meter_label[:6]
+	curr_func = inspect.stack()[0][3]
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	expected_output = "udgīti"
+	assert truncated_output == expected_output
+
+def test_identify_meter_jAti_resplit_max_keep_midpoint():
+	MI = MeterIdentifier()
+	input_string = """स्वः स्वर्गः सुरसद्म त्रिदशावासस्त्रिविष्टपं त्रिदिवम्
+द्यौर्गौरमर्त्यभुवनं नाकः स्यादूर्ध्वलोकश्च"""
+	# print()
+	object_result = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_max', resplit_keep_midpoint=True)
+	output = object_result.summarize()
+	truncated_output = object_result.meter_label[:4]
+	curr_func = inspect.stack()[0][3]
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	expected_output = "āryā"
 	assert truncated_output == expected_output

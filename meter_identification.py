@@ -10,7 +10,7 @@ from copy import copy
 # load config variables
 config = load_config_dict_from_json_file()
 default_resplit_option = config["default_resplit_option"]  # e.g. "none"
-resplit_lite_keep_midpoint = config["resplit_lite_keep_midpoint"]  # e.g. True
+default_resplit_keep_midpoint = config["default_resplit_keep_midpoint"]  # e.g. True
 meter_scores = config["meter_scores"] # dict
 
 class VerseTester(object):
@@ -26,16 +26,9 @@ class VerseTester(object):
 
 	def __init__(self):
 		"""Internal constructor"""
-		self.anuzwuB_result = None # string
 		self.pAdasamatva_count = 0 # int
-		self.strict_trizwuB_count = 0 # int
-		self.loose_eleven_count = 0 # int
-		self.trizwuB_types_found = None # list of strings
-		self.samavftta_result = None # string
-		self.upajAti_result = None # string
-		# >> samavftta_and_or_upajAti_result = None # string
-		self.jAti_result = None # string
-		self.resplit_option = default_resplit_option
+		self.resplit_option = default_resplit_option # string
+		self.resplit_keep_midpoint = default_resplit_keep_midpoint # bool
 
 	def combine_results(self, Vrs, new_label, new_score):
 		old_label = Vrs.meter_label or ''
@@ -588,7 +581,11 @@ class VerseTester(object):
 				else:  # if all four pAdas proven valid, i.e., if no breaks
 					Vrs.meter_label = jAti_name + " (%s)" % str(std_pattern)[1:-1]
 					Vrs.identification_score = meter_scores["jāti, perfect"]
+
+					# should be combining results in case of previous match
+
 					return 1
+
 
 				# soon: implement imperfect jāti, score == meter_scores["jāti, imperfect"]
 
@@ -629,28 +626,19 @@ class VerseTester(object):
 		# anuzwuB
 
 		success = self.test_as_anuzwuB(Vrs) # 1 if successful, 0 if not
-		if success: return 1
+		if success and Vrs.identification_score == meter_scores["max score"]:
+			return 1
 
 		# samavftta, upajAti, vizamavftta, ardhasamavftta
 
-		# self.samavftta_result = self.test_as_samavftta(Vrs)
-		# self.upajAti_result = self.test_as_upajAti(Vrs)
-		# if self.samavftta_result != None and self.pAdasamatva_count == 4:  # perfect
-		# 	return self.samavftta_result
-		# elif self.upajAti_result != None:
-		#  	return self.upajAti_result
-		# elif self.samavftta_result != None:
-		# 	return self.samavftta_result
 		success = self.test_as_samavftta_etc(Vrs)
-		if success: return 1
+		if success and Vrs.identification_score >= 8: return 1
+		# i.e., if upajāti or anything imperfect, also continue on to check jāti
 
-		# problem: because of above return behavior,
-		# currently not going to find any ardhasamavftta that is also jAti.
-		# so, depending on whether test_test_as_samavftta_etc is dissolved
-		# either simply postpone above return until after jātis
-		# or else do special check
+		# problem: how to change above handling for rare case
+		# where ardhasamavftta is also jAti?
 
-		# jAti
+		# jāti
 
 		success = self.test_as_jAti(Vrs)
 		if success: return 1
@@ -683,10 +671,10 @@ class MeterIdentifier(object):
 
 		iter_list = [start_pos]
 		if resplit_option == 'resplit_max':
-			denominator = 2 # wiggle as far as one half of part_len
+			distance_multiplier = 0.50 # wiggle as far as 50% of part_len
 		elif resplit_option == 'resplit_lite':
-			denominator = 4 # wiggle as far as one quarter of part_len
-		max_wiggle_distance = int(part_len / denominator + 1)
+			distance_multiplier = 0.35 # wiggle as far as 35% of part_len
+		max_wiggle_distance = int(part_len * distance_multiplier + 1)
 		for i in range(1, max_wiggle_distance):
 			iter_list.append(start_pos+i)
 			iter_list.append(start_pos-i)
@@ -703,16 +691,16 @@ class MeterIdentifier(object):
 				+ sss.join(syllable_list[cd_pAda_br:])
 				)
 
-	def wiggle_identify( self, Vrs, syllable_list, VrsTster,
-						 pAda_brs, quarter_len):
+	def wiggle_identify(	self, Vrs, syllable_list,
+							VrsTster,
+							pAda_brs, quarter_len):
 		"""Returns a list for MeterIdentifier.Verses_found"""
 
 		pos_iterators = {}
 		for k in ['ab', 'bc', 'cd']:
 			if  (
-				VrsTster.resplit_option == 'resplit_lite' and
 				k == 'bc' and
-				resplit_lite_keep_midpoint == True
+				VrsTster.resplit_keep_midpoint == True
 				):
 				pos_iterators['bc'] = [ pAda_brs['bc'] ] # i.e., do not wiggle bc
 			else:
@@ -736,6 +724,9 @@ class MeterIdentifier(object):
 
 						new_text_syllabified = self.resplit_Verse(
 							syllable_list, pos_ab, pos_bc, pos_cd)
+
+						# print()
+						# print(new_text_syllabified)
 
 						temp_V = copy(Vrs)
 						temp_V.text_syllabified = new_text_syllabified
@@ -804,7 +795,10 @@ class MeterIdentifier(object):
 		return verses_found
 
 
-	def identify_meter(self, rw_str, resplit_option=default_resplit_option, from_scheme=None):
+	def identify_meter(self, rw_str,
+		resplit_option=default_resplit_option,
+		resplit_keep_midpoint=default_resplit_keep_midpoint,
+		from_scheme=None):
 		"""
 		User-facing method, manages overall identification procedure:
 				accepts raw string
@@ -833,6 +827,7 @@ class MeterIdentifier(object):
 
 		self.VerseTester = VT = VerseTester()
 		self.VerseTester.resplit_option = resplit_option
+		self.VerseTester.resplit_keep_midpoint = resplit_keep_midpoint
 
 		# additional_identification_attempts = 0 # performance testing
 
@@ -842,7 +837,7 @@ class MeterIdentifier(object):
 
 		elif resplit_option in ['resplit_max', 'resplit_lite']:
 
-			# in case of resplit_lite, capture user-provided pāda breaks (newline)
+			# capture any user-provided pāda breaks (= all newlines after scansion cleaning)
 			newline_indices = [
 				m.start() for m in re.finditer('\n', V.text_syllabified)
 				]
@@ -865,21 +860,42 @@ class MeterIdentifier(object):
 				[i * quarter_len for i in [1, 2, 3]]
 				)
 
-			# possible override some of these breaks and mark as constant
-			if resplit_option == 'resplit_lite' and len(newline_indices) == 3:
-				# full three breaks provided (ab, bc, cd), override all
+			if len(newline_indices) == 3:
 
-				pAda_brs['ab'], pAda_brs['bc'], pAda_brs['cd'] = (
-					V.text_syllabified[:newline_indices[i]].count(
-						scansion_syllable_separator
-						) for i in [0, 1, 2]
-					)
+				if resplit_option == 'resplit_lite':
+					# full three breaks provided (ab, bc, cd), override all length-based ones
+					pAda_brs['ab'], pAda_brs['bc'], pAda_brs['cd'] = (
+						V.text_syllabified[:newline_indices[i]].count(
+							scansion_syllable_separator
+							) for i in [0, 1, 2]
+						)
 
-			elif resplit_option == 'resplit_lite' and len(newline_indices) == 1:
+				elif	(
+							resplit_option == 'resplit_max' and
+							self.VerseTester.resplit_keep_midpoint
+						):
+					# full three breaks provided, override second (bc) only, keep other two
+					pAda_brs['bc'] = V.text_syllabified[:newline_indices[1]].count(
+						scansion_syllable_separator)
+
+			elif len(newline_indices) == 1:
+
+				if 	(
+						resplit_option == 'resplit_lite'
+					) or (
+						resplit_option == 'resplit_max' and
+						self.VerseTester.resplit_keep_midpoint
+					):
 				# only one break provided, assume bc, override that one, keep other two
 
-				pAda_brs['bc'] = V.text_syllabified[:newline_indices[0]].count(
+					pAda_brs['bc'] = V.text_syllabified[:newline_indices[0]].count(
 					scansion_syllable_separator)
+
+			else:
+				# unusable number of user-provided pāda breaks
+				# do nothing, use length-based ones
+				# could give user some feedback...
+				pass
 
 			# use initial Verse to generate potentially large number of others Verses
 			# store their respective results internally, collect overall list

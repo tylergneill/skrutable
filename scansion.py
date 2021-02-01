@@ -203,8 +203,15 @@ class Scanner(object):
 		Returns result as string.
 		"""
 
+		# manage additional newlines
+
 		for chr in additional_pAda_separators:
 			cntnts = cntnts.replace(chr, '\n')
+		# dedupe, also allowing for carriage returns introduced in HTML form input
+		regex = re.compile(r"(\n\r?){2,}")
+		cntnts = re.sub(regex, '\n', cntnts)
+
+		# filter out disallowed characters
 
 		for c in list(set(cntnts)):
 			if c not in phonemes.character_set[scheme_in]:
@@ -243,9 +250,14 @@ class Scanner(object):
 			# place scansion_syllable_separator after vowels
 			for letter in line:
 
+				# exception: do treat M and H as explicit syllable coda
+				if letter in ['M', 'H']:
+					if line_syllables[-1] == scansion_syllable_separator:
+						line_syllables = line_syllables[:-1]
+
 				line_syllables += letter
 
-				if letter in phonemes.SLP_vowels:
+				if letter in phonemes.SLP_vowels + ['M', 'H']:
 					line_syllables += scansion_syllable_separator
 
 			# e.g. 'ya.dA.ya.dA.hi.Da.rma.sya.glA.ni.rBa.va.ti.BA.ra.ta.'
@@ -299,7 +311,7 @@ class Scanner(object):
 
 				if (
 					# heavy by nature
-					syllable[-1] in phonemes.SLP_long_vowels
+					syllable[-1] in phonemes.SLP_long_vowels + ['M', 'H']
 
 					or
 

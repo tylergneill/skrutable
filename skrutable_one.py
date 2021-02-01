@@ -72,9 +72,6 @@ elif '--identify_meter' in sys.argv or '-i' in sys.argv:
 	# look for whole-file option
 	if '--whole_file' in sys.argv:
 
-		from notes import timestamp
-		times = timestamp.initial_stamp("resplit_option: %s" % r_o)
-
 		verses = input_data.split('\n')
 		output_data = ''
 		for verse in verses:
@@ -83,8 +80,6 @@ elif '--identify_meter' in sys.argv or '-i' in sys.argv:
 	else:
 		result = MI.identify_meter(input_data, from_scheme=f_s, resplit_option=r_o)
 		output_data = result.text_raw + '\n' + result.summarize()
-
-	times = timestamp.new_stamp("done", times)
 
 	output_fn_suffix = '_identified'
 
