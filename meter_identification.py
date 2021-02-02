@@ -29,6 +29,7 @@ class VerseTester(object):
 		self.pAdasamatva_count = 0 # int
 		self.resplit_option = default_resplit_option # string
 		self.resplit_keep_midpoint = default_resplit_keep_midpoint # bool
+		self.identification_attempt_count = 0
 
 	def combine_results(self, Vrs, new_label, new_score):
 		old_label = Vrs.meter_label or ''
@@ -622,6 +623,8 @@ class VerseTester(object):
 		Returns string corresponding to Verse.meter_label. - currently
 		Returns int result 1 if successul and 0 if not. - planned
 		"""
+
+		self.identification_attempt_count += 1
 
 		# anuzwuB
 
