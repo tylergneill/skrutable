@@ -20,7 +20,7 @@ tadAtmAnaM sfjAmyaham"""
 	output = V.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = "anuṣṭubh (ab: pathyā, cd: pathyā)"
+	expected_output = "anuṣṭubh (1,2: pathyā, 3,4: pathyā)"
 	assert output == expected_output
 
 def test_identify_anuzwuB_split():
