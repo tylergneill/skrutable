@@ -18,21 +18,11 @@ anuzwuB_pAda = {
 	'^(?!.ll.).{4}lgg.$' : 'pathyā',
 	'^.glgggg.$' : 'ma-vipulā',
 	'^.glggll.$' : 'bha-vipulā',
-	'^.ggggll.$' : 'bha-vipulā (rare variant preceded by ma-gaṇa)',
+	'^.ggggll.$' : 'bha-vipulā (ma-gaṇa-pūrvikā!)',
 	'^(?!.ll).{3}glll.$' : 'na-vipulā',
 	'^(?!.ll).{3}gglg.$' : 'ra-vipulā',
 	}
 }
-
-# will be deleted
-# anuzwuB_odd_pAda_types_by_weights = {
-# '^(?!.ll.).{4}lgg.$' : 'pathyā',
-# '^.glgggg.$' : 'ma-vipulā',
-# '^.glggll.$' : 'bha-vipulā',
-# '^.ggggll.$' : 'bha-vipulā (rare variant preceded by ma-gaṇa)',
-# '^(?!.ll).{3}glll.$' : 'na-vipulā',
-# '^(?!.ll).{3}gglg.$' : 'ra-vipulā',
-# }
 
 """
 	samavṛtta
