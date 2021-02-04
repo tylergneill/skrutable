@@ -70,8 +70,7 @@ class VerseTester(object):
 		for weights_pattern in meter_patterns.anuzwuB_pAda['odd'].keys():
 			regex = re.compile(weights_pattern)
 			if re.match(regex, odd_pAda_weights):
-				return meter_patterns.anuzwuB_odd_pAda_types_by_weights[weights_pattern]
-				# replace with: return meter_patterns.anuzwuB_pAda['odd'][weights_pattern]
+				return meter_patterns.anuzwuB_pAda['odd'][weights_pattern]
 
 		else:
 			return None
@@ -101,18 +100,18 @@ class VerseTester(object):
 		# both halves perfect
 
 		if pAdas_ab != None and pAdas_cd != None:
-			Vrs.meter_label = "anuṣṭubh (ab: " + pAdas_ab + ", cd: " + pAdas_cd + ")"
+			Vrs.meter_label = "anuṣṭubh (1,2: " + pAdas_ab + ", 3,4: " + pAdas_cd + ")"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves perfect)"]
 			return 1
 
 		# one half imperfect
 
 		elif pAdas_ab == None and pAdas_cd != None:
-			Vrs.meter_label = "anuṣṭubh (ab: asamīcīna, cd: " + pAdas_cd + ")"
+			Vrs.meter_label = "anuṣṭubh (1,2: asamīcīna, 3,4: " + pAdas_cd + ")"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			return 1
 		elif pAdas_ab != None and pAdas_cd == None:
-			Vrs.meter_label = "anuṣṭubh (ab: " + pAdas_ab + ", cd: asamīcīna)"
+			Vrs.meter_label = "anuṣṭubh (1,2: " + pAdas_ab + ", 3,4: asamīcīna)"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			return 1
 
@@ -157,130 +156,6 @@ class VerseTester(object):
 		if max_match in [2, 3, 4]: # exclude value of 1 (= no matches)
 			self.pAdasamatva_count = max_match
 
-
-	# def test_as_samavftta(self, Vrs):
-	# 	"""
-	# 			Accepts as arugment a list of strings detailing light/heavy (l/g) patterns.
-	# 			Determines whether verse (first four lines) is of 'samavṛtta' type.
-	# 			Returns string detailing results if identified as such, or None if not.
-	# 			Tolerates one incorrect quarter out of four, notes when applicable.
-	# 	"""
-	#
-	# 	w_p = Vrs.syllable_weights.split('\n')  # weights by pāda
-	#
-	# 	# make sure full four pādas
-	# 	try: w_p[3]
-	# 	except IndexError: return
-	#
-	# 	self.count_pAdasamatva(Vrs) # self.pAdasamatva_count in [0,2,3,4]
-	#
-	# 	# HERE: FIRST TEST FOR ardhasamavftta
-	# 	if ( self.pAdasamatva_count == 2
-	# 		 and w_p[0] == w_p[2] and w_p[1] == w_p[3]
-	# 		 ):
-	# 		# return("ardhasamavftta...")
-	# 		pass
-	#
-	# 	# otherwise, proceed with normal samavftta test
-	# 	if self.pAdasamatva_count in [4, 3, 2]:
-	#
-	# 		i = 0  # assume first pāda of four is a good representative for all
-	# 		while w_p[i] not in w_p[i+1:]:  # but if it doesn't match any others
-	# 			i += 1  # then move on until one that does is found
-	# 		pAda_for_id = w_p[i]
-	#
-	# 		S = Sc()
-	# 		pAda_gaRas = S.gaRa_abbreviate(pAda_for_id)
-	# 		# family = len(pAda_for_id)
-	#
-	# 		for gaRa_pattern in meter_patterns.samavfttas_by_gaRas:
-	# 		# for gaRa_pattern in meter_patterns.samavfttas_by_family_and_gaRa[family]:
-	#
-	# 			regex = re.compile(gaRa_pattern)
-	#
-	# 			if re.match(regex, pAda_gaRas):
-	#
-	# 				gaRa_note = ' (%s)' % (
-	# 				meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
-	# 				)
-	#
-	#
-	# 				if self.pAdasamatva_count in [2, 3]:
-	# 					gaRa_note += " (%d eva pādāḥ samyak)" % self.pAdasamatva_count
-	#
-	# 				return meter_patterns.samavfttas_by_gaRas[gaRa_pattern] + gaRa_note
-	#
-	# 		else:  # if all patterns tested and no match found and returned
-	# 			return "(ajñātasamavṛtta?) (%d: %s)" % (len(pAda_for_id), pAda_gaRas)
-	#
-	# 	else:
-	# 		return None
-
-	# def is_vizamavftta(self, Vrs):
-	# 	# just check for one known pattern
-	#
-	# 	if  (	wbp[0] == "sjsl" and
-	# 			wbp[1] == "nsjg" and
-	# 			wbp[2] in ["Bnjlg", "BnBg"] and
-	# 			wbp[3] == "sjsjg"
-	# 			):
-	#
-	# 		Vrs.meter_label = "udgatā (viṣamavṛtta)"
-	# 		Vrs.identification_score = 9
-	# 		return True
-	# 	else:
-	# 		return False
-
-
-	# def test_as_upajAti(self, Vrs):
-	# 	"""
-	# 	gglggllglgg   [ttjgg]
-	# 	ggggglgglgg   [mttgg]
-	# 	ggggglgglgg   [mttgg]
-	# 	ggggglgglgg   [mttgg]
-	#
-	# 	lglggllglgg   [jtjgg]
-	# 	gglggllglgg   [ttjgg]
-	# 	lglggllglgg   [jtjgg]
-	# 	gglggllglgg   [ttjgg]
-	# 	"""
-	# 	self.strict_trizwuB_count = 0 # only recognized trizwuB patterns
-	# 	self.loose_eleven_count = 0 # any 11-syllable pattern
-	# 	self.trizwuB_types_found = []
-	#
-	# 	for g_a in Vrs.gaRa_abbreviations.split('\n'):
-	# 		if (
-	# 			g_a in ["jtjgg", "jtjgl", "ttjgg", "ttjgl"] # regex to generalize
-	# 			or g_a in ["mttgg", "mttgl", "rnBgg", "rnBgl"] # not just indra/upendra
-	# 		):
-	# 			self.strict_trizwuB_count += 1
-	# 			for gaRa_pattern in meter_patterns.samavfttas_by_gaRas:
-	# 				regex = re.compile(gaRa_pattern)
-	# 				if re.match(regex, g_a):
-	# 					self.trizwuB_types_found.append(
-	# 					meter_patterns.samavfttas_by_gaRas[gaRa_pattern]
-	# 					)
-	# 		elif g_a in ["tBjgg", "tBjgl", "jBjgg", "jBjgl"]: # etc.
-	# 			self.loose_eleven_count += 1
-	# 			self.trizwuB_types_found.append(g_a)
-	# 		# condense by grouping "in" lists
-	#
-	# 	unique_types_found = []
-	# 	for t in self.trizwuB_types_found:
-	# 		if t not in unique_types_found:
-	# 			unique_types_found.append(t)
-	#
-	# 	if self.strict_trizwuB_count == 4:
-	# 		return "upajāti (%s)" % (", ".join(unique_types_found))
-	# 	elif self.strict_trizwuB_count + self.loose_eleven_count == 4:
-	# 		return "upajāti (?) (%s)" % (", ".join(unique_types_found))
-	# 	elif (self.strict_trizwuB_count + self.loose_eleven_count) in [2, 3]:
-	# 		return "upajāti (?) (%s) (%d eva pādāḥ samyak)" % (
-	# 			", ".join(unique_types_found),
-	# 			self.pAdasamatva_count
-	# 		)
-	# 	else:
-	# 		return None
 
 	def evaluate_samavftta(self, Vrs):
 		# sufficient pAdasamatva already assured, now just evaluate

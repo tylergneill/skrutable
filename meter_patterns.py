@@ -25,21 +25,19 @@ anuzwuB_pAda = {
 }
 
 # will be deleted
-anuzwuB_odd_pAda_types_by_weights = {
-'^(?!.ll.).{4}lgg.$' : 'pathyā',
-'^.glgggg.$' : 'ma-vipulā',
-'^.glggll.$' : 'bha-vipulā',
-'^.ggggll.$' : 'bha-vipulā (rare variant preceded by ma-gaṇa)',
-'^(?!.ll).{3}glll.$' : 'na-vipulā',
-'^(?!.ll).{3}gglg.$' : 'ra-vipulā',
-}
+# anuzwuB_odd_pAda_types_by_weights = {
+# '^(?!.ll.).{4}lgg.$' : 'pathyā',
+# '^.glgggg.$' : 'ma-vipulā',
+# '^.glggll.$' : 'bha-vipulā',
+# '^.ggggll.$' : 'bha-vipulā (rare variant preceded by ma-gaṇa)',
+# '^(?!.ll).{3}glll.$' : 'na-vipulā',
+# '^(?!.ll).{3}gglg.$' : 'ra-vipulā',
+# }
 
 """
 	samavṛtta
 
-	11-syllable triṣṭubhs included as first
-	# Note: Regex allows anceps final syllable for samavftta. Other code requires that heavy be given first.
-
+	Final syllable always anceps (heavy always first in regex).
 """
 
 # traditional trisyllable abbreviation scheme
@@ -332,6 +330,7 @@ ardhasamavftta_by_odd_even_regex_tuple = {
 """
 jAtis_by_morae = [
 ['\[(12|11), (18|17), (12|11), (15|14)\]', [12, 18, 12, 15], 'āryā'],
+# see Andrew Ollett's work (e.g., @ prakrit.info) for extra rules on Prakrit gāhā...
 ['\[(12|11), (18|17), (12|11), (18|17)\]', [12, 18, 12, 18], 'gīti'],
 ['\[(12|11), (15|14), (12|11), (15|14)\]', [12, 15, 12, 15], 'upagīti'],
 ['\[(12|11), (15|14), (12|11), (18|17)\]', [12, 15, 12, 18], 'udgīti'],
@@ -339,3 +338,8 @@ jAtis_by_morae = [
 # ['\[(14|13), (16|15), (14|13), (16|15)\]', [12, 18, 12, 18], 'vaitālīya'], # more rules...
 # ['\[(16|15), (16|15), (16|15), (16|15)\]', [16, 16, 16, 16], 'mātrāsamaka'], # more rules...
 ]
+
+meter_melodies = {
+	'āryā' :  ['Madhura', 'Madhvi', 'Sadananda'],
+	'śikhariṇī' : ['Madhura', 'Sadananda']
+}
