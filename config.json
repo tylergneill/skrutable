@@ -4,7 +4,7 @@
 "avoid_virAma_indic_scripts" : true,
 "avoid_virAma_all_scripts" : false,
 "scansion_syllable_separator" : " ",
-"additional_pAda_separators" : ["\t", ";", " / ", " । "],
+"additional_pAda_separators" : ["\t", ";", ",", " / ", " | ", " । "],
 "default_resplit_option" : "resplit_lite",
 "default_resplit_keep_midpoint" : false,
 "meter_scores" :	{
