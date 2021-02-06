@@ -186,7 +186,7 @@ class VerseTester(object):
 
 		else:
 			meter_label = "ajñātasamavṛttam" # i.e., might need to add to meter_patterns
-			meter_label += ' [%d: %s]' % ( len(g_to_id), g_to_id )
+			meter_label += ' [%d: %s]' % ( len(w_to_id), g_to_id )
 
 		score = meter_scores["samavṛtta, perfect"]
 
