@@ -88,20 +88,20 @@ samavfttas_by_gaRas = {
 'sjsj(g|l)' : 'mañjubhāṣiṇī',
 
 # 14-syllable
-'tBjjg(g|l)' : 'vasantatilaka',
+'tBjjg(g|l)' : 'vasantatilakā',
 
 #15-syllable
 'nnmy(y|j)' : 'mālinī',
 
 # 16-syllable
-'jrjrj(g|l)' : 'pañcacāmaram',
+'jrjrj(g|l)' : 'pañcacāmara',
 
 # 17-syllable
 'mBnttg(g|l)' : 'mandākrāntā',
 'ymnsBl(g|l)' : 'śikhariṇī',
 'nsmrsl(g|l)' : 'hariṇī',
 'jsjsyl(g|l)' : 'pṛthvī',
-'njBjjl(g|l)' : 'narkuṭaka', # aka kokilaka
+'njBjjl(g|l)' : 'kokilaka', # aka narkuṭaka
 
 # 18-syllable
 
@@ -223,7 +223,7 @@ samavfttas_by_family_and_gaRa = {
 	'njBjl(g|l)' : 'pramadā', # aka kurarīrutā
 	'nnBnl(g|l)' : 'praharaṇakalikā',
 	'mBnyg(g|l)' : 'madhyakṣāmā', # aka haṃsaśyenī, kuṭila
-	'tBjjg(g|l)' : 'vasantatilaka',
+	'tBjjg(g|l)' : 'vasantatilakā',
 	'mtnmg(g|l)' : 'vāsantī',
 	},
 
@@ -236,7 +236,7 @@ samavfttas_by_family_and_gaRa = {
 
 16: {
 	'rjrjr(g|l)' : 'citra',
-	'jrjrj(g|l)' : 'pañcacāmaram',
+	'jrjrj(g|l)' : 'pañcacāmara',
 	'njBjr(g|l)' : 'vāṇinī',
 	},
 
@@ -313,7 +313,7 @@ ardhasamavftta_by_odd_even_regex_tuple = {
 ('ssj(g|l)', 'sBrl(g|l)') : 'viyoginī = [10: ssjg] 1,3 + [11: sBrlg] 2,4', # aka vaitālīya, sundarī
 ('sss(g|l)', 'BBBg(g|l)') : 'vegavatī = [10: sssg] 1,3 + [11: BBBgg] 2,4',
 ('sssl(g|l)', 'nBB(r|B)') : 'hariṇaplutā = [11: ssjgg] 1,3 + [12: nBBr] 2,4',
-('ssjg(g|l)', 'sBr(y|j)') : 'mālābhāriṇī = [11: ssjgg] 1,3 + [12: sBry] 2,4',
+('ssjg(g|l)', 'sBr(y|j)') : 'aupacchandasika = [11: ssjgg] 1,3 + [12: sBry] 2,4', # aka mālābhāriṇī
 }
 
 
@@ -335,46 +335,45 @@ jAtis_by_morae = [
 meter_melodies = {
 	# 'āryā' :  ['Madhura Godbole', 'Sadananda Das', 'HV Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
 	# 'śikhariṇī' : ['Madhura Godbole', 'Sadananda Das']
-	'anuṣṭubh' : ['Madhura Godbole', 'HV Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
-	'aparavaktra' : ['HV Nagaraja Rao', 'Shatavadhani Ganesh'],
+	'anuṣṭubh' : ['Madhura Godbole', 'H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+	'aparavaktra' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'aśvadhāṭī' : ['Shatavadhani Ganesh'],
 	'āryā' : ['Madhura Godbole', 'Sadananda Das', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
 	'indravajrā' : ['Sadananda Das', 'Diwakar Acarya'],
 	'indravaṃśa' : ['Shatavadhani Ganesh'],
 	'udgata' : ['Shatavadhani Ganesh'],
 	'upagīti' : ['Madhura Godbole'],
-	'upajāti' : ['Madhura Godbole', 'Sadananda Das', 'HV Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
-	'aupacchandasika' : ['HV Nagaraja Rao', 'Shatavadhani Ganesh'],
-	'narkuṭaka' : ['HV Nagaraja Rao', 'Shatavadhani Ganesh'],
-	'gīti' : ['HV Nagaraja Rao'],
+	'upajāti' : ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+	'aupacchandasika' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+	'kokilaka' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+	'gīti' : ['H.V. Nagaraja Rao'],
 	'cārucāmara' : ['Shatavadhani Ganesh'],
 	'toṭaka' : ['Shatavadhani Ganesh'],
-	'drūtavilambita' : ['Madhura Godbole', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+	'drutavilambita' : ['Madhura Godbole', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
 	'pañcacāmara' : ['Sadananda Das', 'Shatavadhani Ganesh'],
-	'puṣpitāgra' : ['Shatavadhani Ganesh'],
-	'pṛthvī' : ['Sadananda Das', 'HV Nagaraja Rao', 'Shatavadhani Ganesh'],
-	'pramuditavadanā' : ['HV Nagaraja Rao'],
-	'pramitākṣara' : ['HV Nagaraja Rao'],
-	'praharṣiṇī' : ['HV Nagaraja Rao', 'Shatavadhani Ganesh'],
+	'puṣpitāgrā' : ['Shatavadhani Ganesh'],
+	'pṛthvī' : ['Sadananda Das', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+	'pramuditavadanā' : ['H.V. Nagaraja Rao'],
+	'pramitākṣara' : ['H.V. Nagaraja Rao'],
+	'praharṣiṇī' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'bhujaṅgaprayāta' : ['Shatavadhani Ganesh'],
-	'mañjubhāṣiṇī' : ['HV Nagaraja Rao', 'Shatavadhani Ganesh'],
-	'mattamayūra' : ['HV Nagaraja Rao'],
-	'mandākrānta' : ['HV Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+	'mañjubhāṣiṇī' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+	'mattamayūra' : ['H.V. Nagaraja Rao'],
+	'mandākrāntā' : ['H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
 	'mallikāmālā' : ['Shatavadhani Ganesh'],
 	# 'mātrāsamaka' : ['Sadananda Das'],
-	'mālinī' : ['Madhura Godbole', 'Sadananda Das', 'HV Nagaraja Rao', 'Shatavadhani Ganesh'],
+	'mālinī' : ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'rathoddhatā' : ['Shatavadhani Ganesh'],
 	'vaṃśastha' : ['Shatavadhani Ganesh'],
-	'vasantatilakā' : ['Madhura Godbole', 'Sadananda Das', 'HV Nagaraja Rao', 'Shatavadhani Ganesh'],
+	'vasantatilakā' : ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'viyoginī' : ['Shatavadhani Ganesh'],
-	'śārdūlavikrīḍita' : ['Madhura Godbole', 'Sadananda Das', 'HV Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
-	'śālinī' : ['HV Nagaraja Rao', 'Shatavadhani Ganesh'],
-	'śikhariṇī' : ['Madhura Godbole', 'Sadananda Das', 'HV Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+	'śārdūlavikrīḍitā' : ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+	'śālinī' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+	'śikhariṇī' : ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
 	'śivatāṇḍava' : ['Shatavadhani Ganesh'],
 	'śravaṇābharaṇa' : ['Sadananda Das'],
-	'sragdharā' : ['HV Nagaraja Rao', 'Shatavadhani Ganesh'],
+	'sragdharā' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'sragviṇī' : ['Sadananda Das', 'Shatavadhani Ganesh'],
 	'svāgatā' : ['Shatavadhani Ganesh'],
 	'hariṇī' : ['Shatavadhani Ganesh']
-
 }
