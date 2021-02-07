@@ -6,6 +6,7 @@ from skrutable.meter_identification import VerseTester
 from skrutable.config import load_config_dict_from_json_file
 
 config = load_config_dict_from_json_file()
+disable_non_trizwuB_upajAti = config["disable_non_trizwuB_upajAti"]
 meter_scores = config["meter_scores"] # dict
 
 def test_test_as_anuzwuB():
@@ -172,7 +173,8 @@ mOnaM viDeyaM satataM suDIBiH"""
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = meter_scores["upajāti, triṣṭubh, imperfect"]
-	assert output == expected_output
+	if not disable_non_trizwuB_upajAti:
+		assert output == expected_output
 
 def test_test_as_samavftta_etc_kolAhale():
 	S = Scanner()

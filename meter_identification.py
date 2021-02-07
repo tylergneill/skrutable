@@ -11,6 +11,7 @@ from copy import copy
 config = load_config_dict_from_json_file()
 default_resplit_option = config["default_resplit_option"]  # e.g. "none"
 default_resplit_keep_midpoint = config["default_resplit_keep_midpoint"]  # e.g. True
+disable_non_trizwuB_upajAti = config["disable_non_trizwuB_upajAti"] # e.g. True
 meter_scores = config["meter_scores"] # dict
 
 class VerseTester(object):
@@ -276,8 +277,11 @@ class VerseTester(object):
 			potential_score -= 2
 
 		# possibly quit based on analysis so far
-		if potential_score < Vrs.identification_score:
+		if 	( potential_score < Vrs.identification_score
 			# not going to beat pre-existing result (e.g. 7 from imperfect samavftta)
+			) or ( disable_non_trizwuB_upajAti
+				and potential_score < meter_scores["upajāti, triṣṭubh, imperfect"]
+			):
 			return
 
 

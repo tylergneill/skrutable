@@ -59,70 +59,71 @@ samavftta_family_names = {
 35: 'daṇḍaka',	36: 'daṇḍaka',	37: 'daṇḍaka',	38: 'daṇḍaka',
 }
 
-samavfttas_by_gaRas = {
-
-# 8-syllable
-'jrl(g|l)' : 'pramāṇikā',
-
-# 11-syllable triṣṭubh
-'ttjg(g|l)' : 'indravajrā',
-'jtjg(g|l)' : 'upendravajrā',
-'mttg(g|l)' : 'śālinī',
-'rnrl(g|l)' : 'rathoddhatā',
-'sssl(g|l)' : 'upacitra',
-
-# 12-syllable jagatī
-'sss(s|n)' : 'toṭakam',
-'nBB(r|B)' : 'drutavilambitam',
-'yyy(y|j)' : 'bhujaṅgaprayātam',
-'jtj(r|B)' : 'vaṃśastha',
-'ttj(r|B)' : 'indravaṃśā',
-'rrr(r|B)' : 'sragviṇī',
-'sjs(s|n)' : 'pramitākṣarā',
-'mmy(y|j)' : 'vaiśvadevī',
-# drutavilambita
-
-# 13-syllable
-'mnjr(g|l)' : 'praharṣiṇī',
-'jBsj(g|l)' : 'rucirā',
-'sjsj(g|l)' : 'mañjubhāṣiṇī',
-
-# 14-syllable
-'tBjjg(g|l)' : 'vasantatilakā',
-
-#15-syllable
-'nnmy(y|j)' : 'mālinī',
-
-# 16-syllable
-'jrjrj(g|l)' : 'pañcacāmara',
-
-# 17-syllable
-'mBnttg(g|l)' : 'mandākrāntā',
-'ymnsBl(g|l)' : 'śikhariṇī',
-'nsmrsl(g|l)' : 'hariṇī',
-'jsjsyl(g|l)' : 'pṛthvī',
-'njBjjl(g|l)' : 'kokilaka', # aka narkuṭaka
-
-# 18-syllable
-
-# 19-syllable
-'msjstt(g|l)' : 'śārdūlavikrīḍitā',
-
-# 20
-
-# 21-syllable
-'mrBnyy(y|j)' : 'sragdharā',
-
-# 22
-
-# 23-syllable
-'njjjjjjl(g|l)' : 'śravaṇābharaṇam', # also virājitam
-
-# 24
-
-# 25
-
-}
+# to delete...
+# samavfttas_by_gaRas = {
+#
+# # 8-syllable
+# 'jrl(g|l)' : 'pramāṇikā',
+#
+# # 11-syllable triṣṭubh
+# 'ttjg(g|l)' : 'indravajrā',
+# 'jtjg(g|l)' : 'upendravajrā',
+# 'mttg(g|l)' : 'śālinī',
+# 'rnrl(g|l)' : 'rathoddhatā',
+# 'sssl(g|l)' : 'upacitra',
+#
+# # 12-syllable jagatī
+# 'sss(s|n)' : 'toṭakam',
+# 'nBB(r|B)' : 'drutavilambitam',
+# 'yyy(y|j)' : 'bhujaṅgaprayātam',
+# 'jtj(r|B)' : 'vaṃśastha',
+# 'ttj(r|B)' : 'indravaṃśā',
+# 'rrr(r|B)' : 'sragviṇī',
+# 'sjs(s|n)' : 'pramitākṣarā',
+# 'mmy(y|j)' : 'vaiśvadevī',
+# # drutavilambita
+#
+# # 13-syllable
+# 'mnjr(g|l)' : 'praharṣiṇī',
+# 'jBsj(g|l)' : 'rucirā',
+# 'sjsj(g|l)' : 'mañjubhāṣiṇī',
+#
+# # 14-syllable
+# 'tBjjg(g|l)' : 'vasantatilakā',
+#
+# #15-syllable
+# 'nnmy(y|j)' : 'mālinī',
+#
+# # 16-syllable
+# 'jrjrj(g|l)' : 'pañcacāmara',
+#
+# # 17-syllable
+# 'mBnttg(g|l)' : 'mandākrāntā',
+# 'ymnsBl(g|l)' : 'śikhariṇī',
+# 'nsmrsl(g|l)' : 'hariṇī',
+# 'jsjsyl(g|l)' : 'pṛthvī',
+# 'njBjjl(g|l)' : 'kokilaka', # aka narkuṭaka
+#
+# # 18-syllable
+#
+# # 19-syllable
+# 'msjstt(g|l)' : 'śārdūlavikrīḍitā',
+#
+# # 20
+#
+# # 21-syllable
+# 'mrBnyy(y|j)' : 'sragdharā',
+#
+# # 22
+#
+# # 23-syllable
+# 'njjjjjjl(g|l)' : 'śravaṇābharaṇam', # also virājitam
+#
+# # 24
+#
+# # 25
+# 
+# }
 
 def choose_heavy_gaRa_pattern(gaRa_pattern):
 	"""
@@ -335,15 +336,15 @@ jAtis_by_morae = [
 meter_melodies = {
 	# 'āryā' :  ['Madhura Godbole', 'Sadananda Das', 'HV Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
 	# 'śikhariṇī' : ['Madhura Godbole', 'Sadananda Das']
-	'anuṣṭubh' : ['Madhura Godbole', 'H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+	'anuṣṭubh' : ['Madhura Godbole', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh',  'Diwakar Acarya'],
 	'aparavaktra' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'aśvadhāṭī' : ['Shatavadhani Ganesh'],
-	'āryā' : ['Madhura Godbole', 'Sadananda Das', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+	'āryā' : ['Madhura Godbole', 'Shatavadhani Ganesh', 'Sadananda Das', 'Diwakar Acarya'],
 	'indravajrā' : ['Sadananda Das', 'Diwakar Acarya'],
 	'indravaṃśa' : ['Shatavadhani Ganesh'],
 	'udgata' : ['Shatavadhani Ganesh'],
 	'upagīti' : ['Madhura Godbole'],
-	'upajāti' : ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+	'upajāti' : ['Madhura Godbole', 'Sadananda Das', 'Diwakar Acarya', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'aupacchandasika' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'kokilaka' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'gīti' : ['H.V. Nagaraja Rao'],

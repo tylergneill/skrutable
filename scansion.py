@@ -70,9 +70,9 @@ class Verse(object):
 					if show_weights:
 						line += ('%%%ds' % max_weights_len) % weights
 					if show_morae:
-						line += ' %6s' % '[%s]' % str(self.morae_per_line[i])
+						line += ' %10s' % '{m: %s}' % str(self.morae_per_line[i])
 					if show_gaRas:
-						line += ' %6s' % '[%s]' % self.gaRa_abbreviations.split('\n')[i]
+						line += ' %11s' % '[%d: %s]' % (len(weights), self.gaRa_abbreviations.split('\n')[i])
 					if show_weights or show_morae or show_gaRas:
 						line += '\n'
 					part_A += line
