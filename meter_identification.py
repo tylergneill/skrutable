@@ -598,8 +598,6 @@ class MeterIdentifier(object):
 		S = Sc()
 		Verses_found = []
 
-		# identification_attempts = 0 # performance testing
-
 		for pos_ab in pos_iterators['ab']:
 			for pos_bc in pos_iterators['bc']:
 				for pos_cd in pos_iterators['cd']:
@@ -628,13 +626,11 @@ class MeterIdentifier(object):
 
 						# temp_V.meter_label = VrsTster.attempt_identification(temp_V)
 						success = VrsTster.attempt_identification(temp_V)
-						# identification_attempts += 1 # performance testing
 
 						if success:
 							Verses_found.append(temp_V)
 
 						if temp_V.identification_score == meter_scores["max score"]:
-							# return Verses_found, identification_attempts # performance testing
 							return Verses_found
 							# done when any perfect exemplar found
 							# for greater speed and efficiency
@@ -646,7 +642,6 @@ class MeterIdentifier(object):
 					except IndexError:
 						continue
 
-		# return Verses_found, identification_attempts # performance testing
 		return Verses_found
 
 
@@ -714,9 +709,7 @@ class MeterIdentifier(object):
 		self.VerseTester.resplit_option = resplit_option
 		self.VerseTester.resplit_keep_midpoint = resplit_keep_midpoint
 
-		# additional_identification_attempts = 0 # performance testing
-
-		if resplit_option == 'none':
+		if resplit_option == 'none' or V.text_cleaned == '':
 			success = VT.attempt_identification(V)
 			# label and score set internally
 
@@ -784,7 +777,6 @@ class MeterIdentifier(object):
 
 			# use initial Verse to generate potentially large number of others Verses
 			# store their respective results internally, collect overall list
-			# self.Verses_found, additional_identification_attempts = ... # performance testing
 			self.Verses_found =	self.wiggle_identify(
 				V, syllable_list, VT,
 				pAda_brs, quarter_len
@@ -799,5 +791,4 @@ class MeterIdentifier(object):
 			V.meter_label = 'na kiṃcid adhyavasitam'  # do not return None
 			V.identification_score = meter_scores["none found"] # did at least try
 
-		# return V, additional_identification_attempts # performance testing
 		return V

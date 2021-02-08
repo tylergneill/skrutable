@@ -65,19 +65,16 @@ class Verse(object):
 
 			for i, weights in enumerate(self.syllable_weights.split('\n')):
 
-				try:
-					line = ''
-					if show_weights:
-						line += ('%%%ds' % max_weights_len) % weights
-					if show_morae:
-						line += ' %10s' % '{m: %s}' % str(self.morae_per_line[i])
-					if show_gaRas:
-						line += ' %11s' % '[%d: %s]' % (len(weights), self.gaRa_abbreviations.split('\n')[i])
-					if show_weights or show_morae or show_gaRas:
-						line += '\n'
-					part_A += line
-				except IndexError:
-					import pdb; pdb.set_trace()
+				line = ''
+				if show_weights:
+					line += ('%%%ds' % max_weights_len) % weights
+				if show_morae:
+					line += ' %10s' % '{m: %s}' % str(self.morae_per_line[i])
+				if show_gaRas:
+					line += ' %11s' % '[%d: %s]' % (len(weights), self.gaRa_abbreviations.split('\n')[i])
+				if show_weights or show_morae or show_gaRas:
+					line += '\n'
+				part_A += line
 
 			if part_A != '': part_A += '\n'
 
@@ -98,6 +95,8 @@ class Verse(object):
 			part_B_cell = '%%%ds' % (max_syllable_len + 2)
 
 			for i, line in enumerate(text_syllabified_IAST.split('\n')):
+
+				if line == '': continue
 
 				# display IAST syllables
 				for syll in line.split(' '):
@@ -125,56 +124,6 @@ class Verse(object):
 		cumulative_output = ''.join([part_A, part_B, part_C])
 		return cumulative_output
 
-
-	# def summarize_old(self):
-	#
-	# 	out_buffer = ''
-	#
-	# 	# part_A
-	#
-	# 	max_line_len = max(
-	# 		[ len(line) for line in self.syllable_weights.split('\n') ]
-	# 		)
-	# 	buffer_line = '%%%ds' % max_line_len + ' %6s\n' % '[%s]'
-	# 	# >> "%#s' % max_line_len + ' %6s\n' % '[%s]'
-	#
-	# 	for i, line in enumerate(self.syllable_weights.split('\n')):
-	# 		try: out_buffer += buffer_line % (line, self.morae_per_line[i])
-	# 		except IndexError: out_buffer += buffer_line % (line, '_?_')
-	# 	out_buffer += '\n'
-	#
-	# 	# part_B
-	#
-	# 	T = Transliterator(from_scheme='SLP', to_scheme='IAST')
-	# 	transl_syll_txt = T.transliterate(self.text_syllabified)
-	#
-	# 	line_max = []
-	# 	for syllabified_line in transl_syll_txt.split('\n'):
-	# 		line_max.append(max([len(s_w) for s_w in syllabified_line.split(' ')]))
-	# 	long_syll_len = max(line_max)
-	#
-	# 	buffer_bit = '%%%ds' % (long_syll_len + 2)
-	#
-	# 	for i, syllabified_line in enumerate(transl_syll_txt.split('\n')):
-	# 		# display syllables themselses
-	# 		for syll in syllabified_line.split(' '):
-	# 			out_buffer += buffer_bit % syll
-	# 		out_buffer += '\n'
-	# 		# display corresponding weights
-	# 		try:
-	# 			for s_w in self.syllable_weights.split('\n')[i]:
-	# 				out_buffer += buffer_bit % s_w
-	# 		except IndexError: pass
-	# 		out_buffer += '\n'
-	#
-	# 	# part_C
-	#
-	# 	try:
-	# 		out_buffer += '\n' + self.meter_label + '\n'
-	# 	except TypeError:
-	# 		out_buffer += '\n' + '(vṛttam ajñātam...)' + '\n'
-	#
-	# 	return out_buffer
 
 class Scanner(object):
 	"""
