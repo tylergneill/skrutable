@@ -2,20 +2,18 @@ from skrutable.scheme_detection import SchemeDetector
 from skrutable.transliteration import Transliterator
 from skrutable.scansion import Scanner
 from skrutable.meter_identification import MeterIdentifier
+from skrutable.config import load_config_dict_from_json_file
 import sys, re
 
 allowed_input_filetypes = ['.txt', '.md'] # set acceptable input file types
 
 def get_input(input_fn):
-	input_file = open(input_fn, 'r')
-	input_data = input_file.read()
-	input_file.close()
-	return input_data
+	with open(input_fn, 'r') as input_file:
+		return input_file.read()
 
 def write_output(output_data, output_fn):
-	output_file = open(output_fn, 'w')
-	output_file.write(output_data)
-	output_file.close()
+	with open(output_fn, 'w') as output_file:
+		output_file.write(output_data)
 
 SD = SchemeDetector()
 T = Transliterator()
@@ -66,9 +64,23 @@ elif '--identify_meter' in sys.argv or '-i' in sys.argv:
 	for arg in sys.argv:
 		if arg[:15] == 'resplit_option=':
 			r_o = re.sub(r'["“”\'‘’]', '', arg[15:]) # exclude quotes
+			break
+	else:
+		config = load_config_dict_from_json_file()
+		r_o = config["default_resplit_option"]  # e.g. "none", "resplit_hard"
 
-	object_result = MI.identify_meter(input_data, from_scheme=f_s, resplit_option=r_o)
-	output_data = object_result.summarize()
+	# look for whole-file option
+	if '--whole_file' in sys.argv:
+
+		verses = input_data.split('\n')
+		output_data = ''
+		for verse in verses:
+			result = MI.identify_meter(verse, from_scheme=f_s, resplit_option=r_o)
+			output_data += (result.text_raw + '\n' + result.summarize() + '\n')
+	else:
+		result = MI.identify_meter(input_data, from_scheme=f_s, resplit_option=r_o)
+		output_data = result.text_raw + '\n' + result.summarize()
+
 	output_fn_suffix = '_identified'
 
 else:

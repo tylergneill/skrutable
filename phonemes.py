@@ -1,15 +1,15 @@
 from skrutable import scheme_maps
 
-SLP_short_vowels = ['a','i','u','f','x']
+SLP_short_vowels = ['a','i','u','f','x','ĕ','ŏ'] # latter two exceptions for one-char principle
 SLP_long_vowels = ['A','I','U','F','X','e','E','o','O']
 SLP_vowels = SLP_short_vowels + SLP_long_vowels
 
 SLP_vowels_with_mAtrAs = SLP_vowels[1:] # exclude 'a'
 
 # the below line up with SLP above: first short vowels, then long vowels
-DEV_vowel_mAtrAs = ['ि', 'ु', 'ृ', 'ॢ', 'ा', 'ी', 'ू', 'ॄ', 'ॣ', 'े', 'ै', 'ो', 'ौ']
-BENGALI_vowel_mAtrAs = ['ি', 'ু', 'ৃ', 'ৢ', 'া', 'ী', 'ূ', 'ৄ', 'ৣ', 'ে', 'ৈ', 'ো', 'ৌ']
-GUJARATI_vowel_mAtrAs = ['િ', 'ુ', 'ૃ', 'ૢ', 'ા', 'ી', 'ૂ', 'ૄ',  'ૣ',  'ે',  'ૈ',  'ો',  'ૌ']
+DEV_vowel_mAtrAs = ['ि', 'ु', 'ृ', 'ॢ', 'े', 'ो', 'ा', 'ी', 'ू', 'ॄ', 'ॣ', 'े', 'ै', 'ो', 'ौ']
+BENGALI_vowel_mAtrAs = ['ি', 'ু', 'ৃ', 'ৢ', 'ে', 'ো', 'া', 'ী', 'ূ', 'ৄ', 'ৣ', 'ে', 'ৈ', 'ো', 'ৌ']
+GUJARATI_vowel_mAtrAs = ['િ', 'ુ', 'ૃ', 'ૢ',  'ે',  'ો', 'ા', 'ી', 'ૂ', 'ૄ',  'ૣ',  'ે',  'ૈ',  'ો',  'ૌ']
 
 # dict of dicts
 # use like e.g. vowel_mAtrA_lookup['DEV']['o'] or vowel_mAtrA_lookup['BENGALI']['u']
@@ -30,7 +30,7 @@ SLP_consonants = SLP_unvoiced_consonants + SLP_voiced_consonants
 For transliteration, 'consonant' means 'needs virāma if non-vowel follows' (no M H)
 """
 
-SLP_consonants_for_scansion = SLP_consonants + ['M','H']
+SLP_consonants_for_scansion = SLP_consonants
 """For scansion, 'consonant' means 'contributes to heaviness of previous vowel' (yes M H)"""
 
 DEV_consonants = ['क', 'ख', 'ग', 'घ', 'ङ','च', 'छ', 'ज', 'झ', 'ञ',
@@ -49,7 +49,7 @@ GUJARATI_consonants = ['ક', 'ખ', 'ગ', 'ઘ', 'ઙ','ચ', 'છ', 'જ', '�
 SLP_and_indic_consonants =   (  SLP_consonants + DEV_consonants +
                                 BENGALI_consonants + GUJARATI_consonants )
 
-# build character sets for use in e.g. scansion
+# build character sets for use in cleaning for scansion
 
 Roman_upper = [chr(n) for n in range(65,91)]
 Roman_lower = [chr(n) for n in range(97,123)]
@@ -58,7 +58,9 @@ SLP_chars = ( [ c for c in Roman_upper if c not in ['L','V','Z'] ]
         + Roman_lower )
 
 IAST_chars = ( [c for c in Roman_lower if c not in ['f','q','w','x','z'] ]
-        + ["'",'ñ','ā','ī','ś','ū','ḍ','ḥ','ḷ','ḹ','ṃ','ṅ','ṇ','ṛ','ṝ','ṣ','ṭ'] )
+        + ['ñ','ā','ī','ś','ū','ḍ','ḥ','ḷ','ḹ','ṃ','ṅ','ṇ','ṛ','ṝ','ṣ','ṭ','ẖ','ḫ','ï','ü','ĕ','ŏ']
+		+ ['̄', '́', '̇', '̣', '̥', '̱', '̮', '̱', 'ṁ', 'ē', 'ō'] ) # also accept ISO etc. alternates
+		# need to add more in case of capital letters, etc.; see scheme_maps.IAST_SLP
 
 HK_chars = ( ['A','D','G','H','I','J','M','N','R','S','T','U']
         + [c for c in Roman_lower if c not in ['f','q','w','x'] ] )

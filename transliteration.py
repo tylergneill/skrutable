@@ -127,9 +127,12 @@ class Transliterator():
 
 			prev_char = curr_char
 
-		if curr_char in phonemes.SLP_consonants:
-			# from SLP: final virāma if needed
+		if prev_char in phonemes.SLP_consonants:
+			# line-final SLP consonant: final virāma needed
 			content_out += phonemes.virAmas[to_scheme]
+		elif prev_char in phonemes.SLP_and_indic_consonants:
+			# line-final Indic consonant: final 'a' needed
+			content_out += 'a'
 
 		self.contents = content_out # hybrid
 
@@ -151,15 +154,20 @@ class Transliterator():
 		and also directly as string.
 		"""
 
+		if from_scheme == "IASTREDUCED":
+			return cntnts
+
 		self.contents = cntnts
 
-		if from_scheme != None: # override
+		# uppercase
+		if from_scheme != None:
 			self.scheme_in = from_scheme.upper()
-		if self.scheme_in.upper() in scheme_detection.auto_detect_synonyms:
-			self.set_detected_scheme()
-
-		if to_scheme != None: # override
+		if to_scheme != None:
 			self.scheme_out = to_scheme.upper()
+
+		# looks for auto-detect keywords
+		if self.scheme_in in scheme_detection.auto_detect_synonyms:
+			self.set_detected_scheme()
 
 		# transliterate first to hub scheme SLP
 		self.linear_preprocessing(self.scheme_in, 'SLP')

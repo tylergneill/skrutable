@@ -10,6 +10,7 @@ import re
 # load config variables
 config = load_config_dict_from_json_file()
 scansion_syllable_separator = config["scansion_syllable_separator"] # e.g. " "
+additional_pAda_separators = config["additional_pAda_separators"]  # e.g. ["\t", ";"]
 
 class Verse(object):
 	"""
@@ -32,57 +33,97 @@ class Verse(object):
 		self.text_syllabified = None	# string, may contain newlines
 		self.syllable_weights = None	# string, may contain newlines
 		self.morae_per_line = None 		# list of integers
+		self.gaRa_abbreviations = None	# string, may contain newlines
 		self.meter_label = None			# string
+		self.identification_score = 0 	# int
 
-
-	def summarize(self):
+	def summarize(self,
+		show_weights=True, show_morae=True, show_gaRas=True, # part_A
+		show_alignment=True, # part_B
+		show_label=True # part_C
+		):
 		"""
-		Returns display-ready, formatted string,
-		featuring right-alignment of (vowel-final) syllables and their weights,
-		as summary of key attributes resulting from scansion.
+		Returns display-ready formatted string summarizing scansion
+		and (if applicable) meter identification.
+
+		Features on-demand combination of:
+			syllable weights
+			morae counts
+			gaṇa abbreviations
+			right-justified alignment of vowel-final syllables and their weights
+			meter label (if available)
 		"""
+		part_A = part_B = part_C = ''
 
-		out_buffer = ''
+		# part_A
 
-		longest_line_len = max([len(line) for line in self.syllable_weights.split('\n')])
-		buffer_line = '%%%ds' % longest_line_len + ' %6s\n' % '[%s]'
+		if show_weights or show_morae or show_gaRas:
 
-		# quick view of syllables and morae
-		for i, line in enumerate(self.syllable_weights.split('\n')):
-			try:
-				out_buffer += buffer_line % (line, self.morae_per_line[i])
-			except IndexError:
-				out_buffer += buffer_line % (line, '_?_')
-		out_buffer += '\n'
+			max_weights_len = max(
+				[ len(line) for line in self.syllable_weights.split('\n') ]
+				)
 
-		T = Transliterator(from_scheme='SLP', to_scheme='IAST')
-		transl_syll_txt = T.transliterate(self.text_syllabified)
+			for i, weights in enumerate(self.syllable_weights.split('\n')):
 
-		line_max = []
-		for syllabified_line in transl_syll_txt.split('\n'):
-			line_max.append(max([len(s_w) for s_w in syllabified_line.split(' ')]))
-		long_syll_len = max(line_max)
+				line = ''
+				if show_weights:
+					line += ('%%%ds' % max_weights_len) % weights
+				if show_morae:
+					line += ' %10s' % '{m: %s}' % str(self.morae_per_line[i])
+				if show_gaRas:
+					line += ' %11s' % '[%d: %s]' % (len(weights), self.gaRa_abbreviations.split('\n')[i])
+				if show_weights or show_morae or show_gaRas:
+					line += '\n'
+				part_A += line
 
-		buffer_bit = '%%%ds' % (long_syll_len + 2)
+			if part_A != '': part_A += '\n'
 
-		for i, syllabified_line in enumerate(transl_syll_txt.split('\n')):
-			# display syllables themselses
-			for syll in syllabified_line.split(' '):
-				out_buffer += buffer_bit % syll
-			out_buffer += '\n'
-			# display corresponding weights
-			try:
+		# part_B
+
+		if show_alignment:
+
+			# IAST is standard output for alignment (as well as meter label)
+			T = Transliterator(from_scheme='SLP', to_scheme='IAST')
+			text_syllabified_IAST = T.transliterate(self.text_syllabified)
+
+			# calculate max syllable length for entire verse
+			line_max = []
+			for line in text_syllabified_IAST.split('\n'):
+				line_max.append( max([ len(s_w) for s_w in line.split(' ') ]) )
+			max_syllable_len = max(line_max)
+
+			part_B_cell = '%%%ds' % (max_syllable_len + 2)
+
+			for i, line in enumerate(text_syllabified_IAST.split('\n')):
+
+				if line == '': continue
+
+				# display IAST syllables
+				for syll in line.split(' '):
+					part_B += part_B_cell % syll
+				part_B += '\n'
+
+				# display corresponding weights aligned underneath each syllable
 				for s_w in self.syllable_weights.split('\n')[i]:
-					out_buffer += buffer_bit % s_w
-			except IndexError: pass
-			out_buffer += '\n'
+					part_B += part_B_cell % s_w
+				part_B += '\n'
 
-		try:
-			out_buffer += '\n' + self.meter_label + '\n'
-		except TypeError:
-			out_buffer += '\n' + '(vṛttam ajñātam...)' + '\n'
+			if part_B != '': part_B += '\n'
 
-		return out_buffer
+		# part_C
+
+		if show_label:
+
+			if self.meter_label == None:
+				part_C += '(vṛttaṃ gaṇyatām...)'
+			else:
+				part_C += self.meter_label
+
+			if part_C != '': part_C += '\n'
+
+		cumulative_output = ''.join([part_A, part_B, part_C])
+		return cumulative_output
+
 
 class Scanner(object):
 	"""
@@ -110,14 +151,22 @@ class Scanner(object):
 
 		Returns result as string.
 		"""
-		result = cntnts
-		for c in list(set(result)):
-			if c not in phonemes.character_set[scheme_in]:
-				result = result.replace(c,'')
-		SD = SchemeDetector()
-		result_scheme = SD.detect_scheme(result)
-		return result
 
+		# manage additional newlines
+
+		for chr in additional_pAda_separators:
+			cntnts = cntnts.replace(chr, '\n')
+		# dedupe, also allowing for carriage returns introduced in HTML form input
+		regex = re.compile(r"(\n\r?){2,}")
+		cntnts = re.sub(regex, '\n', cntnts)
+
+		# filter out disallowed characters
+
+		for c in list(set(cntnts)):
+			if c not in phonemes.character_set[scheme_in]:
+				cntnts = cntnts.replace(c,'')
+
+		return cntnts
 
 	def syllabify_text(self, txt_SLP):
 		"""
@@ -150,9 +199,14 @@ class Scanner(object):
 			# place scansion_syllable_separator after vowels
 			for letter in line:
 
+				# exception: do treat M and H as explicit syllable coda
+				if letter in ['M', 'H']:
+					if line_syllables[-1] == scansion_syllable_separator:
+						line_syllables = line_syllables[:-1]
+
 				line_syllables += letter
 
-				if letter in phonemes.SLP_vowels:
+				if letter in phonemes.SLP_vowels + ['M', 'H']:
 					line_syllables += scansion_syllable_separator
 
 			# e.g. 'ya.dA.ya.dA.hi.Da.rma.sya.glA.ni.rBa.va.ti.BA.ra.ta.'
@@ -206,7 +260,7 @@ class Scanner(object):
 
 				if (
 					# heavy by nature
-					syllable[-1] in phonemes.SLP_long_vowels
+					syllable[-1] in phonemes.SLP_long_vowels + ['M', 'H']
 
 					or
 
@@ -255,7 +309,7 @@ class Scanner(object):
 
 	def gaRa_abbreviate(self, syl_wts):
 		"""
-		Accepts string of light/heavy (l/g) pattern, e.g., 'lllgggl'.
+		Accepts one-line string of light/heavy (l/g) pattern, e.g., 'lllgggl'.
 
 		Returns string of 'gaRa'-trisyllable abbreviation, e.g. 'nml'.
 		"""
@@ -312,6 +366,9 @@ class Scanner(object):
 		V.text_syllabified = self.syllabify_text(V.text_SLP)
 		V.syllable_weights = self.scan_syllable_weights(V.text_syllabified)
 		V.morae_per_line = self.count_morae(V.syllable_weights)
+		V.gaRa_abbreviations = '\n'.join(
+		[ self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n') ]
+		)
 
 		self.Verse = V
 		self.Transliterator = T

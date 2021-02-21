@@ -1,122 +1,23 @@
-# skrutable
+# about
 
-The `skrutable` library is meant to make Sanskrit text processing less “inscrutible”, both for interested laypeople and for serious students and scholars, especially those who know a bit of Python and are curious to peek under the hood.
+For whys and where-tos, see [skrutable.pythonanywhere.com/about](http://skrutable.pythonanywhere.com/about)
 
-# Features
 
-* Four main functionalities
-	* scheme detection (frequency-based for robustness) [still under development]
-	* transliteration (extensible)
-	* scansion (with aligned output)
-	* meter identification (extensible, with semiautomatic pāda re-splitting)
+# how to use
 
-* Three use options
+The online web app at [skrutable.pythonanywhere.com](http://skrutable.pythonanywhere.com)
+will let you do both casual one-off tasks and also whole-file processing.
 
-	* Python library (modular; consistent object-based syntax; readable code)
+![screenshot](img/web_app.png)
 
-	* Python command-line interface [still under development]
+See [skrutable.pythonanywhere.com/tutorial](http://skrutable.pythonanywhere.com/tutorial) for more instructions.
 
-	* Desktop GUI (`wxpython`-based; currently macOS only; requires additional setup)
-		![screenshot](img/gui_light_left_right.png)
-		![screenshot](img/gui_dark_top_bottom.png)
+If you need to, you can also download and use the Python code, either as a library, as a local web app, or as a command-line script. See [below](#using-the-code) for more.
 
-	* (And hopefully a fourth option one day soon: web-based version of the GUI)
 
-* User settings all in one place (`config.json`), including
-	* default scheme choices (incl. auto-detection)
-	* virāma avoidance behavior (esp. for transliteration to Indic schemes)
-	* default auto-resplit options for meter identification
+# transliteration schemes
 
-# Getting Started
-
-1. Have Python 3 installed. (`Homebrew` recommended)
-
-2. Install `skrutable`.
-
-* (Eventually: Installation via `pip`. For now...)
-
-* [Download this repo](https://github.com/tylergneill/skrutable/archive/master.zip). (same as green “Code” button on [GitHub main page](https://github.com/tylergneill/skrutable))
-
-* Put the `skrutable` folder where your other Python libraries are.
-	* Using `virtualenv`? You can put it directly in the relevant `lib/python3.x/site-packages` folder.
-	* Not? Then you can put it where your other packages normally install to (e.g. with `pip`).
-		* (Hint: command line `python -c "import sys; print(sys.path)"` to see where.)
-
-3. Get the other necessary Python libraries.
-
-* If you'll just be using `skrutable` as a library, then the only thing you might need to install is `numpy`. (`pip` recommended)
-
-* If you want to use the desktop GUI, then also install `wxpython` (includes `numpy`, `setuptools`) and `py2app`.
-
-* (Should already be natively pre-installed: `collections`, `copy`, `json`, `operator`, `os`, `re`)
-
-For GUI setup, see [Getting the Desktop GUI to Work](#getting-the-desktop-gui-to-work) below.
-
-# Using the Python Library
-
-Import modules/constructors, instantiate respective objects, and use those objects' primary methods.
-
-(Note for coding purposes: lowercase for “skrutable” and all modules, camelcase for objects.)
-
-1. Scheme Detection
-~~~
-from skrutable.scheme_detection import SchemeDetector
-SD = SchemeDetector()
-string_result = SD.detect_scheme( input_string )
-~~~
-
-2. Transliteration
-~~~
-from skrutable.transliteration import Transliterator
-T = Transliterator()
-string_result_1 = T.transliterate( input_string ) # using default settings
-string_result_2 = T.transliterate( input_string, to_scheme='BENGALI' )
-string_result_3 = T.transliterate( input_string, from_scheme='BENGALI', to_scheme='HK' )
-string_result_4 = T.transliterate( input_string, from_scheme='auto', to_scheme='ITRANS' )
-
-~~~
-
-3. Scansion
-~~~
-from skrutable.scansion import Scanner
-S = Scanner()
-object_result = S.scan( input_string )
-print( object_result.summarize() )
-~~~
-
-4. Meter Identification
-~~~
-from skrutable.meter_identification import MeterIdentifier
-MI = MeterIdentifier()
-object_result = MI.identify_meter( input_string ) # default resplit_option
-print( object_result.summarize() )
-another_object_result = MI.identify_meter(input_string, resplit_option='resplit_hard')
-print( another_object_result.meter_label() )
-~~~
-
-For more examples, see `demo.py` (coming soon).
-
-# Using the Command Line Interface (under development)
-
-You can also issue one-line commands at the Terminal/Command Line to the module `skrutable_one.py` for quick and powerful access to the main methods for each of the four main modules. Examples:
-
-1. Transliterate to Bengali script:
-~~~
-python skrutable_one.py --transliterate FILENAME.txt to_scheme=BENGALI
-~~~
-
-2. Identify the meter of a verse:
-~~~
-python skrutable_one.py --identify_meter FILENAME.txt
-~~~
-
-To use, simply put `skrutable_one.py` (or a copy thereof) and your desired input file in the same place (wherever you'd like), open the Terminal/Command Line at that place, and run the command.
-
-# Schemes
-
-(Note: “Encoding” here means basically UTF-8, and “script” means a distinct character set (e.g. Roman alphabet vs. Devanagari alphabet/syllabary/abugida). Thus, neither “Roman” nor “Unicode” are used here to refer to the “(transliteration) schemes” described below. For more on such terminology, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).)
-
-The schemes used in `skrutable` are all referred internally to by simple strings, namely, the abbreviations in the following table:
+Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
 
 <table>
     <thead>
@@ -129,98 +30,78 @@ The schemes used in `skrutable` are all referred internally to by simple strings
     </thead>
     <tbody>
         <tr>
-            <td rowspan=8>Roman</td>
+            <td rowspan=6>Roman</td>
             <td>IAST</td>
             <td>International Alphabet of Sanskrit Transliteration</td>
-            <td>paṭhāmaḥ</td>
-        </tr>
-        <tr>
-            <td>SLP</td>
-            <td>Sanskrit Library Protocol 1</td>
-            <td>paWAmaH</td>
+            <td>saṃskṛtaṃ paṭhāmaḥ</td>
         </tr>
         <tr>
             <td>HK</td>
             <td>Harvard-Kyoto</td>
-            <td>paThAmaH</td>
+            <td>saMskRtaM paThAmaH</td>
         </tr>
         <tr>
-            <td>VH</td>
-            <td>Velthuis</td>
-            <td>pa.thaama.h</td>
-        </tr>
-        <tr>
-            <td>WX</td>
-            <td>Scheme developed at IIT Kanpur</td>
-            <td>paTAmaH</td>
+            <td>SLP</td>
+            <td>Sanskrit Library Protocol 1</td>
+            <td>saMskftaM paWAmaH</td>
         </tr>
         <tr>
             <td>ITRANS</td>
             <td>Indian Languages Transliteration</td>
-            <td>paThaamaH</td>
+            <td>sa.mskRita.m paThaama.h</td>
         </tr>
         <tr>
-            <td>CSX</td>
-            <td>Classical Sanskrit eXtended</td>
-            <td>paòâmaþ</td>
+            <td>VH</td>
+            <td>Velthuis</td>
+            <td>sa.msk.rta.m pa.Taama.h</td>
         </tr>
         <tr>
-            <td>REE</td>
-            <td>Scheme used by Ronald E. Emmerick</td>
-            <td>paèÃma÷</td>
+            <td>WX</td>
+            <td>Scheme developed at IIT Kanpur</td>
+            <td>saMskqwaM paTAmaH</td>
         </tr>
         <tr>
             <td rowspan=3>Indic</td>
             <td>DEV</td>
             <td>Devanagari Unicode</td>
-            <td>पठामः</td>
+            <td>संस्कृतं पठामः</td>
         </tr>
         <tr>
             <td>BENGALI</td>
             <td>Bengali Unicode</td>
-            <td>পঠামঃ</td>
+            <td>সংস্কৃতং পঠামঃ</td>
         </tr>
         <tr>
             <td>GUJARATI</td>
             <td>Gujarati Unicode</td>
-            <td>પઠામઃ</td>
+            <td>સંસ્કૃતં પઠામઃ</td>
         </tr>
     </tbody>
 </table>
 
-`skrutable` can be extended to include more such simple Roman- or Brāhmi-based schemes for Classical Sanskrit and perhaps even related classical languages like Vedic or Prakrits (specifically, by modifying the modules `phonemes.py` and `scheme_maps.py`). On the other hand, it is not designed for modern languages with phonologies that differ significantly from Sanskrit (such as Hindi, Tamil, and so on). For tools made for such languages, cp. [Related Sanskrit Transliteration and Scansion Projects](#related-sanskrit-transliteration-and-scansion-projects) below.
+There is also a very lossy “IASTreduced” (e.g., “samskrtam pathamah”) which I find sometimes comes in handy. Additional academic schemes not currently featured include CSX (Classical Sanskrit eXtended, e.g. “saüskçtaü paòâmaþ”), REE (by Ronald E. Emmerick, e.g. “saæsk­taæ paèÃma÷”), and the scheme internal to the [DCS](http://www.sanskrit-linguistics.org/dcs/index.php) (by Oliver Hellwig, e.g. “saºskŸtaº paÅåmaµ”). 
 
-Note also that scheme auto-detection can be useful whenever manually specifying the input scheme might be inconvenient, but that this should be used with caution, since this feature in `skrutable` works based on input character frequencies, and so results will deteriorate the shorter and/or messier the input string becomes.
+More schemes for writing Sanskrit, especially those corresponding to additional Indic scripts, can easily be added to `skrutable` by modifying the code in `phonemes.py` and `scheme_maps.py`. I'm happy to help with this. Alternatively, for other tools with wider character support, including for other South Asian languages, see [related projects](#related-projects) below.
 
-# Virāma (and Whitespace) Avoidance
+Note that I use “encoding” here in the sense of UTF-8 (most often as in over and above ASCII) and “script” in the sense of a distinct character set like either the Roman or Devanagari alphabets (latter actually an abugida), and so I don't use either “Roman” or “Unicode” to refer to any of the individual schemes. For more thoughts on such terminology, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).
 
-Sometimes, usually for aesthetic purposes (read: only rarely for scientific ones), it's best to suppress extra virāmas and spaces between words, such as where Indic scripts would instead feature ligatures. For example:
 
-~~~
-“asty eva” >> (“अस्त्य् एव”) >> “अस्त्येव”
-~~~
+# scansion and meter identification
 
-For such cases, the `skrutable.transliteration` module includes a simple but handy “virāma avoidance” feature, based on straightforward regular expressions and string replacements, which eliminates spaces (and with them virāmas) between certain specified combinations of characters. Settings for this can be controlled in `config.py` and `virAma_avoidance.py`.
+For the concepts and traditional conventions in Sanskrit prosody which this part of `skrutable` is based on, see above all the appendix of V.S. Apte's *Practical Sanskrit-English dictionary*, 1890, pp. 1179ff. ([on Archive](https://archive.org/details/ldpd_7285627_000/page/n1195/mode/2up))
 
-# Encoding Normalization
+The most important terms in short:
+* laghu (l) / guru (g): metrically light / heavy syllable
+* mora: value of 1 for each light syllable and 2 for each heavy syllable
+* gaṇa: [traditional abbreviation](https://en.wikipedia.org/wiki/Sanskrit_prosody#Ga%E1%B9%87a) — ya ma ta ra ja bha na sa la ga — for each [trisyllable group](https://en.wikipedia.org/wiki/Foot_(prosody))
+* anuṣṭubh (also śloka): a verse type consisting of 8 syllables (or *akṣaras*) per quarter (or *pāda*) in a partly constrained, partly fluid laghu-guru pattern
+* samavṛtta: a verse type containing four quarters with the same number of syllables in each and generally a rigid pattern of laghus and gurus
+* jāti: a verse type containing four quarters with set patterns of total moraic length
 
-Some schemes have internal options, whether at the scheme or encoding level. For example, IAST is sometimes represented in UTF-8 with combining diacritics, sometimes with precomposed combinations. Round-trip transliteration in `skrutable` can be used to iron out such differences. For example, with IAST-IAST transliteration (yes, you can do that):
 
-~~~
-"rāmaḥ" == 'r' + 'a' + '¯' (U+0304) + 'm' + 'a' + 'h' + '.' (U+0323)
->>
-"rāmaḥ" == 'r' + 'ā' (U+0101) + 'm' + 'a' + 'ḥ' (U+1E25)
-~~~
+# related projects
 
-That is, `skrutable` currently favors precomposed characters for IAST, and it has similar default behaviors for the occasional scheme-internal option, as well (e.g., 'Ri', 'RRi', and 'R^i' for 'ṛ' in ITRANS). These one-way mappings can be altered in `scheme_maps.py`.
-
-# Sandhi and Compound Segmentation
-
-For automated sandhi and compound segmentation — which is a much, much harder problem to solve, but whose output can still be comfortably represented in readable plain-text and so which might theoretically lend itself to inclusion in such a text-processing toolkit as this — `skrutable` defers to the Hellwig-Nehrdich pre-trained neural-network tool, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), which produces good, usable results (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)). (`TensorFlow` required)
-
-# Related Sanskrit Transliteration and Scansion Projects
-
-Numerous other projects exist which some users may find preferable to `skrutable` in certain respects (e.g., more script support, easier to install, nicer looking, available online). Here are my recommended highlights.
+There are numerous related projects which users may find preferable to `skrutable` in certain respects (e.g., more script support, easier to install (e.g. with `pip`), different opinions on edge cases, etc.) Here are my recommended highlights.
 
 Scheme Detection | Transliteration | Scansion & Meter Identification | Main Author
 -------- | ---------- | --------- | --------
@@ -231,16 +112,130 @@ Scheme Detection | Transliteration | Scansion & Meter Identification | Main Auth
 (n/a) | **[Transliteration Tool](https://www.ashtangayoga.info/philosophy/sanskrit-and-devanagari/transliteration-tool/)** | (n/a) | AshtangaYoga.info
 (n/a) | **[Sanscription](http://www.tyfen.com/sanscription/)** | (n/a) | Marc Tiefenauer
 
-# Getting the desktop GUI to work
 
-The desktop GUI app is made with `wxpython` and `py2app`, and I'm so far having trouble compiling a working standalone binary that others can also use. However, `py2app` also has an “alias” mode which does more reliably produce a working app, and I have seen the [same procedure I used](https://py2app.readthedocs.io/en/latest/tutorial.html) work on a Mac other than my own. Try the following:
-* Have the required libraries installed (see [Getting Started](#getting-started) above).
-* In the `skrutable` folder, create a `setup.py` file based on the GUI module: `py2applet --make-setup gui.py`
-* Build the application in alias mode: `python setup.py py2app -A`
-* (Optional:) Rename and move the resulting alias-mode app to Applications, e.g.: `mv /PATH/TO/skrutable/dist/gui.app /Applications/Skrutable.app`
 
-If all goes well, you should now be able to run the `skrutable` GUI as you would any other app on macOS, for example via Spotlight. I haven't yet tried this for Windows, but `py2exe` should produce similar results.
+# encoding normalization
 
-# Web App
+Some schemes have internal options. For example, at the level of encoding, IAST is sometimes represented in UTF-8 with combining diacritics, sometimes with precomposed combinations. Alternatively, at the level of the scheme itself, ITRANS writes vocalic r (ṛ, ऋ) as 'Ri', 'RRi', or 'R^i. Because `skrutable` transliterates by way of SLP, and because it must output a single option, you can use round-trip transliteration (e.g., IAST-IAST) to normalize such variation. For example:
 
-Calling all volunteers! Like `skrutable`? Know some web programming? I sure don't. Help me build a simple web front-end!
+~~~
+"rāmaḥ" == 'r' + 'a' + '¯' (U+0304) + 'm' + 'a' + 'h' + '.' (U+0323)
+>>
+"rāmaḥ" == 'r' + 'ā' (U+0101) + 'm' + 'a' + 'ḥ' (U+1E25)
+~~~
+
+That is, `skrutable` currently favors precomposed characters for IAST. In the code, these and other scheme-internal defaults can be inspected and changed in `scheme_maps.py`.
+
+
+# virāma avoidance
+
+For the purpose of printing Indic scripts, it's often aesthetically (if not always scientifically) preferable to remove certain inter-word spaces and their corresponding virāmas, and to instead use ligatures. For example:
+
+~~~
+asty eva >> ( अस्त्य् एव ) >> अस्त्येव
+~~~
+
+This is the default behavior for transliterating to Indic scripts in `skrutable`. In the code, the regular expressions governing this can be found in `virAma_avoidance.py`, and the overall setting can be toggled in `config.py`.
+
+
+# using the code
+
+
+## installation for offline use
+
+1. Have Python 3 installed. (`Homebrew` recommended)
+
+2. Install `skrutable` as follows:
+
+* (Eventually: Installation via `pip`. For now...)
+
+* Click the green “Code” button on [repo main page](https://github.com/tylergneill/skrutable) or just click [here](https://github.com/tylergneill/skrutable/archive/master.zip) to download the repo.
+
+* Put the `skrutable` folder where your other Python libraries are.
+	* Using `virtualenv`? You can put it directly in the relevant `lib/python3.x/site-packages` folder.
+	* Not? Then you can put it where your other packages normally install to (e.g. with `pip`).
+		* (Hint: command line `python -c "import sys; print(sys.path)"` to see where.)
+
+* Get the other necessary Python libraries: 
+	* currently only `numpy` for scheme detection (`pip` recommended) (*scheme detection currently under repair*)
+	* (should already be natively pre-installed: `collections`, `copy`, `json`, `operator`, `os`, `re`)
+
+
+## using as local web app
+
+For doing more data-heavy processing that is still user-friendly, you may wish to run the front-end web app locally on your own machine. If so, you'll also need to download the [separate front-end repo](https://github.com/tylergneill/skrutable_front_end). This package relies on importing `skrutable` as a library (see hint on `sys.path` above). With both of these in place (and don't forget to also `pip install flask`), go to the folder with the front-end Flask app and run the commands in `launch.sh`. You can then access `skrutable` in your browser at `http://127.0.0.1:5000`.
+
+See [here](https://flask.palletsprojects.com/en/1.1.x/quickstart/) for more instructions on Flask, or [ask me](#feedback).
+
+
+## using as library
+
+From each respective module (`transliteration.py`, `scansion.py`, `meter_identification.py`), import the respective object constructor (`Transliterator`, `Scanner`, `MeterIdentifier`), instantiate the object, and call its primary methods (`transliterate()`, `scan()`, `identify_meter()`). Transliteration returns a string, whereas scansion and meter identification return `Scansion.Verse` objects, which contain (among other things) a `meter_label` attribute and a `summarize()` method.
+
+The following are the important function parameters:
+
+* transliteration: `from_scheme`, `to_scheme` (`IAST`, `HK`, `SLP`, `ITRANS`, `VH`, `WX`, `IASTreduced`, `DEV`, `BENGALI`, `GUJARATI`)
+* scansion: `show_weights`, `show_morae`, `show_gaRas`, `show_alignment`
+* meter identification: `resplit_option` (`none`, `resplit_lite`, `resplit_max`)
+
+Examples:
+
+1. `skrutable.transliteration`, `transliteration.Transliterator`, `Transliterator.transliterate()`
+~~~
+from skrutable.transliteration import Transliterator
+T = Transliterator()
+string_result_1 = T.transliterate( input_string ) # default from_scheme, to_scheme
+string_result_2 = T.transliterate( input_string, to_scheme='BENGALI' ) # default from_scheme
+string_result_3 = T.transliterate( input_string, from_scheme='HK', to_scheme='BENGALI')
+~~~
+
+2. `skrutable.scansion`, `scansion.Scanner`, `Scanner.scan()`
+~~~
+from skrutable.scansion import Scanner
+S = Scanner()
+Verse_result_1 = S.scan( input_string ) # default from_scheme, show options
+print( Verse_result_1.summarize() )
+Verse_result_2 = S.scan( input_string, from_scheme='DEV') 
+print( Verse_result_2.summarize() ) # default 'show' options
+Verse_result_3 = S.scan( input_string, from_scheme='DEV') 
+print( Verse_result_3.summarize(show_alignment=False) ) # default further 'show' options
+~~~
+
+3. `skrutable.meter_identification`, `meter_identification.MeterIdentifier`, `MeterIdentifier.identify_meter()`
+~~~
+from skrutable.meter_identification import MeterIdentifier
+MI = MeterIdentifier()
+Verse_result_1 = MI.identify_meter(input_string) # default from_scheme, resplit_option
+print( Verse_result_1.meter_label() )
+Verse_result_2 = MI.identify_meter(input_string, resplit_option='none') # default from_scheme
+print( Verse_result_2.summarize() ) # default 'show' options
+Verse_result_3 = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite')
+print( Verse_result_3.summarize(show_morae=False) ) # default further 'show' options
+~~~
+
+More examples of how to use the library can be found in the repo's `tests` folder (for use with `pytest`) and in the `jupyter_notebooks` folder.
+
+
+## using as command-line script
+
+Another way to run the code is the little command-line script `skrutable_one.py`. To use it, make a copy of `skrutable_one.py` and put it the same location as your desired input file. (Note: The main library must be located somewhere where imports from anywhere will work, otherwise bring your input to the library location instead.) Then just run `skrutable_one.py` at the command line (e.g., Terminal) with the proper arguments. Examples:
+
+1. transliterate to Bengali script:
+~~~
+python skrutable_one.py --transliterate FILENAME.txt from_scheme=IAST to_scheme=BENGALI
+~~~
+
+2. identify meter for a single verse:
+~~~
+python skrutable_one.py --identify_meter FILENAME.txt resplit_option=none from_scheme=IAST
+~~~
+
+3. identify meter for a whole file (one verse per line):
+~~~
+python skrutable_one.py --identify_meter --whole_file FILENAME.txt resplit_option=resplit_lite from_scheme=IAST
+~~~
+
+
+# feedback
+
+For any questions, comments, or requests, find [me on Academia](https://uni-leipzig1.academia.edu/TylerNeill) and send me an email.
