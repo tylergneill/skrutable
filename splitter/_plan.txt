@@ -1,7 +1,7 @@
 goal: make wrapper for Splitter so that it's more usable 
 
 use-case:
-	from skrutable.splitter.wrapper import HellwigSplitter as Spl
+	from skrutable.splitter.wrapper import Splitter as Spl
 	split_text = Spl.split(text) # with a little wait
 
 main required adjustments:

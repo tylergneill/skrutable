@@ -11,17 +11,24 @@ Hacky temporary path solution to solve Python 3.5 and relative path problems:
 	and finally, return to original working directory.
 """
 
+
 # absolute paths
 python_3_5_bin_path = "/Users/tyler/.pyenv/versions/3.5.9/bin"
-wrapper_module_path = "/Users/tyler/Git/Sanskrit_Text_Tools/skrutable/splitter"
+# tensorflow 1.15.0
+
+# "/home/skrutable/.virtualenvs/myvirtualenv/bin/python3.5"
+# tensorflow 1.10
+
+wrapper_module_path = "/Users/tyler/Git/skrutable/splitter"
+# "/home/skrutable/mysite/skrutable/splitter"
 
 # relative paths
-buffer_in_fn = "data/input/buffer_in.txt"
-buffer_out_fn = "data/output/buffer_out.txt"
+Splitter_input_buffer_fn = "data/input/buffer_in.txt"
+Splitter_output_buffer_fn = "data/output/buffer_out.txt"
 
 preserve_punc_default = True
 
-class HellwigSplitterWrapper(object):
+class Splitter(object):
 
 	def __init__(self):
 
@@ -29,6 +36,9 @@ class HellwigSplitterWrapper(object):
 		self.max_char_limit = 128
 		self.char_limit_split_regex_options = [r'(?<=[mṃtd]) ', r' ']
 		self.ctr_splt_range = 0.8 # percentage distance measured from middle
+		self.line_count_before_split = 0
+		self.line_count_during_split = 0
+		self.line_count_after_split = 0
 
 	def get_punc(self, txt):
 		return re.findall(self.punc_regex, txt)
@@ -119,7 +129,7 @@ class HellwigSplitterWrapper(object):
 		orig_cwd = os.getcwd()
 		os.chdir(wrapper_module_path)
 
-		print("prsrv_punc", prsrv_punc)
+		self.line_count_before_split = len(text.split('\n'))
 
 		# save original punctuation
 		if prsrv_punc:
@@ -129,22 +139,28 @@ class HellwigSplitterWrapper(object):
 		text_presplit = self.presplit(text)
 		prepared_text = self.enforce_char_limit(text_presplit)
 
+		self.line_count_during_split = len(prepared_text.split('\n'))
+
 		# write prepared string to Splitter input buffer
-		buffer_in_f = open(buffer_in_fn, 'w')
-		buffer_in_f.write(text_presplit) # f_out.write(text_pre_split)
-		buffer_in_f.close()
+		with open(Splitter_input_buffer_fn, 'w') as f_out:
+			f_out.write(text_presplit)
 
 		# run Splitter
 		command = "%s/python3.5 -W ignore apply.py" % python_3_5_bin_path
 		subprocess.call(command, shell='True')
 
 		# retrieve Splitter result from output buffer
-		result = open(buffer_out_fn, 'r').read()
+		with open(Splitter_output_buffer_fn, 'r') as f_in:
+			result = f_in.read()
+
+		# could do stats on words per line here
 
 		# clean up results (e.g., newlines, original punctuation)
 		result = self.clean_up(result)
-		if prsrv_punc:
+		if prsrv_punc and saved_punc != []:
 			result = self.restore_punc(result, saved_punc)
+
+		self.line_count_after_split = len(result.split('\n'))
 
 		# restore original working directory
 		os.chdir(orig_cwd)
