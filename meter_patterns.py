@@ -1,3 +1,26 @@
+
+# traditional "gaṇa" trisyllable abbreviation scheme
+gaRas_by_weights = {
+'lgg' : 'y', # bacchius
+'ggg' : 'm', # molossus
+'ggl' : 't', # antibacchius
+'glg' : 'r', # cretic / amphimacer
+'lgl' : 'j', # amphibrach
+'gll' : 'B', # dactyl
+'lll' : 'n', # tribrach
+'llg' : 's', # anapest / antidactylus
+}
+
+"""
+	Sources:
+		Apte, V.S. (1890). Practical Sanskrit-English Dictionary, "Appendix A: Sanskrit Prosody".
+			PDF online @ https://archive.org/details/ldpd_7285627_000/page/n1195/mode/2up
+		Hahn, M. (2014). "Brief introduction into the Indian metrical system (for the use of students)"
+			PDF online @ https://uni-marburg.academia.edu/MichaelHahn
+		Murthy, G.S.S. (2003). "Characterizing Classical Anuṣṭup: A Study in Sanskrit Prosody".
+			https://www.jstor.org/stable/41694750
+"""
+
 """
 	anuṣṭubh
 
@@ -30,17 +53,6 @@ anuzwuB_pAda = {
 	Final syllable always anceps (heavy always first in regex).
 """
 
-# traditional trisyllable abbreviation scheme
-gaRas_by_weights = {
-'lgg' : 'y', # bacchius
-'ggg' : 'm', # molossus
-'ggl' : 't', # antibacchius
-'glg' : 'r', # cretic / amphimacer
-'lgl' : 'j', # amphibrach
-'gll' : 'B', # dactyl
-'lll' : 'n', # tribrach
-'llg' : 's', # anapest / antidactylus
-}
 
 samavftta_family_names = {
 0: "...", 1: "...", 2: "...", 3: "...", # never occur, just for bad input
@@ -122,7 +134,7 @@ samavftta_family_names = {
 # # 24
 #
 # # 25
-# 
+#
 # }
 
 def choose_heavy_gaRa_pattern(gaRa_pattern):
