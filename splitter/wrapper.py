@@ -39,6 +39,7 @@ class Splitter(object):
 		self.line_count_before_split = 0
 		self.line_count_during_split = 0
 		self.line_count_after_split = 0
+		self.token_count = 0
 
 	def get_punc(self, txt):
 		return re.findall(self.punc_regex, txt)
@@ -91,8 +92,8 @@ class Splitter(object):
 		txt = txt.replace('\n_\n', ' _ ') # maintain markers for original punc
 		txt = txt.replace('\n', '')	# restore presplit lines
 		txt = txt.replace('##', '\n') # restore original newlines
-		txt = txt.replace('-', '- ') # modify appearance of splits (option 1)
-		# txt = txt.replace('-', ' ') # modify appearance of splits (option 2)
+		# txt = txt.replace('-', '- ') # modify appearance of splits (option 1)
+		txt = txt.replace('-', ' ') # modify appearance of splits (option 2)
 		# txt = txt.replace('=', '') # what does this char in result even mean?
 		return txt
 
@@ -117,6 +118,11 @@ class Splitter(object):
 					)
 				)
 		return '\n'.join(new_lines)
+
+	def count_tokens(self, text):
+		tokens = re.split(r'[\n ]+', text)
+		while '' == tokens[-1]: tokens.pop(-1) # discard final empties
+		return len(tokens)
 
 	def split(self, text, prsrv_punc=preserve_punc_default):
 		"""
@@ -153,14 +159,16 @@ class Splitter(object):
 		with open(Splitter_output_buffer_fn, 'r') as f_in:
 			result = f_in.read()
 
-		# could do stats on words per line here
-
 		# clean up results (e.g., newlines, original punctuation)
 		result = self.clean_up(result)
 		if prsrv_punc and saved_punc != []:
 			result = self.restore_punc(result, saved_punc)
+		else:
+			result = result.replace(' _ ', ' ')
 
-		self.line_count_after_split = len(result.split('\n'))
+		self.line_count_after_split = result.count('\n') + 1
+
+		self.token_count = self.count_tokens(result)
 
 		# restore original working directory
 		os.chdir(orig_cwd)
