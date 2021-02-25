@@ -155,11 +155,13 @@ def analyze_text(path_in, path_out, predictions_ph, x_ph, split_cnts_ph, seqlen_
     Required to make the function compatible with train and application settings.
     '''
     # if verbose==True:
-    #     print('preparing to segment file {0} ...'.format(path_in) )
+        # print('preparing to segment file {0} ...'.format(path_in) )
     seqs,lens,splitcnts,lines_orig = loader.load_external_text(path_in)
     if seqs is None:
         # print('Something went wrong while loading {0}'.format(path_in) )
         return
+    elif verbose==True:
+        print('total lines {0} ...'.format(seqs.shape[0]) )
     with codecs.open(path_out, 'w', 'UTF-8') as f:
         batch_size = 500
         start = 0
@@ -169,6 +171,7 @@ def analyze_text(path_in, path_out, predictions_ph, x_ph, split_cnts_ph, seqlen_
             if end<=start:
                 break
             if verbose==True:
+
                 sys.stdout.write('processing lines {0}–{1}...\r'.format(start,end) ); sys.stdout.flush();
             p = session.run(predictions_ph, feed_dict = {
                 x_ph:seqs[start:end,:],
