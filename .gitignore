@@ -3,4 +3,6 @@ TCM.md
 __pycache__/
 note*
 data_prep/6_segmentation/data
+splitter/data/input/buffer_in.txt
+splitter/data/output/buffer_out.txt
 .eggs
