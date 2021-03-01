@@ -32,7 +32,7 @@ class Splitter(object):
 
 	def __init__(self):
 
-		self.punc_regex = r'[।॥/\\.\\?,—;!]+'
+		self.punc_regex = r'[।॥\|/\\.\\?,—;!]+'
 		self.max_char_limit = 128
 		self.char_limit_split_regex_options = [r'(?<=[mṃtd]) ', r' ']
 		self.ctr_splt_range = 0.8 # percentage distance measured from middle
@@ -88,13 +88,12 @@ class Splitter(object):
 			part_b = self.split_smart_half( txt[midpoint + 1 : ] , splt_regex_options, max_len)
 			return part_a + part_b
 
-	def clean_up(self, txt):
+	def clean_up(self, txt, split_appearance=' '):
 		txt = txt.replace('\n_\n', ' _ ') # maintain markers for original punc
-		txt = txt.replace('\n', '')	# restore presplit lines
+		txt = txt.replace('\n', ' ') # restore presplit lines
 		txt = txt.replace('##', '\n') # restore original newlines
-		# txt = txt.replace('-', '- ') # modify appearance of splits (option 1)
-		txt = txt.replace('-', ' ') # modify appearance of splits (option 2)
-		# txt = txt.replace('=', '') # what does this char in result even mean?
+		txt = txt.replace('-', split_appearance) # modify appearance of splits ('-', ' ', '- ', etc.)
+		txt = txt.replace('=', '') # QUESTION: what does this char in result even mean?
 		return txt
 
 	def restore_punc(self, txt, svd_pnc):
@@ -149,7 +148,7 @@ class Splitter(object):
 
 		# write prepared string to Splitter input buffer
 		with open(Splitter_input_buffer_fn, 'w') as f_out:
-			f_out.write(text_presplit)
+			f_out.write(prepared_text)
 
 		# run Splitter
 		command = "%s/python3.5 -W ignore apply.py" % python_3_5_bin_path
@@ -160,7 +159,7 @@ class Splitter(object):
 			result = f_in.read()
 
 		# clean up results (e.g., newlines, original punctuation)
-		result = self.clean_up(result)
+		result = self.clean_up(result, split_appearance=' ')
 		if prsrv_punc and saved_punc != []:
 			result = self.restore_punc(result, saved_punc)
 		else:

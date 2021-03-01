@@ -2,5 +2,5 @@
 TCM.md
 __pycache__/
 note*
-splitter/data/
+data_prep/6_segmentation/data
 .eggs
