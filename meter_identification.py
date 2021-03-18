@@ -198,6 +198,10 @@ class VerseTester(object):
 			meter_label += " (? 2 eva pādāḥ yuktāḥ)"
 			score = meter_scores["samavṛtta, imperfect (2)"]
 
+		# experimental penalty, can later incorporate into config meter_scores
+		if meter_label == "ajñātasamavṛttam":
+			score -= 2
+
 		# may tie with pre-existing result (e.g., upajāti)
 		self.combine_results(Vrs, new_label=meter_label, new_score=score)
 
@@ -205,6 +209,7 @@ class VerseTester(object):
 
 	def evaluate_ardhasamavftta(self, Vrs):
 		# sufficient pAdasamatva already assured, now just evaluate
+		Vrs.identification_score = meter_scores["ardhasamavṛtta, perfect"]
 
 		wbp = Vrs.syllable_weights.split('\n') # weights by pāda
 
@@ -232,9 +237,9 @@ class VerseTester(object):
 		else:
 			meter_label = "ajñātārdhasamavṛttam" # i.e., might need to add to meter_patterns
 			meter_label += ' [%s, %s]' % (odd_g_to_id, even_g_to_id)
+			Vrs.identification_score = meter_scores["ardhasamavṛtta, perfect, unknown"]
 
 		Vrs.meter_label = meter_label
-		Vrs.identification_score = meter_scores["ardhasamavṛtta, perfect"]
 
 
 	def evaluate_upajAti(self, Vrs):
@@ -266,7 +271,7 @@ class VerseTester(object):
 				del gs_to_id[i]
 
 		# calculate what result could possibly score based on analysis so far
-		potential_score = meter_scores["upajāti, triṣṭubh, perfect"]
+		potential_score = meter_scores["upajāti, perfect"]
 
 		if 11 not in wbp_lens: # no triṣṭubh (could be mixed with jagatī)
 			potential_score -= 1
@@ -280,7 +285,7 @@ class VerseTester(object):
 		if 	( potential_score < Vrs.identification_score
 			# not going to beat pre-existing result (e.g. 7 from imperfect samavftta)
 			) or ( disable_non_trizwuB_upajAti
-				and potential_score < meter_scores["upajāti, triṣṭubh, imperfect"]
+				and potential_score < meter_scores["upajāti, imperfect"]
 			):
 			return
 
@@ -313,21 +318,23 @@ class VerseTester(object):
 
 		# assign scores and labels
 		family = meter_patterns.samavftta_family_names[ wbp_lens[0] ]
+		if family == "triṣṭubh":
+			family = '' # clearer not to specify in this case
 
-		if len(wbp_lens) == 4 and unique_sorted_lens == [11]:
-			score = meter_scores["upajāti, triṣṭubh, perfect"]
+		if len(wbp_lens) == 4 and unique_sorted_lens == [11]: # triṣṭubh
+			score = meter_scores["upajāti, perfect"]
 		elif unique_sorted_lens == [11, 12]:
 			score = meter_scores["upajāti, triṣṭubh-jagatī-saṃkara, perfect"]
 			family = "triṣṭubh-jagatī-saṃkara?" # overwrite
 		elif len(wbp_lens) == 4 and 11 not in unique_sorted_lens:
 			score = meter_scores["upajāti, non-triṣṭubh, perfect"]
-		elif len(wbp_lens) in [2,3] and wbp_lens.count(11) == len(wbp_lens):
-			score = meter_scores["upajāti, triṣṭubh, imperfect"]
+		elif len(wbp_lens) in [2,3] and wbp_lens.count(11) == len(wbp_lens): # triṣṭubh
+			score = meter_scores["upajāti, imperfect"]
 		elif len(wbp_lens) in [2,3] and 11 not in wbp_lens:
 			score = meter_scores["upajāti, non-triṣṭubh, imperfect"]
 		else:
-			# nothing
-			score = 1
+			score = meter_scores["none found"]
+
 
 		overall_meter_label = "upajāti %s: %s" % (
 			family,
