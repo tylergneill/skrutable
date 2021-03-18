@@ -156,9 +156,12 @@ class Scanner(object):
 
 		for chr in additional_pAda_separators:
 			cntnts = cntnts.replace(chr, '\n')
-		# dedupe, also allowing for carriage returns introduced in HTML form input
+		# also dedupe, also allowing for carriage returns introduced in HTML form input
 		regex = re.compile(r"(\n\r?){2,}")
 		cntnts = re.sub(regex, '\n', cntnts)
+		# also remove buffer-initial and -final newlines
+		regex = re.compile(r"(\A\s*)|(\s*\Z)")
+		cntnts = re.sub(regex, '', cntnts)
 
 		# filter out disallowed characters
 
