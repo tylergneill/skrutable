@@ -2,5 +2,5 @@
 TCM.md
 __pycache__/
 note*
-buffer_*.txt
+splitter/data/*/buffer_*.txt
 .eggs
