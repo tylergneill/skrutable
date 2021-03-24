@@ -318,7 +318,10 @@ class VerseTester(object):
 
 		# assign scores and labels
 		family = meter_patterns.samavftta_family_names[ wbp_lens[0] ]
-		if family == "triṣṭubh":
+		unique_meter_labels_copy = unique_meter_labels; unique_meter_labels_copy.sort()
+		if (family == "triṣṭubh" and
+			unique_meter_labels_copy == ['indravajrā [11: ttjgg]', 'upendravajrā [11: jtjgg]']
+			):
 			family = '' # clearer not to specify in this case
 
 		if len(wbp_lens) == 4 and unique_sorted_lens == [11]: # triṣṭubh
