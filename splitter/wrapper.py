@@ -11,10 +11,9 @@ Hacky temporary path solution to solve Python 3.5 and relative path problems:
 	On call to split (e.g. from Python 3.8),
 	first store current working directory,
 	then switch to absolute path of splitter wrapper,
-	execute commands, save result to memory,
+	execute commands in Python 3.5 via subprocess,
 	and finally, return to original working directory.
 """
-
 
 # paths: absolute
 
@@ -23,20 +22,22 @@ wrapper_module_path = pathlib.Path(__file__).parent.absolute()
 wrapper_config_path = os.path.join(wrapper_module_path, 'wrapper_config.json')
 config_data = open(wrapper_config_path,'r').read()
 config = json.loads(config_data)
+
+# user must adjust to point at own Python 3.5 executable
 python_3_5_bin_path = config["python_3_5_bin_path"]
+# e.g. on local Mac: "/Users/tyler/.pyenv/versions/3.5.9/bin"
+# on PythonAnywhere: "/usr/bin"
 
-# python_3_5_bin_path = "/Users/tyler/.pyenv/versions/3.5.9/bin"
-# python_3_5_bin_path = "/home/skrutable/mysite/skrutable/splitter"
-# tensorflow 1.15.0
-
-# "/home/skrutable/.virtualenvs/myvirtualenv/bin/python3.5"
-# tensorflow 1.10
+# user's Python 3.5 install must also have 1.x version of TensorFlow
+# e.g. locally: pip3.5 install tensorflow==1.15.0
+# on PythonAnywhere: pip3.5 install --user tensorflow==1.15.0 > /tmp/tensorflow-install.log
 
 # paths: relative
+
 Splitter_input_buffer_fn = "data/input/buffer_in.txt"
 Splitter_output_buffer_fn = "data/output/buffer_out.txt"
 
-preserve_punc_default = True
+preserve_punc_default = config["preserve_punc_default"]
 
 class Splitter(object):
 
