@@ -1,6 +1,10 @@
 import os
 import subprocess
 import re
+import json
+import pathlib
+
+from skrutable.config import load_config_dict_from_json_file
 
 """
 Hacky temporary path solution to solve Python 3.5 and relative path problems:
@@ -12,17 +16,23 @@ Hacky temporary path solution to solve Python 3.5 and relative path problems:
 """
 
 
-# absolute paths
-python_3_5_bin_path = "/Users/tyler/.pyenv/versions/3.5.9/bin"
+# paths: absolute
+
+wrapper_module_path = pathlib.Path(__file__).parent.absolute()
+
+wrapper_config_path = os.path.join(wrapper_module_path, 'wrapper_config.json')
+config_data = open(wrapper_config_path,'r').read()
+config = json.loads(config_data)
+python_3_5_bin_path = config["python_3_5_bin_path"]
+
+# python_3_5_bin_path = "/Users/tyler/.pyenv/versions/3.5.9/bin"
+# python_3_5_bin_path = "/home/skrutable/mysite/skrutable/splitter"
 # tensorflow 1.15.0
 
 # "/home/skrutable/.virtualenvs/myvirtualenv/bin/python3.5"
 # tensorflow 1.10
 
-wrapper_module_path = "/Users/tyler/Git/skrutable/splitter"
-# "/home/skrutable/mysite/skrutable/splitter"
-
-# relative paths
+# paths: relative
 Splitter_input_buffer_fn = "data/input/buffer_in.txt"
 Splitter_output_buffer_fn = "data/output/buffer_out.txt"
 
@@ -138,6 +148,8 @@ class Splitter(object):
 		# save original working directory, change to SplitterWrapper one
 		orig_cwd = os.getcwd()
 		os.chdir(wrapper_module_path)
+
+		import pdb; pdb.set_trace()
 
 		self.line_count_before_split = len(text.split('\n'))
 
