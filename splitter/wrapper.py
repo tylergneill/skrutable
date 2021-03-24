@@ -89,11 +89,16 @@ class Splitter(object):
 			return part_a + part_b
 
 	def clean_up(self, txt, split_appearance=' '):
-		txt = txt.replace('\n_\n', ' _ ') # maintain markers for original punc
-		txt = txt.replace('\n', ' ') # restore presplit lines
-		txt = txt.replace('##', '\n') # restore original newlines
-		txt = txt.replace('-', split_appearance) # modify appearance of splits ('-', ' ', '- ', etc.)
-		txt = txt.replace('=', '') # QUESTION: what does this char in result even mean?
+		for (r_1, r_2) in [
+				('\n_\n', ' _ '), # maintain markers for original punc
+				('\n', ' '), # restore presplit lines
+				(' *?## ?', '\n'), # restore original newlines (sans document-final or -initial space)
+				('-', split_appearance), # modify appearance of splits ('-', ' ', '- ', etc.)
+				('=', ''), # QUESTION: what does this char in result even mean?
+				('=', ''), # QUESTION: what does this char in result even mean?
+				('(\A\s*)|(\s*\Z)', '') # string-initial and -final whitespace
+			]:
+			txt = re.sub(r_1, r_2, txt)
 		return txt
 
 	def restore_punc(self, txt, svd_pnc):
@@ -163,7 +168,7 @@ class Splitter(object):
 		if prsrv_punc and saved_punc != []:
 			result = self.restore_punc(result, saved_punc)
 		else:
-			result = result.replace(' _ ', ' ')
+			result = result.replace('_', ' ')
 
 		self.line_count_after_split = result.count('\n') + 1
 
