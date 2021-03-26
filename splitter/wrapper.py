@@ -43,7 +43,7 @@ class Splitter(object):
 
 	def __init__(self):
 
-		self.punc_regex = r'[।॥\|/\\.\\?,—;!]+'
+		self.punc_regex = r'[।॥\|/\\.\\?,—;!\t]+'
 		self.max_char_limit = 128
 		self.char_limit_split_regex_options = [r'(?<=[mṃtd]) ', r' ']
 		self.ctr_splt_range = 0.8 # percentage distance measured from middle
@@ -149,8 +149,6 @@ class Splitter(object):
 		# save original working directory, change to SplitterWrapper one
 		orig_cwd = os.getcwd()
 		os.chdir(wrapper_module_path)
-
-		import pdb; pdb.set_trace()
 
 		self.line_count_before_split = len(text.split('\n'))
 
