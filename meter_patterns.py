@@ -321,6 +321,10 @@ samavfttas_by_family_and_gaRa = {
 61: { }, 62: { }, 63: { }, 64: { }, 65: { }, 66: { }, 67: { }, 68: {}, 69: {}, 70: {},
 }
 
+all_known_samavRttas = []
+for k in samavfttas_by_family_and_gaRa.keys(): # for each family
+	all_known_samavRttas = all_known_samavRttas + list(samavfttas_by_family_and_gaRa[k].values())
+
 ardhasamavftta_by_odd_even_regex_tuple = {
 ('nnrl(g|l)', 'njj(r|B)') : 'aparavaktra = [11: nnrlg] 1,3 + [12: njjr] 2,4', # aka vaitālīya
 ('sssl(g|l)', 'BBBg(g|l)') : 'upacitra = [11: ssslg] 1,3 + [11: BBBgg] 2,4',

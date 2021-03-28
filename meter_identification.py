@@ -186,7 +186,7 @@ class VerseTester(object):
 				break
 
 		else:
-			meter_label = "ajñātasamavṛttam" # i.e., might need to add to meter_patterns
+			meter_label = "ajñātasamavṛtta" # i.e., might need to add to meter_patterns
 			meter_label += ' [%d: %s]' % ( len(w_to_id), g_to_id )
 
 		score = meter_scores["samavṛtta, perfect"]
@@ -199,7 +199,7 @@ class VerseTester(object):
 			score = meter_scores["samavṛtta, imperfect (2)"]
 
 		# experimental penalty, can later incorporate into config meter_scores
-		if meter_label == "ajñātasamavṛttam":
+		if meter_label == "ajñātasamavṛtta":
 			score -= 2
 
 		# may tie with pre-existing result (e.g., upajāti)
@@ -235,7 +235,7 @@ class VerseTester(object):
 				break
 
 		else:
-			meter_label = "ajñātārdhasamavṛttam" # i.e., might need to add to meter_patterns
+			meter_label = "ajñātārdhasamavṛtta" # i.e., might need to add to meter_patterns
 			meter_label += ' [%s, %s]' % (odd_g_to_id, even_g_to_id)
 			Vrs.identification_score = meter_scores["ardhasamavṛtta, perfect, unknown"]
 
