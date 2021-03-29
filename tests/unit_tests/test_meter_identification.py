@@ -499,3 +499,17 @@ sutādānānmitraṃ bhavatu sa hi no nandana iti ॥"""
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(truncated_output) + '\n\n')
 	expected_output = "śikhariṇī"
 	assert truncated_output == expected_output
+
+def test_identify_meter_vizamavftta_perfect():
+	MI = MeterIdentifier()
+	input_string = """bibharāṃbabhūvur apavṛtta
+jaṭharaśapharīkulākulāḥ /
+paṅkaviṣamitataṭāḥ saritaḥ
+karirugṇacandanarasāruṇaṃ payaḥ // 12.49"""
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
+	output = object_result.meter_label
+	truncated_output = output[:output.find(' ')]
+	curr_func = inspect.stack()[0][3]
+	print("\n\n%s OUTPUT:\n" % curr_func + str(truncated_output) + '\n\nSCORE: ' + str(object_result.identification_score) + '\n\n' )
+	expected_output = "udgatā"
+	assert truncated_output == expected_output

@@ -335,6 +335,11 @@ ardhasamavftta_by_odd_even_regex_tuple = {
 ('ssjg(g|l)', 'sBr(y|j)') : 'aupacchandasika = [11: ssjgg] 1,3 + [12: sBry] 2,4', # aka mālābhāriṇī
 }
 
+vizamavftta_by_4_tuple = {
+	('sjsl', 'nsjg', 'Bnjlg', 'sjsjg') : 'udgatā = [10: sjsl] + [10: nsjg] + [11: Bnjlg] + [13: sjsjg]',
+	('sjsl', 'nsjg', 'BnBg', 'sjsjg') : 'udgatā 2 = [10: sjsl] + [10: nsjg] + [10: BnBg] + [13: sjsjg]',
+}
+
 
 """
 	Lists of jātis by total mātrās in each pāda.
@@ -360,7 +365,7 @@ meter_melodies = {
 	'āryā' : ['Madhura Godbole', 'Shatavadhani Ganesh', 'Sadananda Das', 'Diwakar Acarya'],
 	'indravajrā' : ['Sadananda Das', 'Diwakar Acarya'],
 	'indravaṃśa' : ['Shatavadhani Ganesh'],
-	'udgata' : ['Shatavadhani Ganesh'],
+	'udgatā' : ['Shatavadhani Ganesh'],
 	'upagīti' : ['Madhura Godbole'],
 	'upajāti' : ['Madhura Godbole', 'Sadananda Das', 'Diwakar Acarya', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'aupacchandasika' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],

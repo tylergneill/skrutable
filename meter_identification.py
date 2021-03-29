@@ -353,6 +353,19 @@ class VerseTester(object):
 		self.combine_results(Vrs, overall_meter_label, score)
 
 
+	def is_vizamavftta(self, Vrs):
+
+		gs_to_id = Vrs.gaRa_abbreviations.split('\n')
+
+		for (a, b, c, d) in meter_patterns.vizamavftta_by_4_tuple:
+			if (gs_to_id[0],gs_to_id[1],gs_to_id[2],gs_to_id[3]) == (a, b, c, d):
+				Vrs.identification_score = meter_scores["viṣamavṛtta, perfect"]
+				Vrs.meter_label = meter_patterns.vizamavftta_by_4_tuple[(a,b,c,d)]
+				return True
+
+		else:
+			return False
+
 	def test_as_samavftta_etc(self, Vrs):
 
 		wbp = Vrs.syllable_weights.split('\n') # weights by pāda
@@ -385,10 +398,10 @@ class VerseTester(object):
 			# max score not necessarily yet reached, don't return
 
 		# test perfect viṣamavṛtta
-		# if self.pAdasamatva_count == 0 and self.is_vizamavftta(Vrs):
-		#	# will give id_score == 9
-		# 	# label and score already set in is_vizamavftta if test was successful
-		# 	return # max score already reached
+		if self.pAdasamatva_count == 0 and self.is_vizamavftta(Vrs):
+			# will give id_score == 9
+			# label and score already set in is_vizamavftta if test was successful
+			return 1 # max score already reached
 
 		# test perfect upajāti
 
