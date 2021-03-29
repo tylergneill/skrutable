@@ -6,7 +6,7 @@ For whys and where-tos, see [skrutable.pythonanywhere.com/about](http://skrutabl
 # how to use
 
 The online web app at [skrutable.pythonanywhere.com](http://skrutable.pythonanywhere.com)
-will let you do both casual one-off tasks and also whole-file processing.
+provides easy access to both casual one-off and also whole-file processing.
 
 ![screenshot](img/web_app.png)
 
@@ -79,9 +79,9 @@ Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
     </tbody>
 </table>
 
-There is also a very lossy “IASTreduced” (e.g., “samskrtam pathamah”) which I find sometimes comes in handy. Additional academic schemes not currently featured include CSX (Classical Sanskrit eXtended, e.g. “saüskçtaü paòâmaþ”), REE (by Ronald E. Emmerick, e.g. “saæsk­taæ paèÃma÷”), and the scheme internal to the [DCS](http://www.sanskrit-linguistics.org/dcs/index.php) (by Oliver Hellwig, e.g. “saºskŸtaº paÅåmaµ”). 
+There is also a very lossy “IASTreduced” (e.g., “samskrtam pathamah”) output option which I find sometimes comes in handy. Additional academic schemes not currently featured include CSX (Classical Sanskrit eXtended, e.g. “saüskçtaü paòâmaþ”), REE (by Ronald E. Emmerick, e.g. “saæsk­taæ paèÃma÷”), and the scheme internal to the [DCS](http://www.sanskrit-linguistics.org/dcs/index.php) (by Oliver Hellwig, e.g. “saºskŸtaº paÅåmaµ”). 
 
-More schemes for writing Sanskrit, especially those corresponding to additional Indic scripts, can easily be added to `skrutable` by modifying the code in `phonemes.py` and `scheme_maps.py`. I'm happy to help with this. Alternatively, for other tools with wider character support, including for other South Asian languages, see [related projects](#related-projects) below.
+More schemes for writing Sanskrit, especially those corresponding to additional Indic scripts, can easily be added to `skrutable` by modifying the code in `phonemes.py` and `scheme_maps.py`. I'm happy to help with this. Alternatively, for other tools more focused on wider character support, including for other South Asian languages, see [related projects](#related-projects) below.
 
 Note that I use “encoding” here in the sense of UTF-8 (most often as in over and above ASCII) and “script” in the sense of a distinct character set like either the Roman or Devanagari alphabets (latter actually an abugida), and so I don't use either “Roman” or “Unicode” to refer to any of the individual schemes. For more thoughts on such terminology, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).
 
@@ -138,6 +138,11 @@ asty eva >> ( अस्त्य् एव ) >> अस्त्येव
 This is the default behavior for transliterating to Indic scripts in `skrutable`. In the code, the regular expressions governing this can be found in `virAma_avoidance.py`, and the overall setting can be toggled in `config.py`.
 
 
+# sandhi and compound splitting
+
+For splitting Sanskrit text into its individual words, both breaking compounds and dissolving sandhi, the powerful neural-network tool of Hellwig and Nehrdich, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), has been producing good and usable results since its 2018 release, even without re-training the model (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)), but it has not been accessible for most users (being command-line only and requiring setup of `Python 3.5` and `TensorFlow 1.x`). Now, however, `skrutable` provides a wrapper, accessible through its online interface, for easily applying the pre-trained model while also preserving original sentence length and punctuation.
+
+
 # using the code
 
 
@@ -156,9 +161,11 @@ This is the default behavior for transliterating to Indic scripts in `skrutable`
 	* Not? Then you can put it where your other packages normally install to (e.g. with `pip`).
 		* (Hint: command line `python -c "import sys; print(sys.path)"` to see where.)
 
-* Get the other necessary Python libraries: 
-	* currently only `numpy` for scheme detection (`pip` recommended) (*scheme detection currently under repair*)
+* Get the other necessary Python libraries (`pip` recommended):
+	* (for scheme-detection *currently under repair*) `numpy`
 	* (should already be natively pre-installed: `collections`, `copy`, `json`, `operator`, `os`, `re`)
+	* (for front-end) `flask`
+	* (for splitter.wrapper) `Python 3.5` (`penv` recommended) and `tensorflow 1.x`
 
 
 ## using as local web app
@@ -170,13 +177,14 @@ See [here](https://flask.palletsprojects.com/en/1.1.x/quickstart/) for more inst
 
 ## using as library
 
-From each respective module (`transliteration.py`, `scansion.py`, `meter_identification.py`), import the respective object constructor (`Transliterator`, `Scanner`, `MeterIdentifier`), instantiate the object, and call its primary methods (`transliterate()`, `scan()`, `identify_meter()`). Transliteration returns a string, whereas scansion and meter identification return `Scansion.Verse` objects, which contain (among other things) a `meter_label` attribute and a `summarize()` method.
+From each respective module (`transliteration.py`, `scansion.py`, `meter_identification.py`, `splitter.wrapper.py`), import the respective object constructor (`Transliterator`, `Scanner`, `MeterIdentifier`, `Splitter`), instantiate the object, and call its primary methods (`transliterate()`, `scan()`, `identify_meter()`, `split()`). Transliteration and sandhi/compound splitting returns a string, whereas scansion and meter identification return `Scansion.Verse` objects, which contain (among other things) a `meter_label` attribute and a `summarize()` method.
 
 The following are the important function parameters:
 
-* transliteration: `from_scheme`, `to_scheme` (`IAST`, `HK`, `SLP`, `ITRANS`, `VH`, `WX`, `IASTreduced`, `DEV`, `BENGALI`, `GUJARATI`)
-* scansion: `show_weights`, `show_morae`, `show_gaRas`, `show_alignment`
-* meter identification: `resplit_option` (`none`, `resplit_lite`, `resplit_max`)
+* transliteration: `from_scheme` and `to_scheme` (`IAST`, `HK`, `SLP`, `ITRANS`, `VH`, `WX`, `IASTreduced`, `DEV`, `BENGALI`, `GUJARATI`), 
+* scansion: `show_weights`, `show_morae`, `show_gaRas`, `show_alignment` (`True`, `False`)
+* meter identification: `resplit_option` (`none`, `resplit_lite`, `resplit_max`), `keep_mid` (`True`, `False`)
+* sandhi/compound splitting: `prsrv_punc` (`True`, `False`)
 
 Examples:
 
@@ -212,6 +220,16 @@ print( Verse_result_2.summarize() ) # default 'show' options
 Verse_result_3 = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite')
 print( Verse_result_3.summarize(show_morae=False) ) # default further 'show' options
 ~~~
+
+3. `skrutable.splitter.wrapper`, `splitter.wrapper.Splitter`, `Splitter.split()`
+~~~
+from skrutable.splitter.wrapper import Splitter
+Spl = Splitter()
+string_result_1 = Spl.split( input_string_1 ) # default prsrv_punc
+string_result_2 = Spl.split( input_string_2, prsrv_punc=False )
+~~~
+
+Note that use of the Splitter wrapper in this way requires further setup: In `splitter/wrapper_config.json`, set the value for `python_3_5_bin_path` to the absolute path to `Python 3.5` on your own machine, and make sure that `tensorflow 1.x` (e.g., 1.15) is installed for that particular version of Python (e.g., `pip3.5 install tensorflow==1.15.0`).
 
 More examples of how to use the library can be found in the repo's `tests` folder (for use with `pytest`) and in the `jupyter_notebooks` folder.
 
