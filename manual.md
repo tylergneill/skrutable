@@ -221,7 +221,7 @@ Verse_result_3 = MI.identify_meter(input_string, from_scheme='IAST', resplit_opt
 print( Verse_result_3.summarize(show_morae=False) ) # default further 'show' options
 ~~~
 
-3. `skrutable.splitter.wrapper`, `splitter.wrapper.Splitter`, `Splitter.split()`
+4. `skrutable.splitter.wrapper`, `splitter.wrapper.Splitter`, `Splitter.split()`
 ~~~
 from skrutable.splitter.wrapper import Splitter
 Spl = Splitter()
@@ -229,7 +229,7 @@ string_result_1 = Spl.split( input_string_1 ) # default prsrv_punc
 string_result_2 = Spl.split( input_string_2, prsrv_punc=False )
 ~~~
 
-Note that use of the Splitter wrapper in this way requires further setup: In `splitter/wrapper_config.json`, set the value for `python_3_5_bin_path` to the absolute path to `Python 3.5` on your own machine, and make sure that `tensorflow 1.x` (e.g., 1.15) is installed for that particular version of Python (e.g., `pip3.5 install tensorflow==1.15.0`).
+Note that use of the Splitter wrapper in this way requires further setup: In `splitter/wrapper_config.json`, set the value for `python_3_5_bin_path` to the absolute path to `Python 3.5` on your own machine, and make sure that `tensorflow 1.x` (e.g., 1.15) is installed for that particular version of Python (e.g., `pip3.5 install tensorflow==1.15.0`). Good luck and/or [ask me](#feedback) for help!
 
 More examples of how to use the library can be found in the repo's `tests` folder (for use with `pytest`) and in the `jupyter_notebooks` folder.
 
