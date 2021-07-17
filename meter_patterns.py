@@ -357,8 +357,6 @@ jAtis_by_morae = [
 ]
 
 meter_melodies = {
-	# 'āryā' :  ['Madhura Godbole', 'Sadananda Das', 'HV Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
-	# 'śikhariṇī' : ['Madhura Godbole', 'Sadananda Das']
 	'anuṣṭubh' : ['Madhura Godbole', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh',  'Diwakar Acarya'],
 	'aparavaktra' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'aśvadhāṭī' : ['Shatavadhani Ganesh'],
