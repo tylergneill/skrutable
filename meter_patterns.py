@@ -119,7 +119,7 @@ samavftta_family_names = {
 # # 18-syllable
 #
 # # 19-syllable
-# 'msjstt(g|l)' : 'śārdūlavikrīḍitā',
+# 'msjstt(g|l)' : 'śārdūlavikrīḍita',
 #
 # # 20
 #
@@ -274,7 +274,7 @@ samavfttas_by_family_and_gaRa = {
 
 19: {
 	'ymnsrr(g|l)' : 'meghavispūrjitā',
-	'msjstt(g|l)' : 'śārdūlavikrīḍitā', # aka śārdūlavikrīḍita
+	'msjstt(g|l)' : 'śārdūlavikrīḍita',
 	'mrBnmn(g|l)' : 'sumadhurā',
 	'mrBnyn(g|l)' : 'surasā',
 	},
