@@ -389,7 +389,7 @@ meter_melodies = {
 	'vaṃśastha' : ['Shatavadhani Ganesh'],
 	'vasantatilakā' : ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'viyoginī' : ['Shatavadhani Ganesh'],
-	'śārdūlavikrīḍitā' : ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+	'śārdūlavikrīḍita' : ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
 	'śālinī' : ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
 	'śikhariṇī' : ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
 	'śivatāṇḍava' : ['Shatavadhani Ganesh'],
