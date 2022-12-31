@@ -3,6 +3,7 @@ import subprocess
 import re
 import json
 import pathlib
+import requests
 
 from skrutable.config import load_config_dict_from_json_file
 
@@ -38,6 +39,18 @@ Splitter_input_buffer_fn = "data/input/buffer_in.txt"
 Splitter_output_buffer_fn = "data/output/buffer_out.txt"
 
 preserve_punc_default = config["preserve_punc_default"]
+splitter_server_url = 'https://splitter-server-tylergneill.pythonanywhere.com'
+
+def post_string(input_text):
+    json_payload = {'input_text': input_text}
+    result = requests.post(splitter_server_url, json=json_payload)
+    return result.text
+
+def post_file(input_file_path):
+    input_file = open(input_file_path, 'rb')
+    file_payload = {"input_file": input_file}
+    result = requests.post(splitter_server_url, files=file_payload)
+    return result.text
 
 class Splitter(object):
 
@@ -114,10 +127,10 @@ class Splitter(object):
 
     def restore_punc(self, txt, svd_pnc):
         spl_txt = txt.split('_')
-        print("len(svd_pnc): ", len(svd_pnc))
-        print("txt: ", txt)
-        print("spl_txt: ", spl_txt)
-        print("len(spl_txt): ", len(spl_txt))
+        # print("len(svd_pnc): ", len(svd_pnc))
+        # print("txt: ", txt)
+        # print("spl_txt: ", spl_txt)
+        # print("len(spl_txt): ", len(spl_txt))
         return ''.join([spl_txt[i] + svd_pnc[i] for i in range(len(svd_pnc))])
 
     def enforce_char_limit(self, txt):
@@ -143,7 +156,7 @@ class Splitter(object):
         while '' == tokens[-1]: tokens.pop(-1) # discard final empties
         return len(tokens)
 
-    def split(self, text, prsrv_punc=preserve_punc_default):
+    def split(self, text, prsrv_punc=preserve_punc_default, wholeFile=False):
         """
         Splits sandhi and compounds of multi-line Sanskrit string,
         passing maximum of max_char_limit characters to Splitter at a time,
@@ -166,17 +179,22 @@ class Splitter(object):
 
         self.line_count_during_split = len(prepared_text.split('\n'))
 
-        # write prepared string to Splitter input buffer
-        with open(Splitter_input_buffer_fn, 'w') as f_out:
-            f_out.write(prepared_text)
+        # post to server_splitter api
+        if wholeFile:
+            # write prepared string to Splitter input buffer and send as binary
+            with open(Splitter_input_buffer_fn, 'w') as f_out:
+                f_out.write(prepared_text)
+            result = post_file(Splitter_input_buffer_fn)
+        else:
+            result = post_string(prepared_text)
 
-        # run Splitter
-        command = "%s/python3.5 -W ignore apply.py" % python_3_5_bin_path
-        subprocess.call(command, shell='True')
+        # # run Splitter
+        # command = "%s/python3.5 -W ignore apply.py" % python_3_5_bin_path
+        # subprocess.call(command, shell='True')
 
-        # retrieve Splitter result from output buffer
-        with open(Splitter_output_buffer_fn, 'r') as f_in:
-            result = f_in.read()
+        # # retrieve Splitter result from output buffer
+        # with open(Splitter_output_buffer_fn, 'r') as f_in:
+        #     result = f_in.read()
 
         # clean up results (e.g., newlines, original punctuation)
         result = self.clean_up(result, split_appearance=' ')
