@@ -27,5 +27,6 @@
 	"jāti, perfect" : 8,
 	"jāti, imperfect" : 3,
 	"none found" : 1
-	}
+	},
+"preserve_punc_default" : true
 }
