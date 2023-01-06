@@ -1,0 +1,9 @@
+LICENSE.md
+README.md
+setup.cfg
+setup.py
+skrutable.egg-info/PKG-INFO
+skrutable.egg-info/SOURCES.txt
+skrutable.egg-info/dependency_links.txt
+skrutable.egg-info/requires.txt
+skrutable.egg-info/top_level.txt

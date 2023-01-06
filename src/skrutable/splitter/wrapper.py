@@ -20,12 +20,13 @@ Hacky temporary path solution to solve Python 3.5 and relative path problems:
 
 wrapper_module_path = pathlib.Path(__file__).parent.absolute()
 
-wrapper_config_path = os.path.join(wrapper_module_path, 'wrapper_config.json')
-config_data = open(wrapper_config_path,'r').read()
-config = json.loads(config_data)
+# wrapper_config_path = os.path.join(wrapper_module_path, 'wrapper_config.json')
+# config_data = open(wrapper_config_path,'r').read()
+# config = json.loads(config_data)
+config = load_config_dict_from_json_file()
 
 # user must adjust to point at own Python 3.5 executable
-python_3_5_bin_path = config["python_3_5_bin_path"]
+# python_3_5_bin_path = config["python_3_5_bin_path"]
 # e.g. on local Mac: "/Users/tyler/.pyenv/versions/3.5.9/bin"
 # on PythonAnywhere: "/usr/bin"
 
@@ -164,8 +165,8 @@ class Splitter(object):
         """
 
         # save original working directory, change to SplitterWrapper one
-        orig_cwd = os.getcwd()
-        os.chdir(wrapper_module_path)
+#         orig_cwd = os.getcwd()
+#         os.chdir(wrapper_module_path)
 
         self.line_count_before_split = len(text.split('\n'))
 
@@ -208,6 +209,6 @@ class Splitter(object):
         self.token_count = self.count_tokens(result)
 
         # restore original working directory
-        os.chdir(orig_cwd)
+#         os.chdir(orig_cwd)
 
         return result
