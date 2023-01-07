@@ -1,7 +1,4 @@
-import os
-import subprocess
 import re
-import json
 import pathlib
 import requests
 

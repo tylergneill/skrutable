@@ -83,14 +83,14 @@ DEV_nums =          ['१','२','३','४','५','६','७','८','९','०'
 BENGALI_nums =      ['১','২','৩','৪','৫','৬','৭','৮','৯','০']
 GUJARATI_nums =     ['૧','૨','૩','૪','૫','૬','૭','૮','૯','૦']
 
-DEV_chars = ( [ virAmas['DEV'] ]
-    + [tup[0] for tup in scheme_maps.DEV_SLP if tup[0] not in DEV_nums] )
+DEV_chars = ([ virAmas['DEV'] ]
+             + [tup[0] for tup in scheme_maps.DEV_SLP if tup[0] not in DEV_nums])
 
-BENGALI_chars = ( [ virAmas['BENGALI'] ]
-    + [tup[0] for tup in scheme_maps.BENGALI_SLP if tup[0] not in BENGALI_nums] )
+BENGALI_chars = ([ virAmas['BENGALI'] ]
+                 + [tup[0] for tup in scheme_maps.BENGALI_SLP if tup[0] not in BENGALI_nums])
 
-GUJARATI_chars = ( [ virAmas['GUJARATI'] ]
-    + [tup[0] for tup in scheme_maps.GUJARATI_SLP if tup[0] not in GUJARATI_nums] )
+GUJARATI_chars = ([ virAmas['GUJARATI'] ]
+                  + [tup[0] for tup in scheme_maps.GUJARATI_SLP if tup[0] not in GUJARATI_nums])
 
 # lookup table to use like e.g. character_set['HK']
 character_set = {

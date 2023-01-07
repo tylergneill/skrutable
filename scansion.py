@@ -1,10 +1,8 @@
 from skrutable.transliteration import Transliterator
 from skrutable import scheme_detection
-from skrutable.scheme_detection import SchemeDetector
-from skrutable import meter_patterns, phonemes
+from skrutable import meter_patterns
+from skrutable import phonemes
 from skrutable.config import load_config_dict_from_json_file
-import os.path
-import json
 import re
 
 # load config variables

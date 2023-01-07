@@ -1,4 +1,0 @@
-meter_identification
-scansion
-splitter
-transliteration

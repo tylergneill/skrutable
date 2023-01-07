@@ -136,7 +136,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = meter_scores["upajāti, triṣṭubh, perfect"]
+	expected_output = meter_scores["upajāti, perfect"]
 	assert output == expected_output
 
 def test_evaluate_upajAti_kolAhala():
@@ -154,7 +154,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	other_output = V.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(other_output) + '\n\n')
-	expected_output = meter_scores["upajāti, triṣṭubh, perfect"]
+	expected_output = meter_scores["upajāti, perfect"]
 	assert output == expected_output
 
 def test_evaluate_upajAti_kolAha():
@@ -172,7 +172,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	other_output = V.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = meter_scores["upajāti, triṣṭubh, imperfect"]
+	expected_output = meter_scores["upajāti, imperfect"]
 	if not disable_non_trizwuB_upajAti:
 		assert output == expected_output
 
@@ -188,12 +188,12 @@ mOnaM viDeyaM satataM suDIBiH"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = meter_scores["upajāti, triṣṭubh, perfect"]
+	expected_output = meter_scores["upajāti, perfect"]
 	assert output == expected_output
 
 def test_test_as_samavftta_etc_sampUrRakumBo_3():
 	S = Scanner()
-	# note "kumbha" instead of "kumbho"
+	# note "kumbha" instead of "kumbho", makes "upajāti, perfect" instead of indravajrā
 	input_string = """sampūrṇakumbha na karoti śabdam
 ardho ghaṭo ghoṣamupaiti nūnam
 vidvānkulīno na karoti garvaṃ
@@ -204,7 +204,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = meter_scores["samavṛtta, imperfect (3)"]
+	expected_output = meter_scores["upajāti, perfect"]
 	assert output == expected_output
 
 def test_test_as_samavftta_etc_kudeSam_3():
@@ -238,7 +238,7 @@ mOnaM viDeyaM satataM suDIBiH""" # id_score == 8
 	other_output = V.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(other_output) + '\n\n')
-	expected_output = meter_scores["upajāti, triṣṭubh, perfect"]
+	expected_output = meter_scores["upajāti, perfect"]
 	assert output == 9 # the "better" one
 
 def test_identify_meter_SArdUlavikrIqitA():
@@ -252,7 +252,7 @@ sarvaM yasya vaSAdagAt smftipaTaM kAlAya tasmE namaH"""
 	truncated_output = output[:16]
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(truncated_output) + '\n\n')
-	expected_output = "śārdūlavikrīḍitā"
+	expected_output = "śārdūlavikrīḍita"
 	assert truncated_output == expected_output
 
 def test_identify_meter_trizwuB_jagatI_saMkara():
@@ -266,7 +266,7 @@ te 'vasthitāḥ pramukhe dhārtarāṣṭrāḥ //"""
 	truncated_output = output
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(truncated_output) + '\n\n')
-	# expected_output = "śārdūlavikrīḍitā"
+	# expected_output = "śārdūlavikrīḍita"
 	assert truncated_output != None
 
 def test_find_meter():
@@ -308,7 +308,6 @@ def test_identify_meter_jAti():
 BuvanatalaM yatprasAdataH kavayaH
 paSyanti sUkzmamatayaH
 sA jayati sarasvatI devI"""
-	# import pdb; pdb.set_trace()
 	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='none')
 	output = object_result.identification_score
 	other_output = object_result.meter_label
@@ -345,7 +344,6 @@ bhayam agamat punar eva rāmamātā //"""
 # 	other_output = object_result.meter_label
 # 	curr_func = inspect.stack()[0][3]
 # 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-# 	# import pdb; pdb.set_trace()
 # 	expected_output = 8
 # 	assert output == expected_output
 
@@ -361,7 +359,6 @@ pradīyatāṃ dāśarathāya maithilī  //"""
 	other_output = object_result.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	# import pdb; pdb.set_trace()
 	expected_output = meter_scores["samavṛtta, perfect"]
 	assert output == expected_output
 

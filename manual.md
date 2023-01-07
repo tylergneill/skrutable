@@ -12,7 +12,7 @@ For more context on the project, see [skrutable.info/about](https://www.skrutabl
 The online web app at [skrutable.info/](https://www.skrutable.info/)
 provides easy access to both casual one-off and also whole-file processing.
 
-![screenshot](src/skrutable/img/web_app.png)
+![screenshot](img/web_app.png)
 
 See [skrutable.info/tutorial](https://www.skrutable.info/tutorial) for more instructions.
 
