@@ -6,7 +6,7 @@ as well access to powerful sandhi and compound splitting.
 
 Web-app interface live online at [skrutable.info](https://www.skrutable.info).
 
-See [manual.md](./manual.md) for instructions.
+See [manual.md](https://github.com/tylergneill/skrutable/manual.md) for instructions.
 
 Feedback welcome!
 My name is Tyler 
