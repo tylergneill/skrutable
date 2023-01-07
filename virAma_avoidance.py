@@ -1,5 +1,6 @@
 # set up regex components
 from skrutable import phonemes
+
 vowels = ''.join(phonemes.SLP_vowels)
 unvoiced_consonants = ''.join(phonemes.SLP_unvoiced_consonants)
 unvoiced_consonants_subset = ['k','K','t','T','p','P','s']

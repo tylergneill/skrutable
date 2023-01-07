@@ -166,10 +166,10 @@ class DataLoader(split_counter.SplitCounter):
         # hdf5 requires indices in ascending order
         ixes_asort = np.argsort(ixes)
         
-        self.batch_x = self.data_file[defines.HDF5_KEY_INPUT][ixes[ixes_asort],:]
-        self.batch_y = self.data_file[defines.HDF5_KEY_OUTPUT][ixes[ixes_asort],:]
+        self.batch_x = self.data_file[defines.HDF5_KEY_INPUT][ixes[ixes_asort], :]
+        self.batch_y = self.data_file[defines.HDF5_KEY_OUTPUT][ixes[ixes_asort], :]
         self.batch_seq_lens = self.seq_lens[ixes]
-        self.batch_split_cnts = self.data_file[defines.HDF5_KEY_SPLIT_CNTS][ixes[ixes_asort],:,:]
+        self.batch_split_cnts = self.data_file[defines.HDF5_KEY_SPLIT_CNTS][ixes[ixes_asort], :, :]
         self.batch_x = self.batch_x[ixes_asort,:]
         self.batch_y = self.batch_y[ixes_asort,:]
         self.batch_split_cnts = self.batch_split_cnts[ixes_asort,:,:]

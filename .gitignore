@@ -6,3 +6,4 @@ splitter/data/input/*.txt
 splitter/data/output/*.txt
 splitter/wrapper_config.json
 .eggs
+.idea/

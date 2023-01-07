@@ -1,5 +1,5 @@
 from skrutable.transliteration import Transliterator
-from skrutable import scheme_maps
+
 
 def test_mapping_mAmakAH():
 	input = "mAmakAH pARqavAS cEva kim akurvata saYjaya /\nDarmakzetre kurukzetre samavetA yuyutsavaH /"
