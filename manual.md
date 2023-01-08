@@ -166,7 +166,7 @@ but are totally inactive at present.)
 
 1. Have Python 3 installed (`Homebrew` and Python 3.8+ recommended)
 
-2. Run `pip3 install skrutable`
+2. Run `pip3 install skrutable` ([latest version on PyPi](https://pypi.org/project/skrutable/))
 
 ## objects
 
