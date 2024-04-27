@@ -26,6 +26,7 @@ setup(
     keywords='Sanskrit text transliteration scansion meter identification sandhi compound splitting',
     install_requires=[
           'numpy',
+          'requests',
       ],
 
 )
