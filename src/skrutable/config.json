@@ -1,0 +1,32 @@
+{
+"default_scheme_in" : "IAST",
+"default_scheme_out" : "IAST",
+"avoid_virAma_indic_scripts" : true,
+"avoid_virAma_all_scripts" : false,
+"scansion_syllable_separator" : " ",
+"additional_pAda_separators" : ["\t", ";", ",", " / ", " | ", " । "],
+"default_resplit_option" : "resplit_lite",
+"default_resplit_keep_midpoint" : false,
+"disable_non_trizwuB_upajAti" : true,
+"meter_scores" :	{
+	"max score" : 9,
+	"anuṣṭubh, full, both halves perfect)" : 9,
+	"anuṣṭubh, full, one half perfect, one imperfect)" : 7,
+	"anuṣṭubh, half, single half perfect)" : 9,
+	"samavṛtta, perfect" : 9,
+	"samavṛtta, imperfect (3)" : 6,
+	"samavṛtta, imperfect (2)" : 5,
+	"ardhasamavṛtta, perfect" : 8,
+	"ardhasamavṛtta, perfect, unknown" : 6,
+	"viṣamavṛtta, perfect" : 9,
+	"upajāti, perfect" : 7,
+	"upajāti, imperfect" : 6,
+	"upajāti, non-triṣṭubh, perfect" : 5,
+	"upajāti, triṣṭubh-jagatī-saṃkara, perfect" : 4,
+	"upajāti, non-triṣṭubh, imperfect" : 3,
+	"jāti, perfect" : 8,
+	"jāti, imperfect" : 3,
+	"none found" : 1
+	},
+"preserve_punc_default" : true
+}
