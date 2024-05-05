@@ -1,6 +1,9 @@
 .DS_Store
 __pycache__/
-splitter/data/input/*.txt
-splitter/data/output/*.txt
+.eggs
 .idea/
 venv*/
+note*
+src/skrutable/splitter/data/input/*.txt
+src/skrutable/splitter/data/output/*.txt
+src/skrutable/splitter/wrapper_config.json
