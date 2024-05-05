@@ -286,9 +286,9 @@ class DataPreprocessor(split_counter.SplitCounter):
         lens = np.asarray([len(x) for x in self.inputs], np.int32)
         
         inputs = np.full(shape=[lens.shape[0], self.max_sequence_length],
-                         fill_value=self.deenc_input.get_index(defines.SYM_PAD), dtype=np.int32)
+                               fill_value=self.deenc_input.get_index(defines.SYM_PAD), dtype=np.int32)
         outputs = np.full(shape=[lens.shape[0], self.max_sequence_length],
-                          fill_value=self.deenc_input.get_index(defines.SYM_PAD), dtype=np.int32)
+                               fill_value=self.deenc_input.get_index(defines.SYM_PAD), dtype=np.int32)
         for i in range(lens.shape[0]):
             L = lens[i]
             assert(L==len(self.outputs[i]))
@@ -343,7 +343,7 @@ if __name__ == '__main__':
     
     dev_path = data_directory_input + '/' + data_file_names[2] if data_file_names[2] else '' 
     data.transform_data(data_directory_input + '/' + data_file_names[0],
-                        data_directory_input + '/' + data_file_names[1],
-                        dev_path,
-                        configuration.config,
-                        data_directory_input)
+                         data_directory_input + '/' + data_file_names[1],
+                         dev_path,
+                         configuration.config,
+                         data_directory_input)
