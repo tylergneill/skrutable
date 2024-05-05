@@ -1,8 +1,9 @@
 .DS_Store
-TCM.md
 __pycache__/
-note*
-splitter/data/input/*.txt
-splitter/data/output/*.txt
-splitter/wrapper_config.json
 .eggs
+.idea
+venv*/
+note*
+src/skrutable/splitter/data/input/*.txt
+src/skrutable/splitter/data/output/*.txt
+src/skrutable/splitter/wrapper_config.json
