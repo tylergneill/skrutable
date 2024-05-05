@@ -1,9 +1,9 @@
 .DS_Store
-.idea/*
-TCM.md
 __pycache__/
+.eggs
+.idea/
+venv*/
 note*
 splitter/data/input/*.txt
 splitter/data/output/*.txt
 splitter/wrapper_config.json
-.eggs

@@ -1,18 +1,16 @@
 from skrutable.scansion import Scanner as Sc
-from skrutable.scansion import scansion_syllable_separator
-from skrutable.scansion import Verse
 from skrutable import meter_patterns
-from skrutable.transliteration import Transliterator as Tr
 from skrutable.config import load_config_dict_from_json_file
 import re
 from copy import copy
 
 # load config variables
 config = load_config_dict_from_json_file()
+scansion_syllable_separator = config["scansion_syllable_separator"]  # e.g. " "
 default_resplit_option = config["default_resplit_option"]  # e.g. "none"
 default_resplit_keep_midpoint = config["default_resplit_keep_midpoint"]  # e.g. True
-disable_non_trizwuB_upajAti = config["disable_non_trizwuB_upajAti"] # e.g. True
-meter_scores = config["meter_scores"] # dict
+disable_non_trizwuB_upajAti = config["disable_non_trizwuB_upajAti"]  # e.g. True
+meter_scores = config["meter_scores"]  # dict
 
 class VerseTester(object):
 	"""
@@ -180,8 +178,8 @@ class VerseTester(object):
 
 				meter_label = meter_patterns.samavfttas_by_family_and_gaRa[len(w_to_id)][gaRa_pattern]
 				meter_label += ' [%d: %s]' % (
-				len(w_to_id),
-				meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
+					len(w_to_id),
+					meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
 				)
 				break
 
@@ -302,8 +300,8 @@ class VerseTester(object):
 
 					meter_label = meter_patterns.samavfttas_by_family_and_gaRa[wbp_lens[i]][gaRa_pattern]
 					meter_label += ' [%d: %s]' % (
-					wbp_lens[i],
-					meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
+						wbp_lens[i],
+						meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
 					)
 					break
 
@@ -317,7 +315,7 @@ class VerseTester(object):
 		combined_meter_labels = ', '.join(unique_meter_labels)
 
 		# assign scores and labels
-		family = meter_patterns.samavftta_family_names[ wbp_lens[0] ]
+		family = meter_patterns.samavftta_family_names[ wbp_lens[0]]
 		unique_meter_labels_copy = unique_meter_labels; unique_meter_labels_copy.sort()
 		if (family == "triṣṭubh" and
 			unique_meter_labels_copy == ['indravajrā [11: ttjgg]', 'upendravajrā [11: jtjgg]']
@@ -360,7 +358,7 @@ class VerseTester(object):
 		for (a, b, c, d) in meter_patterns.vizamavftta_by_4_tuple:
 			if (gs_to_id[0],gs_to_id[1],gs_to_id[2],gs_to_id[3]) == (a, b, c, d):
 				Vrs.identification_score = meter_scores["viṣamavṛtta, perfect"]
-				Vrs.meter_label = meter_patterns.vizamavftta_by_4_tuple[(a,b,c,d)]
+				Vrs.meter_label = meter_patterns.vizamavftta_by_4_tuple[(a, b, c, d)]
 				return True
 
 		else:

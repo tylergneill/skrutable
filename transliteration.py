@@ -4,9 +4,7 @@ from skrutable import scheme_detection
 from skrutable.scheme_detection import SchemeDetector
 from skrutable import virAma_avoidance
 from skrutable.config import load_config_dict_from_json_file
-import json
 import re
-import os.path
 
 # load config variables
 config = load_config_dict_from_json_file()
