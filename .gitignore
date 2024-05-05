@@ -1,4 +1,5 @@
 .DS_Store
+.idea/*
 TCM.md
 __pycache__/
 note*
