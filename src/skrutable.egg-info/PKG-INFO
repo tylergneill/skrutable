@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: skrutable
+Version: 1.2.1
+Summary: skrutable library for working with Sanskrit text
+Home-page: https://github.com/tylergneill/skrutable
+Author: Tyler Neill
+Author-email: tyler.g.neill@gmail.com
+License: CC BY-SA 4.0
+Keywords: Sanskrit text transliteration scansion meter identification sandhi compound splitting
+License-File: LICENSE.md
+Requires-Dist: numpy
+Requires-Dist: requests

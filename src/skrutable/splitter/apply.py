@@ -1,7 +1,7 @@
 '''
 apply a trained model to a text => Create its padapatha form.
 '''
-import os
+import sys,os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import tensorflow as tf

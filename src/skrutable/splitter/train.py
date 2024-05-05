@@ -131,16 +131,16 @@ with data_loader.DataLoader(data_directory_input, config, load_data_into_ram) as
                         
                         ''' evaluation '''
                         if not data.valid_ixes is None:
-                            res = helper_functions.sandhi_validation(M, True,  # = is_validation
-                                                                     data, sess, data_directory_result, config)
+                            res = helper_functions.sandhi_validation(M, True, # = is_validation
+                                data, sess, data_directory_result, config)
                             avg_f = 0.5 * (res['eq_F'] + res['di_F'])
                             if avg_f > best_avg_f_score:
                                 best_avg_f_score = avg_f
                                 save_model(M, config['model_directory'], sess)
                                 print(' *** model with avg F score of {0:.2f} stored'.format(avg_f))
                                 ''' evaluate on the test set '''
-                                best_test_result = helper_functions.sandhi_validation(M, False,  # = is_validation
-                                                                                      data, sess, data_directory_result, config)
+                                best_test_result = helper_functions.sandhi_validation(M, False, # = is_validation
+                                    data, sess, data_directory_result, config)
                                 best_test_result['best_train_epoch'] = epoch
                                 if lr_schedule_type==2:
                                     current_learning_rate = min(config['learning_rate'], current_learning_rate*1.2)
@@ -150,8 +150,8 @@ with data_loader.DataLoader(data_directory_input, config, load_data_into_ram) as
                                     current_learning_rate*=0.5
                                     print(' ____ changed learning rate to {0}'.format(current_learning_rate))
                         else: # test set only
-                            res = helper_functions.sandhi_validation(M, False,  # = is_validation
-                                                                     data, sess, data_directory_result, config)
+                            res = helper_functions.sandhi_validation(M, False, # = is_validation
+                                data, sess,  data_directory_result, config)
                             avg_f = 0.5 * (res['eq_F'] + res['di_F'])
                             best_test_result = res#
                             if avg_f > best_avg_f_score:
@@ -174,8 +174,8 @@ with data_loader.DataLoader(data_directory_input, config, load_data_into_ram) as
             if not best_test_result is None:
                 res = best_test_result
             else:
-                res = helper_functions.sandhi_validation(M, False,  # = is_validation
-                                                         data, sess, data_directory_result, config)
+                res = helper_functions.sandhi_validation(M, False, # = is_validation
+                    data, sess, data_directory_result, config)
             res['date_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             res['train_duration'] = time.time() - train_time_start
             res['full_name'] = M.get_save_name()

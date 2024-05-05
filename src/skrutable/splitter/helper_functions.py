@@ -191,9 +191,9 @@ def analyze_text(path_in, path_out, predictions_ph, x_ph, split_cnts_ph, seqlen_
             pred_sym_seq = [loader.deenc_output.get_sym(x) for x in P[i, :lens[i] ] ] # skip the last symbol
             pred_str = ''
             for p_s, o_s in zip(pred_sym_seq[1:], lines_orig[i][1:] ):
-                if p_s== defines.SYM_IDENT:
+                if p_s==defines.SYM_IDENT:
                     pred_str+=o_s
-                elif p_s== defines.SYM_SPLIT:
+                elif p_s==defines.SYM_SPLIT:
                     pred_str+=o_s + '-'
                 else:
                     pred_str+=p_s
