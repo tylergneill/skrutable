@@ -6,7 +6,9 @@ as well access to powerful sandhi and compound splitting.
 
 Web-app interface live online at [skrutable.info](https://www.skrutable.info).
 
-See [manual.md](https://github.com/tylergneill/skrutable/blob/master/manual.md) for instructions.
+Install package from [PyPi](https://pypi.org/project/skrutable/) with `pip install skrutable`.
+
+See [manual.md](https://github.com/tylergneill/skrutable/blob/main/src/skrutable/manual.md) for instructions.
 
 Feedback welcome!
 My name is Tyler 
