@@ -35,8 +35,12 @@ setup(
     url='https://github.com/tylergneill/skrutable',
     keywords='Sanskrit text transliteration scansion meter identification sandhi compound splitting',
     install_requires=[
-          'numpy',
-          'requests',
-      ],
-
+      'numpy',
+      'requests',
+    ],
+    extras_require={
+        "testing": [
+            "pytest",
+        ]
+    },
 )
