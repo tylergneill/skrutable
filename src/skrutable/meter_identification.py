@@ -192,9 +192,12 @@ class VerseTester(object):
 		if self.pAdasamatva_count == 3:
 			meter_label += " (? 3 eva pādāḥ yuktāḥ)"
 			score = meter_scores["samavṛtta, imperfect (3)"]
-		if self.pAdasamatva_count == 2:
+		elif self.pAdasamatva_count == 2:
 			meter_label += " (? 2 eva pādāḥ yuktāḥ)"
 			score = meter_scores["samavṛtta, imperfect (2)"]
+		elif self.pAdasamatva_count == 0:
+			meter_label += " (1 eva pādaḥ)"
+			score = meter_scores["samavṛtta, quarter, perfect"]
 
 		# experimental penalty, can later incorporate into config meter_scores
 		if meter_label == "ajñātasamavṛtta":
@@ -354,6 +357,7 @@ class VerseTester(object):
 	def is_vizamavftta(self, Vrs):
 
 		gs_to_id = Vrs.gaRa_abbreviations.split('\n')
+		if len(gs_to_id) < 4: return False
 
 		for (a, b, c, d) in meter_patterns.vizamavftta_by_4_tuple:
 			if (gs_to_id[0],gs_to_id[1],gs_to_id[2],gs_to_id[3]) == (a, b, c, d):
@@ -369,9 +373,13 @@ class VerseTester(object):
 		wbp = Vrs.syllable_weights.split('\n') # weights by pāda
 		wbp_lens = [ len(line) for line in wbp ]
 
-		# make sure full four pādas
-		try: wbp[3]
-		except IndexError: return 0
+		# make sure either full four pādas or one and single-pāda mode
+		if 	len(wbp) >= 4 or (
+			len(wbp) == 1 and self.resplit_option == "single_pAda"
+		):
+			pass
+		else:
+			return 0
 
 		self.count_pAdasamatva(Vrs) # [0,2,3,4]
 
@@ -394,6 +402,10 @@ class VerseTester(object):
 			# will give id_score == 8
 			self.evaluate_ardhasamavftta(Vrs)
 			# max score not necessarily yet reached, don't return
+
+		# test perfect single pāda of samavṛtta
+		if ( self.pAdasamatva_count == 0 and self.resplit_option == "single_pAda"):
+			self.evaluate_samavftta(Vrs)
 
 		# test perfect viṣamavṛtta
 		if self.pAdasamatva_count == 0 and self.is_vizamavftta(Vrs):
@@ -730,7 +742,7 @@ class MeterIdentifier(object):
 		self.VerseTester.resplit_option = resplit_option
 		self.VerseTester.resplit_keep_midpoint = resplit_keep_midpoint
 
-		if resplit_option == 'none' or V.text_cleaned == '':
+		if resplit_option in ['none', 'single_pAda'] or V.text_cleaned == '':
 			success = VT.attempt_identification(V)
 			# label and score set internally
 
