@@ -9,3 +9,4 @@ src/skrutable/splitter/data/output/*.txt
 src/skrutable/splitter/wrapper_config.json
 build/
 dist/
+src/*.egg-info
