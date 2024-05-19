@@ -53,6 +53,17 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	expected_output = 4
 	assert output == expected_output
 
+def test_count_pAdasamatva_zero():
+	S = Scanner()
+	input_string = "sampūrṇakumbho na karoti śabdam"
+	V = S.scan(input_string, from_scheme='IAST')
+	VT = VerseTester()
+	VT.resplit_option = 'single_pAda'
+	VT.count_pAdasamatva(V)
+	output: int = VT.pAdasamatva_count
+	expected_output = 0
+	assert output == expected_output
+
 # def test_test_as_upajAti():
 # 	S = Scanner()
 # 	input_string = """kolAhale kAkakulasya jAte
@@ -106,6 +117,19 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = "indravajrā"
 	assert output == expected_output
+
+def test_evaluate_samavftta_sampUrRakumBo_1():
+	S = Scanner()
+	input_string = "sampūrṇakumbho na karoti śabdam"
+	V = S.scan(input_string, from_scheme='IAST')
+	VT = VerseTester()
+	VT.resplit_option = "single_pAda"
+	VT.count_pAdasamatva(V)
+	VT.evaluate_samavftta(V)
+	assert "1 eva pādaḥ" in V.meter_label
+	basic_meter_label_output = V.meter_label[:10]
+	expected_output = "indravajrā"
+	assert basic_meter_label_output == expected_output
 
 def test_evaluate_samavftta_sampUrRakumBo_3():
 	S = Scanner()
@@ -255,6 +279,19 @@ sarvaM yasya vaSAdagAt smftipaTaM kAlAya tasmE namaH"""
 	expected_output = "śārdūlavikrīḍita"
 	assert truncated_output == expected_output
 
+def test_identify_meter_SArdUlavikrIqitA_1():
+	S = Scanner()
+	input_string = "sA ramyA nagarI mahAn sa nfpatiH sAmantacakraM ca tat"
+	V = S.scan(input_string, from_scheme='SLP')
+	VT = VerseTester()
+	VT.resplit_option = "single_pAda"
+	VT.count_pAdasamatva(V)
+	VT.evaluate_samavftta(V)
+	assert "1 eva pādaḥ" in V.meter_label
+	basic_meter_label_output = V.meter_label.split(' ')[0]
+	expected_output = "śārdūlavikrīḍita"
+	assert basic_meter_label_output == expected_output
+
 def test_identify_meter_trizwuB_jagatI_saMkara():
 	MI = MeterIdentifier()
 	input_string = """na caitad vidmaḥ kataran no garīyo;
@@ -361,6 +398,19 @@ pradīyatāṃ dāśarathāya maithilī  //"""
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = meter_scores["samavṛtta, perfect"]
 	assert output == expected_output
+
+def test_identify_meter_vaMSasTa_1():
+	S = Scanner()
+	input_string = "purā śaratsūryamarīcisaṃnibhān"
+	V = S.scan(input_string, from_scheme='IAST')
+	VT = VerseTester()
+	VT.resplit_option = "single_pAda"
+	VT.count_pAdasamatva(V)
+	VT.evaluate_samavftta(V)
+	assert "1 eva pādaḥ" in V.meter_label
+	basic_meter_label_output = V.meter_label.split(' ')[0]
+	expected_output = "vaṃśastha"
+	assert basic_meter_label_output == expected_output
 
 def test_identify_meter_no_split_additional_newline_chrs_Darmakzetre():
 	MI = MeterIdentifier()
