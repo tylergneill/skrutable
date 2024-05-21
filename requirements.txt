@@ -12,7 +12,7 @@ idna==3.7
     # via requests
 numpy==1.26.4
     # via skrutable (setup.py)
-requests==2.31.0
+requests==2.32.0
     # via skrutable (setup.py)
 urllib3==2.2.1
     # via requests
