@@ -14,5 +14,5 @@ numpy==1.26.4
     # via skrutable (setup.py)
 requests==2.31.0
     # via skrutable (setup.py)
-urllib3==2.2.1
+urllib3==2.2.2
     # via requests
