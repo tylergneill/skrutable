@@ -3,7 +3,7 @@ from skrutable import phonemes
 
 vowels = ''.join(phonemes.SLP_vowels)
 unvoiced_consonants = ''.join(phonemes.SLP_unvoiced_consonants)
-unvoiced_consonants_subset = ['k','K','t','T','p','P','s']
+unvoiced_consonants_subset = ''.join(['k','K','t','T','p','P','s'])
 voiced_consonants = ''.join(phonemes.SLP_voiced_consonants)
 
 """The following regexes aim at avoiding virāma and space,

@@ -8,10 +8,10 @@ import re
 
 # load config variables
 config = load_config_dict_from_json_file()
-default_scheme_in = config["default_scheme_in"] # e.g. "auto"
-default_scheme_out = config["default_scheme_out"] # e.g. "IAST"
-avoid_virAma_indic_scripts = config["avoid_virAma_indic_scripts"] # e.g. True
-avoid_virAma_all_scripts = config["avoid_virAma_all_scripts"] # e.g. False
+DEFAULT_SCHEME_IN = config["default_scheme_in"] # e.g. "auto"
+DEFAULT_SCHEME_OUT = config["default_scheme_out"] # e.g. "IAST"
+AVOID_VIRAMA_INDIC_SCRIPTS_DEFAULT = config["avoid_virAma_indic_scripts"] # e.g. True
+AVOID_VIRAMA_NON_INDIC_SCRIPTS_DEFAULT = config["avoid_virAma_non_indic_scripts"] # e.g. False
 
 
 class Transliterator():
@@ -29,12 +29,12 @@ class Transliterator():
 		self.contents = None
 
 		if from_scheme == None:
-			from_scheme = default_scheme_in
+			from_scheme = DEFAULT_SCHEME_IN
 		from_scheme = from_scheme.upper()
 		self.scheme_in = from_scheme
 
 		if to_scheme == None:
-			to_scheme = default_scheme_out
+			to_scheme = DEFAULT_SCHEME_OUT
 		to_scheme = to_scheme.upper()
 		self.scheme_out = to_scheme
 
@@ -135,7 +135,14 @@ class Transliterator():
 		self.contents = content_out # hybrid
 
 
-	def transliterate(self, cntnts, from_scheme=None, to_scheme=None):
+	def transliterate(
+			self,
+			cntnts,
+			from_scheme=None,
+			to_scheme=None,
+			avoid_virAma_indic_scripts: bool = AVOID_VIRAMA_INDIC_SCRIPTS_DEFAULT,
+			avoid_virAma_non_indic_scripts: bool = AVOID_VIRAMA_NON_INDIC_SCRIPTS_DEFAULT,
+	):
 		"""
 		User-facing method.
 
@@ -172,9 +179,12 @@ class Transliterator():
 		self.map_replace(self.scheme_in, 'SLP')
 
 		# avoid undesirable virāmas specified in virāma_avoidance.py
-		if 	(self.scheme_out in scheme_maps.indic_schemes
-			and avoid_virAma_indic_scripts == True
-			or avoid_virAma_all_scripts == True):
+		if 	(
+				self.scheme_out in scheme_maps.indic_schemes
+				and avoid_virAma_indic_scripts == True
+			) or (
+				self.scheme_out not in scheme_maps.indic_schemes
+				and avoid_virAma_non_indic_scripts == True):
 			self.avoid_virAmas()
 
 		# then transliterate to desired scheme
