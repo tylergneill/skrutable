@@ -58,7 +58,7 @@ class Splitter(object):
 
         self.punc_regex = r' *[।॥\|/\\.\\?,—;!\t\n]+ *'
         self.max_char_limit = 128
-        self.char_limit_split_regex_options = [r'(?<=[mṃtd]) ', r' ']
+        self.char_limit_split_regex_options = [r'(?:(?:[kgtdnpbmṃḥ])) ', r'(?:(?:e[nṇ]a|asya|[ie]va|api)) ', r' ', r'a']
         self.ctr_splt_range = 0.8 # percentage distance measured from middle
         self.line_count_before_split = 0
         self.line_count_during_split = 0
@@ -77,14 +77,14 @@ class Splitter(object):
 
     def find_midpoint(self, txt, splt_regex):
         """
-        Determine position of centermost legal split of txt based on splt_regex.
+        Determine position of whitespace of centermost legal split of txt based on splt_regex.
         Return integer index.
         """
 
-        all_indices = [m.start() for m in re.finditer(splt_regex, txt)]
-        Ds_from_mid = [abs(i - len(txt)/2) for i in all_indices] # Distances
+        space_indices = [m.end()-1 for m in re.finditer(splt_regex, txt)]
+        Ds_from_mid = [abs(i - len(txt)/2) for i in space_indices] # Distances
         try:
-            most_mid_index = all_indices[Ds_from_mid.index(min(Ds_from_mid))]
+            most_mid_index = space_indices[Ds_from_mid.index(min(Ds_from_mid))]
             return most_mid_index
         except ValueError:
             return 0
