@@ -116,6 +116,7 @@ class Splitter(object):
 
     def clean_up(self, split_sentences_str: str, split_appearance=' ') -> List[str]:
         for (r_1, r_2) in [
+            ('-\n', '\n'), # remove line-final hyphens
             ('-', split_appearance), # modify appearance of splits ('-', ' ', '- ', etc.)
             ('=', ''), # QUESTION: what does this char in result even mean?
             ('=', ''), # QUESTION: what does this char in result even mean?
