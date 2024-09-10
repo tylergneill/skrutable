@@ -15,6 +15,8 @@ class Splitter(object):
 
         self.punc_regex = r' *[।॥\|/\\.\\?,—;!\[\(<\t\n"][।॥\|/\\.\\?,—;!\t\n\d\[\]\(\)<>" ]*'
         self.max_char_limit = 128
+        shared_items = r'।॥\|/\\.,—;!\[(<\t\r\n"'
+        self.punctuation_regex = fr' *[{shared_items}][{shared_items}\d\])> ]*'
         self.char_limit_split_regex_options = [r'(?:(?:[kgtdnpbmṃḥ])) ', r'(?:(?:e[nṇ]a|asya|[ie]va|api)) ', r' ', r'a']
         self.ctr_splt_range = 0.8 # percentage distance measured from middle
         self.line_count_before_split = 0
@@ -26,6 +28,10 @@ class Splitter(object):
         sentences = list(filter(None, re.split(self.punc_regex, txt, flags=re.MULTILINE)))
         punc = re.findall(self.punc_regex, txt)
         return sentences, punc
+    def _get_sentences_and_punctuation(self, text: str) -> Tuple[List[str], List[str]]:
+        sentences = list(filter(None, re.split(self.punctuation_regex, text, flags=re.MULTILINE)))
+        punctuation = re.findall(self.punctuation_regex, text)
+        return sentences, punctuation
 
     def _find_midpoint(self, txt: str, splt_regex: str) -> int:
         """
