@@ -84,18 +84,18 @@ class Splitter(object):
                 sentence_counts.append(len(parts))
         return new_txtLines, sentence_counts
 
-    def _post_string(self, input_text: str, url: str=SPLITTER_SERVER_URL):
+    def _post_string_2018(self, input_text: str, url: str=SPLITTER_SERVER_URL):
         json_payload = {'input_text': input_text}
         result = requests.post(url, json=json_payload)
         return result.text
 
-    def _post_file(self, input_file_path: str, url: str=SPLITTER_SERVER_URL):
+    def _post_file_2018(self, input_file_path: str, url: str=SPLITTER_SERVER_URL):
         input_file = open(input_file_path, 'rb')
         file_payload = {"input_file": input_file}
         result = requests.post(url, files=file_payload)
         return result.text
 
-    def _clean_up(self, split_sentences_str: str, split_appearance: str=' ') -> List[str]:
+    def _clean_up_2018(self, split_sentences_str: str, split_appearance: str=' ') -> List[str]:
         for (r_1, r_2) in [
             ('-\n', '\n'), # remove line-final hyphens
             ('-', split_appearance), # modify appearance of splits ('-', ' ', '- ', etc.)
@@ -142,12 +142,12 @@ class Splitter(object):
             # write prepared string to Splitter input buffer and send as binary
             with open(SPLITTER_INPUT_BUFFER_FN, 'w') as f_out:
                 f_out.write(sentences_str)
-            split_sentences_str = self._post_file(SPLITTER_INPUT_BUFFER_FN)
+            split_sentences_str = self._post_file_2018(SPLITTER_INPUT_BUFFER_FN)
         else:
-            split_sentences_str = self._post_string(sentences_str)
+            split_sentences_str = self._post_string_2018(sentences_str)
 
         # clean up server_splitter result
-        split_sentences: List[str] = self._clean_up(split_sentences_str)
+        split_sentences: List[str] = self._clean_up_2018(split_sentences_str)
 
         # restore sentences split to enforce character limit
         restored_sentences: List[str] = self._restore_sentences(split_sentences, sent_counts)
