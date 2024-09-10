@@ -13,7 +13,7 @@ class Splitter(object):
 
     def __init__(self):
 
-        self.punc_regex = r' *[।॥\|/\\.\\?,—;!\t\n]+ *'
+        self.punc_regex = r' *[।॥\|/\\.\\?,—;!\[\(<\t\n"][।॥\|/\\.\\?,—;!\t\n\d\[\]\(\)<>" ]*'
         self.max_char_limit = 128
         self.char_limit_split_regex_options = [r'(?:(?:[kgtdnpbmṃḥ])) ', r'(?:(?:e[nṇ]a|asya|[ie]va|api)) ', r' ', r'a']
         self.ctr_splt_range = 0.8 # percentage distance measured from middle
@@ -150,9 +150,14 @@ class Splitter(object):
         return restored_sentences
 
     def _restore_punc(self, sentences: List[str], svd_pnc: List[str]) -> str:
-        return ''.join(
-            [elem for pair in zip(sentences, svd_pnc) for elem in pair]
-        )
+        if len(svd_pnc) == len(sentences) + 1: # started with "punctuation"
+            return svd_pnc[0] + ''.join(
+                [elem for pair in zip(sentences, svd_pnc[1:]) for elem in pair]
+            )
+        elif len(svd_pnc) == len(sentences):
+            return ''.join(
+                [elem for pair in zip(sentences, svd_pnc) for elem in pair]
+            )
 
     def split(
             self,
