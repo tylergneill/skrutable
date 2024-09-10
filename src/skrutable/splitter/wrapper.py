@@ -185,6 +185,8 @@ class Splitter(object):
         sentences: List[str]
         svd_punc: List[str]
         sentences, svd_punc = self._get_sentences_and_punc(text)
+        if len(saved_punctuation) - len(sentences) > 1:
+            raise ValueError("Punctuation and sentence count mismatch")
 
         # split sentences that are too long for Splitter
         safe_sentences: List[str]
@@ -211,6 +213,9 @@ class Splitter(object):
                 split_sentences_str = self._post_string_2018(sentences_str)
 
             split_sentences = self._clean_up_2018(split_sentences_str)
+
+        else:
+            raise ValueError(f"Invalid splitter model {splitter_model}")
 
         # restore sentences split to enforce character limit
         restored_sentences: List[str] = self._restore_sentences(split_sentences, sent_counts)
