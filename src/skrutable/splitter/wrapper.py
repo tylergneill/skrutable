@@ -17,6 +17,10 @@ class Splitter(object):
         self.max_char_limit = 128
         shared_items = r'।॥\|/\\.,—;!\[(<\t\r\n"'
         self.punctuation_regex = fr' *[{shared_items}][{shared_items}\d\])> ]*'
+        self.max_char_limit = {
+            "splitter_2018": 128,
+            "dharmamitra_2024_sept": 350,
+        }
         self.char_limit_split_regex_options = [r'(?:(?:[kgtdnpbmṃḥ])) ', r'(?:(?:e[nṇ]a|asya|[ie]va|api)) ', r' ', r'a']
         self.ctr_splt_range = 0.8 # percentage distance measured from middle
         self.line_count_before_split = 0
@@ -72,23 +76,23 @@ class Splitter(object):
             part_b = self._split_smart_half( txt[midpoint + 1 : ] , splt_regex_options, max_len)
             return part_a + part_b
 
-    def _enforce_char_limit(self, txtLines: List[str]) -> Tuple[List[str], List[int]]:
+    def _enforce_char_limit(self, text_lines: List[str], max_char_limit: int=128) -> Tuple[List[str], List[int]]:
         sentence_counts = []
-        new_txtLines = []
-        for i, line in enumerate(txtLines):
-            if len(line) <= self.max_char_limit:
-                new_txtLines.append(line)
+        new_text_lines = []
+        for i, line in enumerate(text_lines):
+            if len(line) <= max_char_limit:
+                new_text_lines.append(line)
                 sentence_counts.append(1)
             else:
-                new_txtLines.extend(
+                new_text_lines.extend(
                     parts := self._split_smart_half(
                         line,
                         self.char_limit_split_regex_options,
-                        self.max_char_limit
+                        max_char_limit
                     )
                 )
                 sentence_counts.append(len(parts))
-        return new_txtLines, sentence_counts
+        return new_text_lines, sentence_counts
 
     def _parse_dharmamitra_result(self, response_json) -> List[str]:
         sentence_results = []
@@ -185,7 +189,7 @@ class Splitter(object):
         # split sentences that are too long for Splitter
         safe_sentences: List[str]
         sent_counts: List[int]
-        safe_sentences, sent_counts = self._enforce_char_limit(sentences)
+        safe_sentences, sent_counts = self._enforce_char_limit(sentences, self.max_char_limit.get(splitter_model, 128))
 
         sentences_str: str = '\n'.join(safe_sentences)
 
