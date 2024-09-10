@@ -84,6 +84,41 @@ class Splitter(object):
                 sentence_counts.append(len(parts))
         return new_txtLines, sentence_counts
 
+    def _parse_dharmamitra_result(self, response_json) -> List[str]:
+        sentence_results = []
+        for sentence_blob in response_json:
+            sentence_results.append(
+                ' '.join([r['unsandhied'] for r in sentence_blob['grammatical_analysis']])
+            )
+        return sentence_results
+
+    def _get_dharmamitra_split(self, text_input, mode="unsandhied"):
+        """
+        Modes can be:
+        - unsandhied-lemma-morphosyntax
+        - lemma-morphosyntax
+        - lemma
+        - unsandhied
+        """
+        url = 'https://dharmamitra.org/api/tagging/'
+        headers = {
+            'Content-Type': 'application/json',
+        }
+        data = {
+            "input_sentence": text_input,
+            "mode": mode,
+            "input_encoding": "auto",
+            "human_readable_tags": False,
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            return self._parse_dharmamitra_result(response.json())
+        else:
+            response.raise_for_status()
+
     def _post_string_2018(self, input_text: str, url: str=SPLITTER_SERVER_URL):
         json_payload = {'input_text': input_text}
         result = requests.post(url, json=json_payload)
@@ -119,7 +154,13 @@ class Splitter(object):
             [elem for pair in zip(sentences, svd_pnc) for elem in pair]
         )
 
-    def split(self, text: str, prsrv_punc: bool=PRESERVE_PUNC_DEFAULT, wholeFile: bool=False) -> str:
+    def split(
+            self,
+            text: str,
+            splitter_model: str='dharmamitra_2024_sept',
+            prsrv_punc: bool=PRESERVE_PUNC_DEFAULT,
+            wholeFile: bool=False,
+    ) -> str:
         """
         Splits sandhi and compounds of multi-line Sanskrit string,
         passing maximum of max_char_limit characters to Splitter at a time,
@@ -137,17 +178,24 @@ class Splitter(object):
 
         sentences_str: str = '\n'.join(safe_sentences)
 
-        # post to server_splitter api
-        if wholeFile:
-            # write prepared string to Splitter input buffer and send as binary
-            with open(SPLITTER_INPUT_BUFFER_FN, 'w') as f_out:
-                f_out.write(sentences_str)
-            split_sentences_str = self._post_file_2018(SPLITTER_INPUT_BUFFER_FN)
-        else:
-            split_sentences_str = self._post_string_2018(sentences_str)
+        split_sentences: List[str]
 
-        # clean up server_splitter result
-        split_sentences: List[str] = self._clean_up_2018(split_sentences_str)
+        if splitter_model == 'dharmamitra_2024_sept':
+            split_sentences = self._get_dharmamitra_split(sentences_str)
+
+        elif splitter_model == 'splitter_2018':
+
+            split_sentences_str: str
+
+            if wholeFile:
+                # write prepared string to Splitter input buffer and send as binary
+                with open(SPLITTER_INPUT_BUFFER_FN, 'w') as f_out:
+                    f_out.write(sentences_str)
+                split_sentences_str = self._post_file_2018(SPLITTER_INPUT_BUFFER_FN)
+            else:
+                split_sentences_str = self._post_string_2018(sentences_str)
+
+            split_sentences = self._clean_up_2018(split_sentences_str)
 
         # restore sentences split to enforce character limit
         restored_sentences: List[str] = self._restore_sentences(split_sentences, sent_counts)
