@@ -5,23 +5,9 @@ from typing import List, Tuple
 from skrutable.config import load_config_dict_from_json_file
 
 config = load_config_dict_from_json_file()
-
-Splitter_input_buffer_fn = "data/input/buffer_in.txt"
-Splitter_output_buffer_fn = "data/output/buffer_out.txt"
-
-preserve_punc_default = config["preserve_punc_default"]
-splitter_server_url = 'https://splitter-server-tylergneill.pythonanywhere.com'
-
-def post_string(input_text):
-    json_payload = {'input_text': input_text}
-    result = requests.post(splitter_server_url, json=json_payload)
-    return result.text
-
-def post_file(input_file_path):
-    input_file = open(input_file_path, 'rb')
-    file_payload = {"input_file": input_file}
-    result = requests.post(splitter_server_url, files=file_payload)
-    return result.text
+PRESERVE_PUNC_DEFAULT = config["preserve_punc_default"]
+SPLITTER_INPUT_BUFFER_FN = "data/input/buffer_in.txt"
+SPLITTER_SERVER_URL = 'https://splitter-server-tylergneill.pythonanywhere.com'
 
 class Splitter(object):
 
@@ -36,12 +22,12 @@ class Splitter(object):
         self.line_count_after_split = 0
         self.token_count = 0
 
-    def get_sentences_and_punc(self, txt: str) -> List[str]:
+    def _get_sentences_and_punc(self, txt: str) -> Tuple[List[str], List[str]]:
         sentences = list(filter(None, re.split(self.punc_regex, txt, flags=re.MULTILINE)))
         punc = re.findall(self.punc_regex, txt)
         return sentences, punc
 
-    def find_midpoint(self, txt, splt_regex):
+    def _find_midpoint(self, txt: str, splt_regex: str) -> int:
         """
         Determine position of whitespace of centermost legal split of txt based on splt_regex.
         Return integer index.
@@ -55,7 +41,7 @@ class Splitter(object):
         except ValueError:
             return 0
 
-    def split_smart_half(self, txt, splt_regex_options, max_len):
+    def _split_smart_half(self, txt: str, splt_regex_options: List[str], max_len: int) -> List[str]:
         """
         Recursively split txt (string) according to splt_regex_options
             (first go for m/ṃ or t/d, otherwise any space)
@@ -68,7 +54,7 @@ class Splitter(object):
             return [txt]
         else:
             for splt_regex in splt_regex_options:
-                midpoint = self.find_midpoint(txt, splt_regex)
+                midpoint = self._find_midpoint(txt, splt_regex)
                 if (
                     midpoint > (1.0 - (1.0 - self.ctr_splt_range) / 2) * len(txt)
                     or
@@ -76,11 +62,40 @@ class Splitter(object):
                 ): continue
                 else: break
 
-            part_a = self.split_smart_half( txt[ : midpoint + 1] , splt_regex_options, max_len)
-            part_b = self.split_smart_half( txt[midpoint + 1 : ] , splt_regex_options, max_len)
+            part_a = self._split_smart_half( txt[ : midpoint + 1] , splt_regex_options, max_len)
+            part_b = self._split_smart_half( txt[midpoint + 1 : ] , splt_regex_options, max_len)
             return part_a + part_b
 
-    def clean_up(self, split_sentences_str: str, split_appearance=' ') -> List[str]:
+    def _enforce_char_limit(self, txtLines: List[str]) -> Tuple[List[str], List[int]]:
+        sentence_counts = []
+        new_txtLines = []
+        for i, line in enumerate(txtLines):
+            if len(line) <= self.max_char_limit:
+                new_txtLines.append(line)
+                sentence_counts.append(1)
+            else:
+                new_txtLines.extend(
+                    parts := self._split_smart_half(
+                        line,
+                        self.char_limit_split_regex_options,
+                        self.max_char_limit
+                    )
+                )
+                sentence_counts.append(len(parts))
+        return new_txtLines, sentence_counts
+
+    def _post_string(self, input_text: str, url: str=SPLITTER_SERVER_URL):
+        json_payload = {'input_text': input_text}
+        result = requests.post(url, json=json_payload)
+        return result.text
+
+    def _post_file(self, input_file_path: str, url: str=SPLITTER_SERVER_URL):
+        input_file = open(input_file_path, 'rb')
+        file_payload = {"input_file": input_file}
+        result = requests.post(url, files=file_payload)
+        return result.text
+
+    def _clean_up(self, split_sentences_str: str, split_appearance: str=' ') -> List[str]:
         for (r_1, r_2) in [
             ('-\n', '\n'), # remove line-final hyphens
             ('-', split_appearance), # modify appearance of splits ('-', ' ', '- ', etc.)
@@ -91,30 +106,7 @@ class Splitter(object):
             split_sentences_str = re.sub(r_1, r_2, split_sentences_str)
         return split_sentences_str.split('\n')
 
-    def restore_punc(self, sentences, svd_pnc):
-        return ''.join(
-            [elem for pair in zip(sentences, svd_pnc) for elem in pair]
-        )
-
-    def enforce_char_limit(self, txtLines) -> Tuple[List[str], List[int]]:
-        sentence_counts = []
-        new_txtLines = []
-        for i, line in enumerate(txtLines):
-            if len(line) <= self.max_char_limit:
-                new_txtLines.append(line)
-                sentence_counts.append(1)
-            else:
-                new_txtLines.extend(
-                    parts := self.split_smart_half(
-                        line,
-                        self.char_limit_split_regex_options,
-                        self.max_char_limit
-                    )
-                )
-                sentence_counts.append(len(parts))
-        return new_txtLines, sentence_counts
-
-    def restore_sentences(self, sentences, sentence_counts):
+    def _restore_sentences(self, sentences: List[str], sentence_counts: List[int]) -> List[str]:
         restored_sentences = []
         i = 0
         for count in sentence_counts:
@@ -122,7 +114,12 @@ class Splitter(object):
             i += count
         return restored_sentences
 
-    def split(self, text, prsrv_punc=preserve_punc_default, wholeFile=False):
+    def _restore_punc(self, sentences: List[str], svd_pnc: List[str]) -> str:
+        return ''.join(
+            [elem for pair in zip(sentences, svd_pnc) for elem in pair]
+        )
+
+    def split(self, text: str, prsrv_punc: bool=PRESERVE_PUNC_DEFAULT, wholeFile: bool=False) -> str:
         """
         Splits sandhi and compounds of multi-line Sanskrit string,
         passing maximum of max_char_limit characters to Splitter at a time,
@@ -131,33 +128,33 @@ class Splitter(object):
         # save original punctuation
         sentences: List[str]
         svd_punc: List[str]
-        sentences, svd_punc = self.get_sentences_and_punc(text)
+        sentences, svd_punc = self._get_sentences_and_punc(text)
 
         # split sentences that are too long for Splitter
         safe_sentences: List[str]
         sent_counts: List[int]
-        safe_sentences, sent_counts = self.enforce_char_limit(sentences)
+        safe_sentences, sent_counts = self._enforce_char_limit(sentences)
 
         sentences_str: str = '\n'.join(safe_sentences)
 
         # post to server_splitter api
         if wholeFile:
             # write prepared string to Splitter input buffer and send as binary
-            with open(Splitter_input_buffer_fn, 'w') as f_out:
+            with open(SPLITTER_INPUT_BUFFER_FN, 'w') as f_out:
                 f_out.write(sentences_str)
-            split_sentences_str = post_file(Splitter_input_buffer_fn)
+            split_sentences_str = self._post_file(SPLITTER_INPUT_BUFFER_FN)
         else:
-            split_sentences_str = post_string(sentences_str)
+            split_sentences_str = self._post_string(sentences_str)
 
         # clean up server_splitter result
-        split_sentences: List[str] = self.clean_up(split_sentences_str, split_appearance=' ')
+        split_sentences: List[str] = self._clean_up(split_sentences_str)
 
         # restore sentences split to enforce character limit
-        restored_sentences: List[str] = self.restore_sentences(split_sentences, sent_counts)
+        restored_sentences: List[str] = self._restore_sentences(split_sentences, sent_counts)
 
         # restore punctuation
         if prsrv_punc and svd_punc != []:
-            final_results = self.restore_punc(restored_sentences, svd_punc)
+            final_results = self._restore_punc(restored_sentences, svd_punc)
         else:
             final_results = '\n'.join(restored_sentences).replace('_', ' ')
 
