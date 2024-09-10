@@ -1,39 +1,10 @@
 import re
-import pathlib
-from typing import List, Tuple
-
 import requests
+from typing import List, Tuple
 
 from skrutable.config import load_config_dict_from_json_file
 
-"""
-Hacky temporary path solution to solve Python 3.5 and relative path problems:
-    On call to split (e.g. from Python 3.8),
-    first store current working directory,
-    then switch to absolute path of splitter wrapper,
-    execute commands in Python 3.5 via subprocess,
-    and finally, return to original working directory.
-"""
-
-# paths: absolute
-
-wrapper_module_path = pathlib.Path(__file__).parent.absolute()
-
-# wrapper_config_path = os.path.join(wrapper_module_path, 'wrapper_config.json')
-# config_data = open(wrapper_config_path,'r').read()
-# config = json.loads(config_data)
 config = load_config_dict_from_json_file()
-
-# user must adjust to point at own Python 3.5 executable
-# python_3_5_bin_path = config["python_3_5_bin_path"]
-# e.g. on local Mac: "/Users/tyler/.pyenv/versions/3.5.9/bin"
-# on PythonAnywhere: "/usr/bin"
-
-# user's Python 3.5 install must also have 1.x version of TensorFlow
-# e.g. locally: pip3.5 install tensorflow==1.15.0
-# on PythonAnywhere: pip3.5 install --user tensorflow==1.15.0 > /tmp/tensorflow-install.log
-
-# paths: relative
 
 Splitter_input_buffer_fn = "data/input/buffer_in.txt"
 Splitter_output_buffer_fn = "data/output/buffer_out.txt"
@@ -69,11 +40,6 @@ class Splitter(object):
         sentences = list(filter(None, re.split(self.punc_regex, txt, flags=re.MULTILINE)))
         punc = re.findall(self.punc_regex, txt)
         return sentences, punc
-
-    def presplit(self, txt):
-        txt = txt.replace('\n', '\n##\n')
-        rgx = re.compile(self.punc_regex)
-        return re.sub(rgx, '\n_\n', txt)
 
     def find_midpoint(self, txt, splt_regex):
         """
@@ -156,42 +122,25 @@ class Splitter(object):
             i += count
         return restored_sentences
 
-    def count_tokens(self, text):
-        tokens = re.split(r'[\n ]+', text)
-        while '' == tokens[-1]: tokens.pop(-1) # discard final empties
-        return len(tokens)
-
     def split(self, text, prsrv_punc=preserve_punc_default, wholeFile=False):
         """
         Splits sandhi and compounds of multi-line Sanskrit string,
         passing maximum of max_char_limit characters to Splitter at a time,
         and preserving original newlines and punctuation.
         """
-
-        # save original working directory, change to SplitterWrapper one
-#         orig_cwd = os.getcwd()
-#         os.chdir(wrapper_module_path)
-
-        # self.line_count_before_split = len(text.split('\n'))
-
         # save original punctuation
         sentences: List[str]
         svd_punc: List[str]
         sentences, svd_punc = self.get_sentences_and_punc(text)
 
-        # prepare string for Splitter
-        # text_presplit = self.presplit(text)
+        # split sentences that are too long for Splitter
         safe_sentences: List[str]
         sent_counts: List[int]
         safe_sentences, sent_counts = self.enforce_char_limit(sentences)
-        # prepared_text = self.enforce_char_limit(text_presplit)
-
-        # self.line_count_during_split = len(prepared_text.split('\n'))
 
         sentences_str: str = '\n'.join(safe_sentences)
 
         # post to server_splitter api
-
         if wholeFile:
             # write prepared string to Splitter input buffer and send as binary
             with open(Splitter_input_buffer_fn, 'w') as f_out:
@@ -200,30 +149,16 @@ class Splitter(object):
         else:
             split_sentences_str = post_string(sentences_str)
 
+        # clean up server_splitter result
         split_sentences: List[str] = self.clean_up(split_sentences_str, split_appearance=' ')
 
+        # restore sentences split to enforce character limit
         restored_sentences: List[str] = self.restore_sentences(split_sentences, sent_counts)
 
-        # # run Splitter
-        # command = "%s/python3.5 -W ignore apply.py" % python_3_5_bin_path
-        # subprocess.call(command, shell='True')
-
-        # # retrieve Splitter result from output buffer
-        # with open(Splitter_output_buffer_fn, 'r') as f_in:
-        #     result = f_in.read()
-
-        # clean up results (e.g., newlines, original punctuation)
+        # restore punctuation
         if prsrv_punc and svd_punc != []:
             final_results = self.restore_punc(restored_sentences, svd_punc)
         else:
             final_results = '\n'.join(restored_sentences).replace('_', ' ')
-
-
-        # self.line_count_after_split = result.count('\n') + 1
-
-        # self.token_count = self.count_tokens(result)
-
-        # restore original working directory
-#         os.chdir(orig_cwd)
 
         return final_results
