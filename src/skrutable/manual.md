@@ -183,6 +183,7 @@ from skrutable.transliteration import Transliterator
 T = Transliterator(to_scheme='DEV')  # using built-in default from_scheme IAST but passing in a default to_scheme 
 string_result_1 = T.transliterate( input_string )  # from_scheme=IAST, to_scheme=DEV
 string_result_2 = T.transliterate( input_string, to_scheme='BENGALI')  # overriding to_scheme
+string_result_3 = T.transliterate( input_string, avoid_virama_indic_scripts=False)  # output Devanāgarī with Roman-like spacing
 ~~~
 
 2. `skrutable.scansion`, `scansion.Scanner`, `Scanner.scan()`
