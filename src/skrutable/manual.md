@@ -9,12 +9,12 @@ For more context on the project, see [skrutable.info/about](https://www.skrutabl
 
 # how to use
 
-The online web app at [skrutable.info/](https://www.skrutable.info/)
-provides easy access to both casual one-off and also whole-file processing.
+The online web app at [skrutable.info](https://www.skrutable.info/)
+provides easy access to both one-off and whole-file processing.
 
 ![screenshot](img/web_app.png)
 
-See [skrutable.info/tutorial](https://www.skrutable.info/tutorial) for more instructions.
+See [skrutable.info/help](https://www.skrutable.info/help) for more instructions.
 
 For Python programmers, it's also possible to import and use `skrutable` as a library.
 Just `pip install skrutable` and you're ready to start.
@@ -123,7 +123,6 @@ There are numerous related projects which users may find preferable to `skrutabl
  | (n/a) | (n/a) | **[Chandojñānam](https://sanskrit.iitk.ac.in/jnanasangraha/chanda/)** | Hrishikesh Terdalkar | 
 
 
-
 # encoding normalization
 
 Some schemes have internal options. For example, at the level of encoding, IAST is sometimes represented in UTF-8 with combining diacritics, sometimes with precomposed combinations. Alternatively, at the level of the scheme itself, ITRANS writes vocalic r (ṛ, ऋ) as 'Ri', 'RRi', or 'R^i. Because `skrutable` transliterates by way of SLP, and because it must output a single option, you can use round-trip transliteration (e.g., IAST-IAST) to normalize such variation. For example:
@@ -145,28 +144,21 @@ For the purpose of printing Indic scripts, it's often aesthetically (if not alwa
 asty eva >> ( अस्त्य् एव ) >> अस्त्येव
 ~~~
 
-This is the default behavior for transliterating to Indic scripts in `skrutable`. In the code, the regular expressions governing this can be found in `virAma_avoidance.py`, and the overall setting can be toggled in `config.py`.
+This is the default behavior for transliterating to Indic scripts in `skrutable`. In the code, the regular expressions governing this can be found in `virAma_avoidance.py`, and the overall setting can be toggled with the `avoid_virama_*` parameters to the `transliterate` method.
 
 
 # sandhi and compound splitting
 
-For splitting Sanskrit text into its individual words, both breaking compounds and dissolving sandhi, the powerful neural-network tool of Hellwig and Nehrdich, [Sanskrit Sandhi and Compound Splitter](https://github.com/OliverHellwig/sanskrit/tree/master/papers/2018emnlp), has been producing good and usable results since its 2018 release, even without re-training the model (examples: [here](https://github.com/tylergneill/pramana-nlp/tree/master/3_text_doc_and_word_segmented) and [here](https://github.com/sebastian-nehrdich/gretil-quotations)). By itself, however, it is not very accessible to potential users, being accessed via the command-line only and requiring setup of the somewhat outdated `Python 3.5` and `TensorFlow 1.x`.
-
-To remedy this, `skrutable` provides a wrapper, accessible through its online interface and the importable library, for easily applying the pre-trained model while also (bonus!) preserving original sentence length and punctuation. This wrapper actually communicates with a separate online server ([splitter_server](https://splitter-server-tylergneill.pythonanywhere.com/)), so you'll need a working internet connection for this functionality.
-(A previous, offline solution for incorporating the splitter involved 
-requiring the user to set up `TensorFlow 1.x` on `Python 3.5` 
-and to bridge different versions of Python with inelegant path hacks.
-Remnants of this still remain in the codebase and can be made to work if needed
-but are totally inactive at present.)
+For splitting Sanskrit text into its individual words, `skrutable` provides a wrapper, accessible through its online interface and the importable library, for applying pre-trained models while also (bonus!) preserving original sentence length and punctuation. For both model options, the wrapper communicates with separate online servers ([my own splitter_server serving the 2018 model](https://splitter-server-tylergneill.pythonanywhere.com/) and https://dharmamitra.org), so you'll need a working internet connection for this functionality.
 
 
 # using the code
 
 ## installation
 
-1. Have Python 3 installed (`Homebrew` and Python 3.8+ recommended)
+1. Have Python 3 installed (`Homebrew` or `pyenv`, Python 3.8+, and a virtual environment recommended)
 
-2. Run `pip3 install skrutable` ([latest version on PyPi](https://pypi.org/project/skrutable/))
+2. Run `pip install skrutable` ([latest version on PyPi](https://pypi.org/project/skrutable/))
 
 ## objects
 
@@ -174,10 +166,10 @@ From each respective Python module (`transliteration.py`, `scansion.py`, `meter_
 
 The following are the important function parameters:
 
-* transliteration: `from_scheme` and `to_scheme` (`IAST`, `HK`, `SLP`, `ITRANS`, `VH`, `WX`, `IASTreduced`, `DEV`, `BENGALI`, `GUJARATI`), 
+* transliteration: `from_scheme` and `to_scheme` (`IAST`, `HK`, `SLP`, `ITRANS`, `VH`, `WX`, `IASTreduced`, `DEV`, `BENGALI`, `GUJARATI`), `avoid_virama_indic_scripts` and  `avoid_virama_non_indic_scripts` (`True`, `False`)
 * scansion: `show_weights`, `show_morae`, `show_gaRas`, `show_alignment` (`True`, `False`)
 * meter identification: `resplit_option` (`none`, `resplit_lite`, `resplit_max`), `keep_mid` (`True`, `False`)
-* sandhi/compound splitting: `prsrv_punc` (`True`, `False`)
+* sandhi/compound splitting: `splitter_model` (`dharmamitra_2024_sept`, `splitter_2018`), `preserve_punctuation` (`True`, `False`)
 
 Examples:
 
@@ -219,12 +211,12 @@ Verse_result_3 = MI.identify_meter(input_string, from_scheme='DEV', resplit_opti
 from skrutable.splitter.wrapper import Splitter
 Spl = Splitter()
 # this needs an internet connection to connect to the API server
-string_result_1 = Spl.split( input_string ) # default prsrv_punc
-string_result_2 = Spl.split( input_string, prsrv_punc=False )  # discard punctuation 
+string_result_1 = Spl.split( input_string )  # default splitter_model and preserve_punctuation
+string_result_2 = Spl.split( input_string, preserve_punctuation=False )  # discard punctuation
+string_result_3 = Spl.split( input_string, splitter_model='splitter_2018')  # use older model
 ~~~
 
 More examples of how to use the library can be found in the repo's `tests` folder (for use with `pytest`) and in the `jupyter_notebooks` folder.
-
 
 ## using the API
 
@@ -241,7 +233,7 @@ Latency for small queries should be under 2 seconds
 See [skrutable.info/api](https://www.skrutable.info/api)
 for more specific instructions.
 
-## using as command-line script
+## using as command-line script (deprecated)
 
 Another way to run the code is the little command-line script `skrutable_one.py`.
 This also requires installing the Python library but avoids the need to write any Python code,
@@ -261,15 +253,6 @@ python skrutable_one.py --identify_meter FILENAME.txt resplit_option=none from_s
 ~~~
 python skrutable_one.py --identify_meter --whole_file FILENAME.txt resplit_option=resplit_lite from_scheme=IAST
 ~~~
-
-
-## using the web app locally
-
-There's yet another way of using `skrutable` that might come in handy for researchers doing more data-heavy processing, and that is to install and run the front-end web app locally on your own machine. In this way, you don't have to send information over the internet, so overall processing should be faster. To set this up, you'll need to also download the [separate front-end repo](https://github.com/tylergneill/skrutable_front_end). To support this, if you don't already have it, `pip install flask`. Then to start the local server, simply navigate into the folder with `flask_app.py` on the command line and run `bash launch.sh` (or `bash launch_https.sh` to be able to access the splitter server).  You can then access `skrutable` in your browser at `http://127.0.0.1:5000` (or `https://127.0.0.1:5000`). The front end locally imports the `skrutable` package as its back end, so don't forget to install that first.
-
-
-See [here](https://flask.palletsprojects.com/en/1.1.x/quickstart/) 
-for more info on the Flask framework, if you're curious.
 
 
 # feedback
