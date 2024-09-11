@@ -1,8 +1,8 @@
 {
 "default_scheme_in" : "IAST",
 "default_scheme_out" : "IAST",
-"avoid_virAma_indic_scripts" : true,
-"avoid_virAma_non_indic_scripts" : false,
+"avoid_virama_indic_scripts" : true,
+"avoid_virama_non_indic_scripts" : false,
 "scansion_syllable_separator" : " ",
 "additional_pAda_separators" : ["\t", ";", ",", " / ", " | ", " । "],
 "default_resplit_option" : "resplit_lite",
