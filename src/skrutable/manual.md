@@ -169,7 +169,7 @@ The following are the important function parameters:
 * transliteration: `from_scheme` and `to_scheme` (`IAST`, `HK`, `SLP`, `ITRANS`, `VH`, `WX`, `IASTreduced`, `DEV`, `BENGALI`, `GUJARATI`), `avoid_virama_indic_scripts` and  `avoid_virama_non_indic_scripts` (`True`, `False`)
 * scansion: `show_weights`, `show_morae`, `show_gaRas`, `show_alignment` (`True`, `False`)
 * meter identification: `resplit_option` (`none`, `resplit_lite`, `resplit_max`), `keep_mid` (`True`, `False`)
-* sandhi/compound splitting: `splitter_model` (`dharmamitra_2024_sept`, `splitter_2018`), `preserve_punctuation` (`True`, `False`)
+* sandhi/compound splitting: `splitter_model` (`dharmamitra_2024_sept`, `splitter_2018`), `preserve_punctuation` (`True`, `False`), `preserve_compound_hyphens` (`True`, `False`)
 
 Examples:
 
@@ -212,9 +212,10 @@ Verse_result_3 = MI.identify_meter(input_string, from_scheme='DEV', resplit_opti
 from skrutable.splitter.wrapper import Splitter
 Spl = Splitter()
 # this needs an internet connection to connect to the API server
-string_result_1 = Spl.split( input_string )  # default splitter_model and preserve_punctuation
+string_result_1 = Spl.split( input_string )  # default splitter-model and punctuation settings
 string_result_2 = Spl.split( input_string, preserve_punctuation=False )  # discard punctuation
-string_result_3 = Spl.split( input_string, splitter_model='splitter_2018')  # use older model
+string_result_3 = Spl.split( input_string, preserve_compound_hyphens=False )  # discard hyphens used to represent compounds
+string_result_4 = Spl.split( input_string, splitter_model='splitter_2018')  # use older model
 ~~~
 
 More examples of how to use the library can be found in the repo's `tests` folder (for use with `pytest`) and in the `jupyter_notebooks` folder.

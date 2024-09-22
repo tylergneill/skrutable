@@ -6,6 +6,7 @@ from skrutable.config import load_config_dict_from_json_file
 
 config = load_config_dict_from_json_file()
 PRESERVE_PUNCTUATION_DEFAULT = config["preserve_punctuation_default"]
+PRESERVE_COMPOUND_HYPHENS_DEFAULT = config["preserve_compound_hyphens_default"]
 SPLITTER_INPUT_BUFFER_FN = "data/input/buffer_in.txt"
 SPLITTER_SERVER_URL = 'https://splitter-server-tylergneill.pythonanywhere.com'
 
@@ -13,11 +14,12 @@ class Splitter(object):
 
     def __init__(self):
 
-        shared_items = r'।॥\|/\\.,—;!\[(<\t\r\n"'
+        shared_items = r'।॥\|/\\.,—;\?!\[(<\t\r\n"'
         self.punctuation_regex = fr' *[{shared_items}][{shared_items}\d\])> ]*'
         self.max_char_limit = {
-            "splitter_2018": 128,
-            "dharmamitra_2024_sept": 350,
+            ("splitter_2018", "don't preserve hyphens"): 128,
+            ("dharmamitra_2024_sept", "don't preserve hyphens"): 350,
+            ("dharmamitra_2024_sept", "preserve hyphens"): 150,
         }
         self.char_limit_split_regex_options = [r'(?:(?:[kgtdnpbmṃḥ])) ', r'(?:(?:e[nṇ]a|asya|[ie]va|api)) ', r' ', r'a']
         self.center_split_range = 0.8 # percentage distance measured from middle
@@ -84,21 +86,26 @@ class Splitter(object):
                 sentence_counts.append(len(parts))
         return new_text_lines, sentence_counts
 
-    def _parse_dharmamitra_result(self, response_json) -> List[str]:
+    def _parse_dharmamitra_result(self, response_json, mode="unsandhied") -> List[str]:
         sentence_results = []
         for sentence_blob in response_json:
-            sentence_results.append(
-                ' '.join([r['unsandhied'] for r in sentence_blob['grammatical_analysis']])
-            )
+            new_sentence = ' '.join([r['unsandhied'] for r in sentence_blob['grammatical_analysis']])
+            # conditionally do special post-processing if using unsandhied-lemma-morphosyntax to preserve hyphens
+            if mode == "unsandhied-lemma-morphosyntax":
+                new_sentence = new_sentence.replace('- ', '-')
+            sentence_results.append(new_sentence)
         return sentence_results
 
-    def _get_dharmamitra_split(self, text_input, mode="unsandhied"):
+    def _get_dharmamitra_split(self, text_input, preserve_compound_hyphens=True) -> List[str]:
+        # TODO: change to "unsandhied-morphosyntax" when it works
+        mode = "unsandhied-lemma-morphosyntax" if preserve_compound_hyphens else "unsandhied"
         """
         Modes can be:
-        - unsandhied-lemma-morphosyntax
-        - lemma-morphosyntax
-        - lemma
-        - unsandhied
+        - unsandhied  (does not distinguish compounds)
+        - lemma  (i.e., dictionary info, not needed for splitting)
+        - unsandhied-morphosyntax  (would be ideal for distinguishing compounds but doesn't work currently)
+        - lemma-morphosyntax  (doesn't work currently, would not be useful for splitting)
+        - unsandhied-lemma-morphosyntax  (current best option for distinguishing compound split with hyphen)
         """
         url = 'https://dharmamitra.org/api/tagging/'
         headers = {
@@ -113,11 +120,10 @@ class Splitter(object):
 
         response = requests.post(url, headers=headers, json=data)
 
-        # Check if the request was successful
-        if response.status_code == 200:
-            return self._parse_dharmamitra_result(response.json())
-        else:
+        if response.status_code != 200:
             response.raise_for_status()
+
+        return self._parse_dharmamitra_result(response.json(), mode)
 
     def _post_string_2018(self, input_text: str, url: str=SPLITTER_SERVER_URL):
         json_payload = {'input_text': input_text}
@@ -135,7 +141,7 @@ class Splitter(object):
             ('-\n', '\n'), # remove line-final hyphens
             ('-', split_appearance), # modify appearance of splits ('-', ' ', '- ', etc.)
             ('=', ''), # QUESTION: what does this char in result even mean?
-            ('=', ''), # QUESTION: what does this char in result even mean?
+            ('=', ''), # repeat for good measure
             ('(\A\s*)|(\s*\Z)', '') # string-initial and -final whitespace
         ]:
             split_sentences_str = re.sub(r_1, r_2, split_sentences_str)
@@ -158,11 +164,14 @@ class Splitter(object):
             return ''.join(
                 [elem for pair in zip(sentences, punctuation) for elem in pair]
             )
+        else:
+            raise ValueError("Punctuation and sentence count mismatch")
 
     def split(
             self,
             text: str,
             splitter_model: str='dharmamitra_2024_sept',
+            preserve_compound_hyphens: bool = PRESERVE_COMPOUND_HYPHENS_DEFAULT,
             preserve_punctuation: bool=PRESERVE_PUNCTUATION_DEFAULT,
             whole_file: bool=False,
     ) -> str:
@@ -181,14 +190,23 @@ class Splitter(object):
         # split sentences that are too long for Splitter
         safe_sentences: List[str]
         sent_counts: List[int]
-        safe_sentences, sent_counts = self._enforce_char_limit(sentences, self.max_char_limit.get(splitter_model, 128))
+        safe_sentences, sent_counts = self._enforce_char_limit(
+            sentences,
+            self.max_char_limit.get(
+                (splitter_model, "preserve hyphens" if preserve_compound_hyphens else "don't preserve hyphens"), 128
+            )
+        )
 
         sentences_str: str = '\n'.join(safe_sentences)
 
         split_sentences: List[str]
 
         if splitter_model == 'dharmamitra_2024_sept':
-            split_sentences = self._get_dharmamitra_split(sentences_str)
+
+            split_sentences = self._get_dharmamitra_split(
+                sentences_str,
+                preserve_compound_hyphens=preserve_compound_hyphens
+            )
 
         elif splitter_model == 'splitter_2018':
 
