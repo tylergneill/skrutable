@@ -97,6 +97,7 @@ class Splitter(object):
         return sentence_results
 
     def _get_dharmamitra_split(self, text_input, preserve_compound_hyphens=True) -> List[str]:
+        # TODO: change to "unsandhied-morphosyntax" when it works
         mode = "unsandhied-lemma-morphosyntax" if preserve_compound_hyphens else "unsandhied"
         """
         Modes can be:
