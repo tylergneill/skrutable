@@ -14,7 +14,7 @@ class Splitter(object):
 
     def __init__(self):
 
-        shared_items = r'।॥\|/\\.,—;!\[(<\t\r\n"'
+        shared_items = r'।॥\|/\\.,—;\?!\[(<\t\r\n"'
         self.punctuation_regex = fr' *[{shared_items}][{shared_items}\d\])> ]*'
         self.max_char_limit = {
             ("splitter_2018", "don't preserve hyphens"): 128,
@@ -140,7 +140,7 @@ class Splitter(object):
             ('-\n', '\n'), # remove line-final hyphens
             ('-', split_appearance), # modify appearance of splits ('-', ' ', '- ', etc.)
             ('=', ''), # QUESTION: what does this char in result even mean?
-            ('=', ''), # QUESTION: what does this char in result even mean?
+            ('=', ''), # repeat for good measure
             ('(\A\s*)|(\s*\Z)', '') # string-initial and -final whitespace
         ]:
             split_sentences_str = re.sub(r_1, r_2, split_sentences_str)
@@ -163,6 +163,8 @@ class Splitter(object):
             return ''.join(
                 [elem for pair in zip(sentences, punctuation) for elem in pair]
             )
+        else:
+            raise ValueError("Punctuation and sentence count mismatch")
 
     def split(
             self,
