@@ -125,11 +125,11 @@ class Transliterator():
 
 			prev_char = curr_char
 
-		if prev_char in phonemes.SLP_consonants:
-			# line-final SLP consonant: final virāma needed
+		if from_scheme == 'SLP' and prev_char in phonemes.SLP_consonants:
+			# found line-final SLP consonant when transliterating to Indic script, therefore final virāma needed
 			content_out += phonemes.virAmas[to_scheme]
-		elif prev_char in phonemes.SLP_and_indic_consonants:
-			# line-final Indic consonant: final 'a' needed
+		elif from_scheme in scheme_maps.indic_schemes and prev_char in phonemes.SLP_and_indic_consonants:
+			# found line-final Indic consonant when transliterating to SLP, therefore final 'a' needed
 			content_out += 'a'
 
 		self.contents = content_out # hybrid
