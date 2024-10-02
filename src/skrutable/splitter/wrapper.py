@@ -25,16 +25,22 @@ class Splitter(object):
         self.center_split_range = 0.8 # percentage distance measured from middle
 
     def _get_sentences_and_punctuation(self, text: str) -> Tuple[List[str], List[str]]:
+        """
+        Extract and return lists of sentences and punctuation from text.
+        Also return list of markers for proper interleaving on restoration.
+        """
         sentences = list(filter(None, re.split(self.punctuation_regex, text, flags=re.MULTILINE)))
         punctuation = re.findall(self.punctuation_regex, text)
-        return sentences, punctuation
+        tokens = re.split(f'({self.punctuation_regex})', text)
+        tokens = [token for token in tokens if token]
+        markers = ['punctuation' if re.fullmatch(self.punctuation_regex, token) else 'content' for token in tokens]
+        return sentences, punctuation, markers
 
     def _find_midpoint(self, text: str, split_regex: str) -> int:
         """
         Determine position of whitespace of centermost legal split of text based on split_regex.
         Return integer index.
         """
-
         space_indices = [m.end()-1 for m in re.finditer(split_regex, text)]
         Ds_from_mid = [abs(i - len(text)/2) for i in space_indices] # Distances
         try:
@@ -155,17 +161,14 @@ class Splitter(object):
             i += count
         return restored_sentences
 
-    def _restore_punctuation(self, sentences: List[str], punctuation: List[str]) -> str:
-        if len(punctuation) == len(sentences) + 1: # started with punctuation
-            return punctuation[0] + ''.join(
-                [elem for pair in zip(sentences, punctuation[1:]) for elem in pair]
-            )
-        elif len(punctuation) == len(sentences):
-            return ''.join(
-                [elem for pair in zip(sentences, punctuation) for elem in pair]
-            )
-        else:
-            raise ValueError("Punctuation and sentence count mismatch")
+    def _restore_punctuation(self, sentences: List[str], punctuation: List[str], markers: List[str]) -> str:
+        new_sentences = []
+        for marker in markers:
+            if marker == 'content':
+                new_sentences.append(sentences.pop(0))
+            elif marker == 'punctuation':
+                new_sentences.append(punctuation.pop(0))
+        return ''.join(new_sentences)
 
     def split(
             self,
@@ -183,7 +186,7 @@ class Splitter(object):
         # save original punctuation
         sentences: List[str]
         saved_punctuation: List[str]
-        sentences, saved_punctuation = self._get_sentences_and_punctuation(text)
+        sentences, saved_punctuation, markers = self._get_sentences_and_punctuation(text)
         if len(saved_punctuation) - len(sentences) > 1:
             raise ValueError("Punctuation and sentence count mismatch")
 
@@ -230,7 +233,7 @@ class Splitter(object):
 
         # restore punctuation
         if preserve_punctuation and saved_punctuation != []:
-            final_results = self._restore_punctuation(restored_sentences, saved_punctuation)
+            final_results = self._restore_punctuation(restored_sentences, saved_punctuation, markers)
         else:
             final_results = '\n'.join(restored_sentences).replace('_', ' ')
 
