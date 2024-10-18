@@ -184,6 +184,7 @@ T = Transliterator(to_scheme='DEV')  # using built-in default from_scheme IAST b
 string_result_1 = T.transliterate( input_string )  # from_scheme=IAST, to_scheme=DEV
 string_result_2 = T.transliterate( input_string, to_scheme='BENGALI')  # overriding to_scheme
 string_result_3 = T.transliterate( input_string, avoid_virama_indic_scripts=False)  # output Devanāgarī with Roman-like spacing
+string_result_4 = T.transliterate( input_string, xml_input=True)  # process as TEI XML
 ~~~
 
 2. `skrutable.scansion`, `scansion.Scanner`, `Scanner.scan()`
@@ -212,10 +213,12 @@ Verse_result_3 = MI.identify_meter(input_string, from_scheme='DEV', resplit_opti
 from skrutable.splitting import Splitter
 Spl = Splitter()
 # this needs an internet connection to connect to the API server
+# also, input must already be IAST
 string_result_1 = Spl.split( input_string )  # default splitter-model and punctuation settings
 string_result_2 = Spl.split( input_string, preserve_punctuation=False )  # discard punctuation
 string_result_3 = Spl.split( input_string, preserve_compound_hyphens=False )  # discard hyphens used to represent compounds
 string_result_4 = Spl.split( input_string, splitter_model='splitter_2018')  # use older model
+string_result_5 = Spl.split( input_string, xml_input=True)  # process as TEI XML
 ~~~
 
 More examples of how to use the library can be found in the repo's `tests` folder (for use with `pytest`) and in the `jupyter_notebooks` folder.
