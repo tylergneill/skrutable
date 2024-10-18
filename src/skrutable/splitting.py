@@ -3,6 +3,7 @@ import requests
 from typing import List, Tuple
 
 from skrutable.config import load_config_dict_from_json_file
+from skrutable.xml_utils import extract_text_from_tei_xml, restore_tei_xml
 
 config = load_config_dict_from_json_file()
 PRESERVE_PUNCTUATION_DEFAULT = config["preserve_punctuation_default"]
@@ -186,12 +187,18 @@ class Splitter(object):
             splitter_model: str='dharmamitra_2024_sept',
             preserve_compound_hyphens: bool = PRESERVE_COMPOUND_HYPHENS_DEFAULT,
             preserve_punctuation: bool=PRESERVE_PUNCTUATION_DEFAULT,
+            xml_input: bool = False,
     ) -> str:
         """
         Splits sandhi and compounds of multi-line Sanskrit string,
         passing maximum of max_char_limit characters to Splitter at a time,
         and preserving original newlines and punctuation.
         """
+
+        # if input is XML, extract text content
+        if xml_input:
+            original_xml_str = text
+            text, text_line_counts = extract_text_from_tei_xml(text)
 
         # save original punctuation
         sentences: List[str]
@@ -237,5 +244,14 @@ class Splitter(object):
             final_results = self._restore_punctuation(restored_sentences, saved_punctuation, markers)
         else:
             final_results = '\n'.join(restored_sentences).replace('_', ' ')
+
+        # restore XML if needed
+
+        if xml_input:
+            final_results = restore_tei_xml(
+                original_xml_string_input=original_xml_str,
+                transformed_text_str=final_results,
+                text_line_counts=text_line_counts,
+            )
 
         return final_results

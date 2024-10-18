@@ -1,10 +1,12 @@
+import re
+
 from skrutable import phonemes
-from skrutable import scheme_maps
 from skrutable import scheme_detection
-from skrutable.scheme_detection import SchemeDetector
+from skrutable import scheme_maps
 from skrutable import virAma_avoidance
 from skrutable.config import load_config_dict_from_json_file
-import re
+from skrutable.scheme_detection import SchemeDetector
+from skrutable.xml_utils import extract_text_from_tei_xml, restore_tei_xml
 
 # load config variables
 config = load_config_dict_from_json_file()
@@ -142,6 +144,7 @@ class Transliterator():
 			to_scheme=None,
 			avoid_virama_indic_scripts: bool = AVOID_VIRAMA_INDIC_SCRIPTS_DEFAULT,
 			avoid_virama_non_indic_scripts: bool = AVOID_VIRAMA_NON_INDIC_SCRIPTS_DEFAULT,
+			xml_input: bool = False,
 	):
 		"""
 		User-facing method.
@@ -159,10 +162,10 @@ class Transliterator():
 		and also directly as string.
 		"""
 
+		# manage schemes
+
 		if from_scheme == "IASTREDUCED":
 			return cntnts
-
-		self.contents = cntnts
 
 		# uppercase
 		if from_scheme != None:
@@ -174,11 +177,22 @@ class Transliterator():
 		if self.scheme_in in scheme_detection.auto_detect_synonyms:
 			self.set_detected_scheme()
 
+		# manage content
+
+		self.contents = cntnts
+
+		# if input is XML, extract text content
+		if xml_input:
+			text_str_to_transform, text_line_counts = extract_text_from_tei_xml(self.contents)
+			self.contents = text_str_to_transform
+
 		# transliterate first to hub scheme SLP
+
 		self.linear_preprocessing(self.scheme_in, 'SLP')
 		self.map_replace(self.scheme_in, 'SLP')
 
 		# avoid undesirable virāmas specified in virāma_avoidance.py
+
 		if 	(
 				self.scheme_out in scheme_maps.indic_schemes
 				and avoid_virama_indic_scripts == True
@@ -187,8 +201,19 @@ class Transliterator():
 				and avoid_virama_non_indic_scripts == True):
 			self.avoid_virAmas()
 
-		# then transliterate to desired scheme
+		# transliterate to desired scheme
+
 		self.linear_preprocessing('SLP', self.scheme_out)
 		self.map_replace('SLP', self.scheme_out)
+
+		# restore XML if needed
+
+		if xml_input:
+			transformed_xml_str = restore_tei_xml(
+				original_xml_string_input=cntnts,
+				transformed_text_str=self.contents,
+				text_line_counts=text_line_counts,
+			)
+			self.contents = transformed_xml_str
 
 		return self.contents
