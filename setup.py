@@ -37,6 +37,7 @@ setup(
     install_requires=[
       'numpy',
       'requests',
+      'lxml',
     ],
     extras_require={
         "testing": [
