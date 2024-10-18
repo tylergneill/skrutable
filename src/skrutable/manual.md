@@ -162,7 +162,7 @@ For splitting Sanskrit text into its individual words, `skrutable` provides a wr
 
 ## objects
 
-From each respective Python module (`transliteration.py`, `scansion.py`, `meter_identification.py`, `splitter.wrapper.py`), import the respective object constructor (`Transliterator`, `Scanner`, `MeterIdentifier`, `Splitter`), instantiate the object, and call its primary methods (`transliterate()`, `scan()`, `identify_meter()`, `split()`). Transliteration and sandhi/compound splitting both return strings, whereas scansion and meter identification return `Scansion.Verse` objects, which themselves contain (among other things) a `meter_label` string attribute and a `summarize()` method that returns a string.
+From each respective Python module (`transliteration.py`, `scansion.py`, `meter_identification.py`, `splitting.py`), import the respective object constructor (`Transliterator`, `Scanner`, `MeterIdentifier`, `Splitter`), instantiate the object, and call its primary methods (`transliterate()`, `scan()`, `identify_meter()`, `split()`). Transliteration and sandhi/compound splitting both return strings, whereas scansion and meter identification return `Scansion.Verse` objects, which themselves contain (among other things) a `meter_label` string attribute and a `summarize()` method that returns a string.
 
 The following are the important function parameters:
 
@@ -207,9 +207,9 @@ Verse_result_2 = MI.identify_meter(input_string, resplit_option='none')  # can c
 Verse_result_3 = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_lite')  # scheme options possible here too
 ~~~
 
-4. `skrutable.splitter.wrapper`, `splitter.wrapper.Splitter`, `Splitter.split()`
+4. `skrutable.splitting`, `splitting.Splitter`, `Splitter.split()`
 ~~~
-from skrutable.splitter.wrapper import Splitter
+from skrutable.splitting import Splitter
 Spl = Splitter()
 # this needs an internet connection to connect to the API server
 string_result_1 = Spl.split( input_string )  # default splitter-model and punctuation settings

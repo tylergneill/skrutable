@@ -26,7 +26,7 @@ setup(
     	"skrutable.transliteration",
     	"skrutable.scansion",
     	"skrutable.meter_identification",
-    	"skrutable.splitter.wrapper",
+    	"skrutable.splitting",
     ],
     package_data={'': [
 		'config.json',
