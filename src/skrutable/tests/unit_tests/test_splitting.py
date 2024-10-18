@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch
 
-from skrutable.splitter.wrapper import Splitter
+from skrutable.splitting import Splitter
 
 # mcok with Dharmamitra Sept 2024 output
 @pytest.mark.parametrize("input_string, mock_return_value, expected_output", [
