@@ -21,7 +21,7 @@ from skrutable.splitting import Splitter
         "? tava kara-kamala-sthām sphāṭikīm akṣamālām , nakha-kiraṇa-vibhinnām dāḍimī-bīja-buddhyā | pratikalam anukarṣan yena kīraḥ niṣiddhaḥ , sa bhavatu mama bhūtyai vāṇi te manda-hāsaḥ ||"
     )
 ])
-@patch('skrutable.splitter.wrapper.Splitter._get_dharmamitra_split')
+@patch('skrutable.splitting.Splitter._get_dharmamitra_split')
 def test_restore_punctuation(mock_get_dharmamitra_split, input_string, mock_return_value, expected_output):
     mock_get_dharmamitra_split.return_value = mock_return_value
     Spl = Splitter()
