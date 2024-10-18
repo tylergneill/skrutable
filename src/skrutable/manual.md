@@ -235,27 +235,6 @@ Latency for small queries should be under 2 seconds
 See [skrutable.info/api](https://www.skrutable.info/api)
 for more specific instructions.
 
-## using as command-line script (deprecated)
-
-Another way to run the code is the little command-line script `skrutable_one.py`.
-This also requires installing the Python library but avoids the need to write any Python code,
-if one is more comfortable with Bash, for example. The easiest way to use it is to make a copy of `skrutable_one.py` and put it the same location as your desired input file. Then just run `python skrutable_one.py` at the command line with the proper arguments. Examples:
-
-1. transliterate to Bengali script:
-~~~
-python skrutable_one.py --transliterate FILENAME.txt from_scheme=IAST to_scheme=BENGALI
-~~~
-
-2. identify meter for a single verse:
-~~~
-python skrutable_one.py --identify_meter FILENAME.txt resplit_option=none from_scheme=IAST
-~~~
-
-3. identify meter for a whole file (one verse per line):
-~~~
-python skrutable_one.py --identify_meter --whole_file FILENAME.txt resplit_option=resplit_lite from_scheme=IAST
-~~~
-
 
 # feedback
 
