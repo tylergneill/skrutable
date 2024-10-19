@@ -3,26 +3,40 @@ from typing import List, Optional, Tuple
 from collections import deque
 
 
-def get_starting_el(xml_string_input: str) -> Tuple[Optional[etree._Element], Optional[etree._Element]]:
+def _strip_xml_declaration(content: str) -> Tuple[str, Optional[str]]:
+    """Strips the XML declaration if present and returns the stripped content and declaration."""
+    if content.startswith('<?xml'):
+        declaration, content = content.split('?>', 1)
+        return content.strip(), f"{declaration}?>"
+    return content, None
+
+def _restore_xml_declaration(content: str, declaration: Optional[str]) -> str:
+    """Restores the XML declaration if it was stripped."""
+    return f"{declaration}\n{content}" if declaration else content
+
+
+def _get_starting_els(xml_string_input: str) -> Tuple[Optional[etree._Element], Optional[etree._Element]]:
+    """
+    Returns the root element and, if found, the <text> element.
+    """
     parser = etree.XMLParser()
     root_el = etree.fromstring(xml_string_input, parser)
-
-    # skip <teiHeader> and go straight to <text> element
-    starting_el = root_el.find(".//tei:text", namespaces={"tei": "http://www.tei-c.org/ns/1.0"})
-    return root_el, starting_el
+    text_el = root_el.find(".//tei:text", namespaces={"tei": "http://www.tei-c.org/ns/1.0"})
+    return root_el, text_el
 
 
 def extract_text_from_tei_xml(xml_string_input: str) -> Tuple[str, List[int]]:
     """
-    Extracts .text and .tail string textual content from TEI XML <text>.
+    Extracts .text and .tail string textual content from TEI XML (<text>).
+    Returns as single newline-joined string.
     Also keeps count of lines for each text block (relevant when restoring in case of splitting).
     """
-    root_el, text_el = get_starting_el(xml_string_input)
+    safe_content, _ = _strip_xml_declaration(xml_string_input)
 
+    root_el, text_el = _get_starting_els(safe_content)
     if root_el is None:
         print("Warning: Could not find root element in XML.")
         return [], []
-
     starting_el = text_el if text_el is not None else root_el
 
     texts_to_transform = []
@@ -42,16 +56,20 @@ def extract_text_from_tei_xml(xml_string_input: str) -> Tuple[str, List[int]]:
     return text_str_to_transform, text_line_counts
 
 
-def restore_tei_xml(original_xml_string_input: str, transformed_text_str: str, text_line_counts: List[int]) -> str:
+def restore_tei_xml(
+        original_xml_string_input: str,
+        transformed_text_str: str,
+        text_line_counts: List[int],
+    ) -> str:
     """
     Puts transformed .text and .tail string textual content back in place.
     """
-    root_el, text_el = get_starting_el(original_xml_string_input)
+    safe_content, encoding_declaration = _strip_xml_declaration(original_xml_string_input)
 
+    root_el, text_el = _get_starting_els(safe_content)
     if root_el is None:
         print("Warning: Could not find root element in XML.")
         return ""
-
     starting_el = text_el if text_el is not None else root_el
 
     transformed_texts = transformed_text_str.split('\n')
@@ -86,4 +104,7 @@ def restore_tei_xml(original_xml_string_input: str, transformed_text_str: str, t
                 new_value = leading_ws + transformed_text + trailing_ws
                 setattr(el, prop, new_value)
 
-    return etree.tostring(root_el, encoding='unicode', pretty_print=True)
+    transformed_xml_str = etree.tostring(root_el, encoding='unicode', pretty_print=False)
+    final_xml_str = _restore_xml_declaration(transformed_xml_str, encoding_declaration)
+
+    return final_xml_str
