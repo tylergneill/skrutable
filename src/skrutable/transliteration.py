@@ -6,7 +6,7 @@ from skrutable import scheme_maps
 from skrutable import virAma_avoidance
 from skrutable.config import load_config_dict_from_json_file
 from skrutable.scheme_detection import SchemeDetector
-from skrutable.xml_utils import extract_text_from_tei_xml, restore_tei_xml
+from skrutable.xml_utils import extract_text, restore_xml
 
 # load config variables
 config = load_config_dict_from_json_file()
@@ -183,7 +183,7 @@ class Transliterator():
 
 		# if input is XML, extract text content
 		if xml_input:
-			text_str_to_transform, text_line_counts = extract_text_from_tei_xml(self.contents)
+			text_str_to_transform, text_line_counts = extract_text(self.contents)
 			self.contents = text_str_to_transform
 
 		# transliterate first to hub scheme SLP
@@ -209,7 +209,7 @@ class Transliterator():
 		# restore XML if needed
 
 		if xml_input:
-			transformed_xml_str = restore_tei_xml(
+			transformed_xml_str = restore_xml(
 				original_xml_string_input=cntnts,
 				transformed_text_str=self.contents,
 				text_line_counts=text_line_counts,

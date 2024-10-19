@@ -3,7 +3,7 @@ import requests
 from typing import List, Tuple
 
 from skrutable.config import load_config_dict_from_json_file
-from skrutable.xml_utils import extract_text_from_tei_xml, restore_tei_xml
+from skrutable.xml_utils import extract_text, restore_xml
 
 config = load_config_dict_from_json_file()
 PRESERVE_PUNCTUATION_DEFAULT = config["preserve_punctuation_default"]
@@ -198,7 +198,7 @@ class Splitter(object):
         # if input is XML, extract text content
         if xml_input:
             original_xml_str = text
-            text, text_line_counts = extract_text_from_tei_xml(text)
+            text, text_line_counts = extract_text(text)
 
         # save original punctuation
         sentences: List[str]
@@ -248,7 +248,7 @@ class Splitter(object):
         # restore XML if needed
 
         if xml_input:
-            final_results = restore_tei_xml(
+            final_results = restore_xml(
                 original_xml_string_input=original_xml_str,
                 transformed_text_str=final_results,
                 text_line_counts=text_line_counts,

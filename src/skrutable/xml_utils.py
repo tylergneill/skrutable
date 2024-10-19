@@ -25,7 +25,7 @@ def _get_starting_els(xml_string_input: str) -> Tuple[Optional[etree._Element], 
     return root_el, text_el
 
 
-def extract_text_from_tei_xml(xml_string_input: str) -> Tuple[str, List[int]]:
+def extract_text(xml_string_input: str) -> Tuple[str, List[int]]:
     """
     Extracts .text and .tail string textual content from TEI XML (<text>).
     Returns as single newline-joined string.
@@ -56,7 +56,7 @@ def extract_text_from_tei_xml(xml_string_input: str) -> Tuple[str, List[int]]:
     return text_str_to_transform, text_line_counts
 
 
-def restore_tei_xml(
+def restore_xml(
         original_xml_string_input: str,
         transformed_text_str: str,
         text_line_counts: List[int],
