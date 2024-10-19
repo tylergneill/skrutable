@@ -187,7 +187,7 @@ class Splitter(object):
             splitter_model: str='dharmamitra_2024_sept',
             preserve_compound_hyphens: bool = PRESERVE_COMPOUND_HYPHENS_DEFAULT,
             preserve_punctuation: bool=PRESERVE_PUNCTUATION_DEFAULT,
-            xml_input: bool = False,
+            is_input_xml: bool = False,
     ) -> str:
         """
         Splits sandhi and compounds of multi-line Sanskrit string,
@@ -196,7 +196,7 @@ class Splitter(object):
         """
 
         # if input is XML, extract text content
-        if xml_input:
+        if is_input_xml:
             original_xml_str = text
             text, text_line_counts = extract_text(text)
 
@@ -247,7 +247,7 @@ class Splitter(object):
 
         # restore XML if needed
 
-        if xml_input:
+        if is_input_xml:
             final_results = restore_xml(
                 original_xml_string_input=original_xml_str,
                 transformed_text_str=final_results,
