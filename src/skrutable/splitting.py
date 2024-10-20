@@ -136,12 +136,6 @@ class Splitter(object):
         result = requests.post(url, json=json_payload)
         return result.text
 
-    def _post_file_2018(self, input_file_path: str, url: str=SPLITTER_SERVER_URL):
-        input_file = open(input_file_path, 'rb')
-        file_payload = {"input_file": input_file}
-        result = requests.post(url, files=file_payload)
-        return result.text
-
     def _clean_up_2018(self, split_sentences_str: str, split_appearance: str=' ') -> List[str]:
         for (r_1, r_2) in [
             ('-\n', '\n'), # remove line-final hyphens
@@ -176,7 +170,6 @@ class Splitter(object):
             splitter_model: str='dharmamitra_2024_sept',
             preserve_compound_hyphens: bool = PRESERVE_COMPOUND_HYPHENS_DEFAULT,
             preserve_punctuation: bool=PRESERVE_PUNCTUATION_DEFAULT,
-            whole_file: bool=False,
     ) -> str:
         """
         Splits sandhi and compounds of multi-line Sanskrit string,
@@ -213,16 +206,7 @@ class Splitter(object):
 
         elif splitter_model == 'splitter_2018':
 
-            split_sentences_str: str
-
-            if whole_file:
-                # write prepared string to Splitter input buffer and send as binary
-                with open(SPLITTER_INPUT_BUFFER_FN, 'w') as f_out:
-                    f_out.write(sentences_str)
-                split_sentences_str = self._post_file_2018(SPLITTER_INPUT_BUFFER_FN)
-            else:
-                split_sentences_str = self._post_string_2018(sentences_str)
-
+            split_sentences_str = self._post_string_2018(sentences_str)
             split_sentences = self._clean_up_2018(split_sentences_str)
 
         else:
