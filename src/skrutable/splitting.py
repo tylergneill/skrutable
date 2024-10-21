@@ -102,7 +102,12 @@ class Splitter(object):
             sentence_results.append(new_sentence)
         return sentence_results
 
-    def _get_dharmamitra_split(self, text_input, preserve_compound_hyphens=True) -> List[str]:
+    def _get_dharmamitra_split(
+            self,
+            text_input: str,
+            preserve_compound_hyphens: bool=True,
+            batch_size: int=2000
+        ) -> List[str]:
         # TODO: change to "unsandhied-morphosyntax" when it works
         mode = "unsandhied-lemma-morphosyntax" if preserve_compound_hyphens else "unsandhied"
         """
@@ -117,19 +122,25 @@ class Splitter(object):
         headers = {
             'Content-Type': 'application/json',
         }
-        data = {
-            "input_sentence": text_input,
-            "mode": mode,
-            "input_encoding": "auto",
-            "human_readable_tags": False,
-        }
 
-        response = requests.post(url, headers=headers, json=data)
+        sentences = text_input.split('\n')
+        results = []
+        for i in range(0, len(sentences), batch_size):
+            sentence_batch = sentences[i:i + batch_size]
+            batch_text_input = '\n'.join(sentence_batch)
+            data = {
+                "input_sentence": batch_text_input,
+                "mode": mode,
+                "input_encoding": "auto",
+                "human_readable_tags": False,
+            }
+            response = requests.post(url, headers=headers, json=data)
+            if response.status_code != 200:
+                response.raise_for_status()
+            batch_result = self._parse_dharmamitra_result(response.json(), mode)
+            results.extend(batch_result)
 
-        if response.status_code != 200:
-            response.raise_for_status()
-
-        return self._parse_dharmamitra_result(response.json(), mode)
+        return results
 
     def _post_string_2018(self, input_text: str, url: str=SPLITTER_SERVER_URL):
         json_payload = {'input_text': input_text}
