@@ -144,7 +144,7 @@ class Transliterator():
 			to_scheme=None,
 			avoid_virama_indic_scripts: bool = AVOID_VIRAMA_INDIC_SCRIPTS_DEFAULT,
 			avoid_virama_non_indic_scripts: bool = AVOID_VIRAMA_NON_INDIC_SCRIPTS_DEFAULT,
-			is_input_xml: bool = False,
+			xml_input: bool = False,
 	):
 		"""
 		User-facing method.
@@ -182,7 +182,7 @@ class Transliterator():
 		self.contents = cntnts
 
 		# if input is XML, extract text content
-		if is_input_xml:
+		if xml_input:
 			text_str_to_transform, text_line_counts = extract_text(self.contents)
 			self.contents = text_str_to_transform
 
@@ -208,7 +208,7 @@ class Transliterator():
 
 		# restore XML if needed
 
-		if is_input_xml:
+		if xml_input:
 			transformed_xml_str = restore_xml(
 				original_xml_string_input=cntnts,
 				transformed_text_str=self.contents,
