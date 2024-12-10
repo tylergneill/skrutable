@@ -7,8 +7,7 @@ from skrutable.config import load_config_dict_from_json_file
 config = load_config_dict_from_json_file()
 PRESERVE_PUNCTUATION_DEFAULT = config["preserve_punctuation_default"]
 PRESERVE_COMPOUND_HYPHENS_DEFAULT = config["preserve_compound_hyphens_default"]
-SPLITTER_INPUT_BUFFER_FN = "data/input/buffer_in.txt"
-SPLITTER_SERVER_URL = 'https://splitter-server-tylergneill.pythonanywhere.com'
+SPLITTER_SERVER_URL = 'https://2018emnlp-sanskrit-splitter-server.dharma.cl/'
 
 class Splitter(object):
 
@@ -187,10 +186,6 @@ class Splitter(object):
         passing maximum of max_char_limit characters to Splitter at a time,
         and preserving original newlines and punctuation.
         """
-
-        # TODO: Remove once 2018 splitter server restored
-        if splitter_model == 'splitter_2018':
-            return "The server for the 2018 model is temporarily down, please use splitter_model 'dharmamitra_2024_sept' instead."
 
         # save original punctuation
         sentences: List[str]
