@@ -149,7 +149,7 @@ This is the default behavior for transliterating to Indic scripts in `skrutable`
 
 # sandhi and compound splitting
 
-For splitting Sanskrit text into its individual words, `skrutable` provides a wrapper, accessible through its online interface and the importable library, for applying pre-trained models while also (bonus!) preserving original sentence length and punctuation. For both model options, the wrapper communicates with separate online servers ([my own splitter_server serving the 2018 model](https://splitter-server-tylergneill.pythonanywhere.com/) and https://dharmamitra.org), so you'll need a working internet connection for this functionality.
+For splitting Sanskrit text into its individual words, `skrutable` provides a wrapper, accessible through its online interface and the importable library, for applying pre-trained models while also (bonus!) preserving original sentence length and punctuation. For both model options, the wrapper communicates with separate online servers ([my own splitter_server serving the 2018 model](https://2018emnlp-sanskrit-splitter-server.dharma.cl/) and https://dharmamitra.org), so you'll need a working internet connection for this functionality.
 
 
 # using the code
