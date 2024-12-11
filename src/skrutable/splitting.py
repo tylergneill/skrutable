@@ -7,7 +7,7 @@ from skrutable.config import load_config_dict_from_json_file
 config = load_config_dict_from_json_file()
 PRESERVE_PUNCTUATION_DEFAULT = config["preserve_punctuation_default"]
 PRESERVE_COMPOUND_HYPHENS_DEFAULT = config["preserve_compound_hyphens_default"]
-SPLITTER_SERVER_URL = 'https://2018emnlp-sanskrit-splitter-server.dharma.cl/'
+SPLITTER_SERVER_URL = 'https://2018emnlp-sanskrit-splitter-server.dharma.cl/api/split/'
 
 class Splitter(object):
 
@@ -143,8 +143,14 @@ class Splitter(object):
 
     def _post_string_2018(self, input_text: str, url: str=SPLITTER_SERVER_URL):
         json_payload = {'input_text': input_text}
-        result = requests.post(url, json=json_payload)
-        return result.text
+        response = requests.post(url, json=json_payload)
+        if response.status_code == 200:
+            response_json = response.json()  # Parse the JSON response
+            output_text = response_json["output_text"]  # Extract the decoded text
+            return output_text
+        else:
+            print(f"Error: {response.status_code}, {response.text}")
+            return None
 
     def _clean_up_2018(self, split_sentences_str: str, split_appearance: str=' ') -> List[str]:
         for (r_1, r_2) in [
