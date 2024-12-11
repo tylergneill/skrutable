@@ -7,7 +7,7 @@ from skrutable.config import load_config_dict_from_json_file
 config = load_config_dict_from_json_file()
 PRESERVE_PUNCTUATION_DEFAULT = config["preserve_punctuation_default"]
 PRESERVE_COMPOUND_HYPHENS_DEFAULT = config["preserve_compound_hyphens_default"]
-SPLITTER_SERVER_URL = 'https://2018emnlp-sanskrit-splitter-server.dharma.cl/'
+SPLITTER_SERVER_URL = 'https://2018emnlp-sanskrit-splitter-server.dharma.cl/api/split/'
 
 class Splitter(object):
 
