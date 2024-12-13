@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from skrutable.splitting import Splitter
 
-# mcok with Dharmamitra Sept 2024 output
+# mock with Dharmamitra Sept 2024 output
 @pytest.mark.parametrize("input_string, mock_return_value, expected_output", [
     (
         "tava karakamalasthāṃ sphāṭikīmakṣamālāṃ nakhakiraṇavibhinnāṃ dāḍimībījabuddhyā\npratikalamanukarṣanyena kīro niṣiddhaḥ sa bhavatu mama bhūtyai vāṇi te mandahāsaḥ",
@@ -27,6 +27,3 @@ def test_restore_punctuation(mock_get_dharmamitra_split, input_string, mock_retu
     Spl = Splitter()
     result = Spl.split(input_string)
     assert result == expected_output
-
-
-
