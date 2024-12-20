@@ -1,5 +1,6 @@
 import re
 import requests
+from time import sleep
 from typing import List, Tuple
 
 from skrutable.config import load_config_dict_from_json_file
@@ -8,6 +9,9 @@ config = load_config_dict_from_json_file()
 PRESERVE_PUNCTUATION_DEFAULT = config["preserve_punctuation_default"]
 PRESERVE_COMPOUND_HYPHENS_DEFAULT = config["preserve_compound_hyphens_default"]
 SPLITTER_SERVER_URL = 'https://2018emnlp-sanskrit-splitter-server.dharma.cl/api/split/'
+
+HEADERS = {'Content-Type': 'application/json'}
+RETRY_DELAY_SEC = 5
 
 class Splitter(object):
 
@@ -105,7 +109,8 @@ class Splitter(object):
             self,
             text_input: str,
             preserve_compound_hyphens: bool=True,
-            batch_size: int=2000
+            batch_size: int=2000,
+            retries: int=1,
         ) -> List[str]:
         # TODO: change to "unsandhied-morphosyntax" when it works
         mode = "unsandhied-lemma-morphosyntax" if preserve_compound_hyphens else "unsandhied"
@@ -118,9 +123,6 @@ class Splitter(object):
         - unsandhied-lemma-morphosyntax  (current best option for distinguishing compound split with hyphen)
         """
         url = 'https://dharmamitra.org/api/tagging/'
-        headers = {
-            'Content-Type': 'application/json',
-        }
 
         sentences = text_input.split('\n')
         results = []
@@ -133,24 +135,51 @@ class Splitter(object):
                 "input_encoding": "auto",
                 "human_readable_tags": False,
             }
-            response = requests.post(url, headers=headers, json=data)
-            if response.status_code != 200:
-                response.raise_for_status()
-            batch_result = self._parse_dharmamitra_result(response.json(), mode)
-            results.extend(batch_result)
+            for i in range(1+retries):
+                response = requests.post(url, headers=HEADERS, json=data)
+                if response.status_code == 200:
+                    batch_result = self._parse_dharmamitra_result(response.json(), mode)
+                    results.extend(batch_result)
+                    break
+                elif i < retries:
+                    print(f"retrying batch in {RETRY_DELAY_SEC} sec")
+                    sleep(RETRY_DELAY_SEC)
+                    continue
+                else:
+                    print(f"batch failed:\n\n{batch_text_input}")
+                    response.raise_for_status()
 
         return results
 
-    def _post_string_2018(self, input_text: str, url: str=SPLITTER_SERVER_URL):
-        json_payload = {'input_text': input_text}
-        response = requests.post(url, json=json_payload)
-        if response.status_code == 200:
-            response_json = response.json()  # Parse the JSON response
-            output_text = response_json["output_text"]  # Extract the decoded text
-            return output_text
-        else:
-            print(f"Error: {response.status_code}, {response.text}")
-            return None
+    def _post_string_2018(
+            self,
+            input_text: str,
+            url: str=SPLITTER_SERVER_URL,
+            batch_size: int=10000,
+            retries: int=1,
+        ):
+
+        sentences = input_text.split('\n')
+        results = []
+        for i in range(0, len(sentences), batch_size):
+            sentence_batch = sentences[i:i + batch_size]
+            batch_text_input = '\n'.join(sentence_batch)
+            data = {'input_text': batch_text_input}
+            for i in range(1+retries):
+                response = requests.post(url, headers=HEADERS, json=data)
+                if response.status_code == 200:
+                    batch_result = response.json()["output_text"]
+                    results.append(batch_result)
+                    break
+                elif i < retries:
+                    print(f"retrying batch in {RETRY_DELAY_SEC} sec")
+                    sleep(RETRY_DELAY_SEC)
+                    continue
+                else:
+                    print(f"batch failed:\n\n{batch_text_input}")
+                    response.raise_for_status()
+
+        return '\n'.join(results)
 
     def _clean_up_2018(self, split_sentences_str: str, split_appearance: str=' ') -> List[str]:
         for (r_1, r_2) in [
