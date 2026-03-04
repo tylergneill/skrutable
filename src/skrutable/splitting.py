@@ -95,13 +95,24 @@ class Splitter(object):
                 sentence_counts.append(len(parts))
         return new_text_lines, sentence_counts
 
-    def _parse_dharmamitra_result(self, response_json, mode="unsandhied") -> List[str]:
+    def _parse_dharmamitra_simple_result(self, response_json) -> List[str]:
+        """Parse response from /api-tagging/tagging/ (flat underscore-delimited strings)."""
         sentence_results = []
-        for sentence_blob in response_json:
-            new_sentence = ' '.join([r['unsandhied'] for r in sentence_blob['grammatical_analysis']])
-            # conditionally do special post-processing if using unsandhied-lemma-morphosyntax to preserve hyphens
-            if mode == "unsandhied-lemma-morphosyntax":
-                new_sentence = new_sentence.replace('- ', '-')
+        for result_str in response_json["results"]:
+            new_sentence = result_str.replace('_', ' ').strip()
+            sentence_results.append(new_sentence)
+        return sentence_results
+
+    def _parse_dharmamitra_parsed_result(self, response_json) -> List[str]:
+        """Parse response from /api-tagging/tagging-parsed/ (structured grammatical analysis).
+        Compound parts have trailing hyphens in their unsandhied field (e.g., 'dharma-')."""
+        sentence_results = []
+        for sentence_obj in response_json:
+            new_sentence = ' '.join(
+                w['unsandhied'] for w in sentence_obj['grammatical_analysis']
+            )
+            # clean up: "dharma- kṣetre" → "dharma-kṣetre"
+            new_sentence = new_sentence.replace('- ', '-')
             sentence_results.append(new_sentence)
         return sentence_results
 
@@ -112,41 +123,46 @@ class Splitter(object):
             batch_size: int=2000,
             retries: int=1,
         ) -> List[str]:
-        # TODO: change to "unsandhied-morphosyntax" when it works
-        mode = "unsandhied-lemma-morphosyntax" if preserve_compound_hyphens else "unsandhied"
         """
-        Modes can be:
-        - unsandhied  (does not distinguish compounds)
-        - lemma  (i.e., dictionary info, not needed for splitting)
-        - unsandhied-morphosyntax  (would be ideal for distinguishing compounds but doesn't work currently)
-        - lemma-morphosyntax  (doesn't work currently, would not be useful for splitting)
-        - unsandhied-lemma-morphosyntax  (current best option for distinguishing compound split with hyphen)
+        Two endpoints on the Dharmamitra tagging API:
+        - /api-tagging/tagging/           simple, no compound distinction
+        - /api-tagging/tagging-parsed/    rich, compounds marked with hyphens
         """
-        url = 'https://dharmamitra.org/api/tagging/'
+        if preserve_compound_hyphens:
+            url = 'https://dharmamitra.org/api-tagging/tagging-parsed/'
+        else:
+            url = 'https://dharmamitra.org/api-tagging/tagging/'
 
         sentences = text_input.split('\n')
         results = []
         for i in range(0, len(sentences), batch_size):
             sentence_batch = sentences[i:i + batch_size]
-            batch_text_input = '\n'.join(sentence_batch)
-            data = {
-                "input_sentence": batch_text_input,
-                "mode": mode,
-                "input_encoding": "auto",
-                "human_readable_tags": False,
-            }
-            for i in range(1+retries):
+            if preserve_compound_hyphens:
+                data = {
+                    "texts": sentence_batch,
+                    "mode": "unsandhied-lemma-morphosyntax",
+                    "human_readable_tags": False,
+                    "grammar_type": "western",
+                }
+            else:
+                data = {
+                    "texts": sentence_batch,
+                }
+            for j in range(1+retries):
                 response = requests.post(url, headers=HEADERS, json=data)
                 if response.status_code == 200:
-                    batch_result = self._parse_dharmamitra_result(response.json(), mode)
+                    if preserve_compound_hyphens:
+                        batch_result = self._parse_dharmamitra_parsed_result(response.json())
+                    else:
+                        batch_result = self._parse_dharmamitra_simple_result(response.json())
                     results.extend(batch_result)
                     break
-                elif i < retries:
+                elif j < retries:
                     print(f"retrying batch in {RETRY_DELAY_SEC} sec")
                     sleep(RETRY_DELAY_SEC)
                     continue
                 else:
-                    print(f"batch failed:\n\n{batch_text_input}")
+                    print(f"batch failed:\n\n{sentence_batch}")
                     response.raise_for_status()
 
         return results
