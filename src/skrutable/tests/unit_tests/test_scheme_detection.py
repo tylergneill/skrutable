@@ -8,15 +8,17 @@ How to run:
     # Default ~108 cases (fast, runs with full test suite)
     pytest src/skrutable/tests/unit_tests/test_scheme_detection.py
 
-    # 1000-case stress test (slower, use -k flag)
+    # 1000-case stress test (slower, skipped by default)
     pytest src/skrutable/tests/unit_tests/test_scheme_detection.py -k large
 
     # Both together
-    pytest src/skrutable/tests/unit_tests/test_scheme_detection.py -v
+    pytest src/skrutable/tests/unit_tests/test_scheme_detection.py -k 'random or large'
 """
 
 import os
 import random
+
+import pytest
 
 from skrutable.transliteration import Transliterator
 from skrutable.scheme_detection import SchemeDetector
@@ -135,8 +137,13 @@ def test_scheme_detection_random_samples():
 
 
 # --- Large test: ~999 cases (~18 snippets/size × 6 sizes × 9 schemes) ---
+# Skipped by default; run explicitly with: pytest -k large
 
+@pytest.mark.skipif(
+    "not config.getoption('-k') or 'large' not in config.getoption('-k')",
+    reason="slow stress test; run with pytest -k large",
+)
 def test_scheme_detection_large():
-    """~999 random samples. Run with: pytest -k large"""
+    """~999 random samples. Skipped unless run with: pytest -k large"""
     cases = _generate_test_cases(n_snippets_per_size=18, seed=99)
     _run_detection_test(cases, max_small_failures=30)
