@@ -42,8 +42,12 @@ ASCII_DISTINCTIVE_LOWER = list('fqwxz')
 #   etc.
 ASCII_UPPER = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 
-# VH/ITRANS modifier punctuation (used as prefixes in digraphs)
-MODIFIER_PUNCT = ['.', '"', '~']
+# VH/ITRANS modifier punctuation — only '~' as standalone feature.
+# '.' and '"' are excluded because they appear commonly in regular text
+# (verse separators, quotation marks) and cause false VH matches.
+# Their scheme-distinctive usage is already captured by bigrams
+# (.t, .d, .n, "s, "n, etc.).
+MODIFIER_PUNCT = ['~']
 
 # Devanagari — high-frequency consonants and vowel signs
 DEV_CHARS = list('अआइईउऊकखगघचछजझटठडढतथदधनपफबभमयरलवशषसहािीुूेैोौंःऽ')
@@ -76,6 +80,14 @@ BIGRAMS = [
     'kz', 'ft', 'Ra', 'aR', 'za',
     # WX-only bigrams (WX maps t→w, d→x, so these are super-frequent)
     ' w', ' x', 'ax', 'xA', 'uw', 'nw', 'Xa',
+    # Balanced impossible-bigram set for SLP/HK/WX discrimination.
+    # 4 per scheme, each absent in that scheme but frequent in the others.
+    # Absent in SLP (R=ṇ so kR=kṇ impossible; N not used; etc.):
+    'Na', 'kR', 'Rt', 'RS',
+    # Absent in HK (no B, no S-final, no x):
+    'Ba', ' B', 'S ', 'xa',
+    # Absent in WX (no z; z=ś in SLP/HK):
+    ' z', 'az', 'iz', 'zw',
 ]
 
 # Combine all features into a single ordered list

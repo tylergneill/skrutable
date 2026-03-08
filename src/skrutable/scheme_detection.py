@@ -69,7 +69,7 @@ class SchemeDetector(object):
 			'DEV', 'BENGALI', 'GUJARATI',
 			'IAST', 'HK', 'ITRANS', 'WX', 'SLP', 'VH',
 		]
-		tolerance = 0.05
+		tolerance = 0.03
 
 		for scheme in _scheme_priority:
 			score = scheme_scores.get(scheme, 0)
