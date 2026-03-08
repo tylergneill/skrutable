@@ -61,17 +61,21 @@ BIGRAMS = [
     '.m', '.h', '.s', '.a', '"s', '"n',
     # VH/ITRANS shared vowel digraphs
     'aa', 'ii', 'uu',
-    # ITRANS markers
+    # ITRANS markers (including ee/oo for e/o, ch for c)
     'Sh', 'sh', 'Ch', 'Ri', 'RI', 'Li', 'LI',
-    '~n', '~N',
-    # HK markers
-    'lR', 'RR',
+    '~n', '~N', 'ee', 'oo',
+    # HK markers (ST=ṣṭ, kS=kṣ are common and impossible in SLP)
+    'lR', 'RR', 'ST', 'kS',
     # Aspiration digraphs (present in HK, ITRANS, IAST but NOT in SLP, WX)
     'kh', 'gh', 'ch', 'jh', 'th', 'dh', 'ph', 'bh',
     # HK/ITRANS retroflex digraphs
     'Th', 'Dh',
     # Diphthong digraphs
     'ai', 'au',
+    # SLP-only bigrams (impossible in HK/WX)
+    'kz', 'ft', 'Ra', 'aR', 'za',
+    # WX-only bigrams (WX maps t→w, d→x, so these are super-frequent)
+    ' w', ' x', 'ax', 'xA', 'uw', 'nw', 'Xa',
 ]
 
 # Combine all features into a single ordered list

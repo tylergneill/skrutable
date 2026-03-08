@@ -3,6 +3,16 @@ Test scheme detection using random samples from the MBH corpus,
 transliterated into all supported schemes at various lengths.
 
 Samples are drawn deterministically (fixed seed) for reproducibility.
+
+How to run:
+    # Default ~108 cases (fast, runs with full test suite)
+    pytest src/skrutable/tests/unit_tests/test_scheme_detection.py
+
+    # 1000-case stress test (slower, use -k flag)
+    pytest src/skrutable/tests/unit_tests/test_scheme_detection.py -k large
+
+    # Both together
+    pytest src/skrutable/tests/unit_tests/test_scheme_detection.py -v
 """
 
 import os
@@ -21,7 +31,6 @@ SCHEME_PRIORITY = [
     'IAST', 'HK', 'ITRANS', 'WX', 'SLP', 'VH',
 ]
 
-# Sample sizes: very small (1–2 words), small (phrase), medium (sentence), larger (paragraph)
 SAMPLE_CHAR_LENGTHS = [10, 20, 40, 80, 160, 320]
 
 
@@ -40,9 +49,9 @@ def _load_corpus_lines():
     return clean
 
 
-def _generate_test_cases():
+def _generate_test_cases(n_snippets_per_size, seed):
     """
-    Generate ~100 test cases: random MBH excerpts at various sizes,
+    Generate test cases: random MBH excerpts at various sizes,
     each transliterated into every scheme.
 
     When multiple schemes produce identical text, the expected result
@@ -51,13 +60,12 @@ def _generate_test_cases():
     lines = _load_corpus_lines()
     full_text = ' '.join(lines)
 
-    rng = random.Random(42)
+    rng = random.Random(seed)
     t = Transliterator()
 
     cases = []
-    # 2 random samples per size × 9 schemes = 108 cases
     for char_len in SAMPLE_CHAR_LENGTHS:
-        for _ in range(2):
+        for _ in range(n_snippets_per_size):
             max_start = len(full_text) - char_len - 1
             start = rng.randint(0, max_start)
             while start > 0 and full_text[start - 1] != ' ':
@@ -68,7 +76,6 @@ def _generate_test_cases():
                 if last_space > 0:
                     snippet_iast = snippet_iast[:last_space]
 
-            # Transliterate into all schemes
             scheme_texts = {}
             for scheme in SCHEMES:
                 if scheme == 'IAST':
@@ -78,9 +85,6 @@ def _generate_test_cases():
                         snippet_iast, from_scheme='IAST', to_scheme=scheme
                     )
 
-            # For each scheme, determine expected result:
-            # if text is identical to a higher-priority scheme's text,
-            # expect the higher-priority one.
             for scheme in SCHEMES:
                 text = scheme_texts[scheme]
                 expected = scheme
@@ -95,15 +99,12 @@ def _generate_test_cases():
     return cases
 
 
-_TEST_CASES = _generate_test_cases()
-
-
-def test_scheme_detection_random_samples():
-    """Test scheme detection across ~100 random MBH samples of varying sizes."""
+def _run_detection_test(cases, max_small_failures):
+    """Run scheme detection on test cases and assert results."""
     sd = SchemeDetector()
 
     failures = []
-    for expected, char_len, text, original_scheme in _TEST_CASES:
+    for expected, char_len, text, original_scheme in cases:
         result = sd.detect_scheme(text)
         if result != expected:
             failures.append(
@@ -111,14 +112,31 @@ def test_scheme_detection_random_samples():
                 f"(from {original_scheme:8s}) | {text[:50]}"
             )
 
-    total = len(_TEST_CASES)
+    total = len(cases)
     passed = total - len(failures)
-    # Allow up to 2 failures at very small sizes (≤20 chars), where
-    # spurious bigram matches can mislead detection.
+    # Short inputs (<=20 chars) often lack distinctive features,
+    # so some misclassification is expected there.
     small_failures = [f for f in failures if 'size~ 10' in f or 'size~ 20' in f]
     large_failures = [f for f in failures if f not in small_failures]
-    if large_failures or len(small_failures) > 2:
+    if large_failures or len(small_failures) > max_small_failures:
         failure_report = '\n'.join(failures)
         assert False, (
             f"\n{passed}/{total} passed. Failures:\n{failure_report}"
         )
+
+
+# --- Default test: ~108 cases (2 snippets/size × 6 sizes × 9 schemes) ---
+
+_TEST_CASES = _generate_test_cases(n_snippets_per_size=2, seed=42)
+
+def test_scheme_detection_random_samples():
+    """~108 random samples, various sizes. Runs as part of normal test suite."""
+    _run_detection_test(_TEST_CASES, max_small_failures=5)
+
+
+# --- Large test: ~999 cases (~18 snippets/size × 6 sizes × 9 schemes) ---
+
+def test_scheme_detection_large():
+    """~999 random samples. Run with: pytest -k large"""
+    cases = _generate_test_cases(n_snippets_per_size=18, seed=99)
+    _run_detection_test(cases, max_small_failures=30)
