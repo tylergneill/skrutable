@@ -66,14 +66,14 @@ y r l v					y r l v
 
 ITRANS
 a aa i ii u uu
-Ri/RRi/R^i RI/RRI/R^I Li/LLi/L^i LI/LLI/L^I ee/E ai oo/O au
+Ri/RRi/R^i RI/RRI/R^I Li/LLi/L^i LI/LLI/L^I e ai o au
 k kh g gh ~N
 ch Ch j jh ~n
 T Th D Dh N
 t th d dh n
 p ph b bh m
-y r l w
-sh Sh s .m .h .a
+y r l v
+sh Sh s h .m H .a
 
 CSX						REE						OAST
 ...						...						...
@@ -481,7 +481,6 @@ WX_SLP = [
 
 ITRANS_SLP = [
 # Transliteration 1: careful ordering to avoid bleeding/feeding
-('w', 'v'),
 ('T', 'w'),
 ('Th', 'W'),
 ('D', 'q'),
@@ -496,8 +495,6 @@ ITRANS_SLP = [
 ('aa', 'A'),
 ('ii', 'I'),
 ('uu', 'U'),
-('ee', 'e'),
-('oo', 'o'),
 ('E', 'e'),
 ('ai', 'E'),
 ('O', 'o'),
@@ -517,10 +514,8 @@ ITRANS_SLP = [
 ('sh', 'S'),
 ('Sh', 'z'),
 ('.m', 'M'),
-('.h', 'H'),
 ('.a', "'"),
-("’", "'"),
-# Remain the same: ...
+# Remain the same: a, i, u, e, o, k, g, j, t, d, p, b, m, n, y, r, l, v, s, h, H
 ]
 
 CSX_SLP = []
@@ -890,7 +885,6 @@ SLP_ITRANS = [
 ('T','th'),
 ('w','T'),
 ('W','Th'),
-('v','w'),
 ('D','dh'),
 ('q','D'),
 # Transliteration 2: simpler remaining mappings
@@ -901,19 +895,16 @@ SLP_ITRANS = [
 ('F','RI'),
 ('x','Li'),
 ('X','LI'),
-('e','ee'),
-('o','oo'),
 ('E','ai'),
 ('O','au'),
 ('M','.m'),
-('H','.h'),
+('H','H'),
 ('K','kh'),
 ('G','gh'),
 ('c','ch'),
 ('C','Ch'),
 ('J','jh'),
 ('Y','~n'),
-
 ('Q','Dh'),
 ('P','ph'),
 ('B','bh'),
