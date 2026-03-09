@@ -218,6 +218,18 @@ string_result_3 = Spl.split( input_string, preserve_compound_hyphens=False )  # 
 string_result_4 = Spl.split( input_string, splitter_model='splitter_2018')  # use older model
 ~~~
 
+5. `skrutable.scheme_detection`, `scheme_detection.SchemeDetector`, `SchemeDetector.detect_scheme()`
+~~~
+from skrutable.scheme_detection import SchemeDetector
+SD = SchemeDetector()
+detected_scheme = SD.detect_scheme(input_string)  # returns e.g. 'IAST', 'DEV', 'HK', etc.
+print(SD.confidence)  # 'high' or 'low' (set as side-effect of detect_scheme())
+~~~
+
+The `detect_scheme()` method accepts a string and returns a scheme abbreviation string (one of `IAST`, `HK`, `SLP`, `ITRANS`, `VH`, `WX`, `DEV`, `BENGALI`, `GUJARATI`), or `None` for empty input. After calling `detect_scheme()`, the `confidence` attribute is set to `'high'` or `'low'` based on how distinctive the input text was. Indic scripts always yield `'high'` confidence; for Roman schemes, confidence depends on input length and how clearly the character distribution matches one scheme over the others. Longer inputs (80+ characters) tend to yield higher confidence.
+
+The scheme abbreviation strings returned by `detect_scheme()` can be passed directly to `transliterate()` as `from_scheme` — or you can pass `'AUTO'` (or `'DETECT'`, `'AUTO_DETECT'`, etc.) to have transliteration call scheme detection automatically.
+
 More examples of how to use the library can be found in the repo's `tests` folder (for use with `pytest`) and in the `jupyter_notebooks` folder.
 
 ## using the API
