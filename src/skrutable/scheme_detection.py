@@ -47,16 +47,34 @@ class SchemeDetector(object):
 	# Beyond this length, extra text adds noise without improving accuracy.
 	_MAX_SAMPLE_CHARS = 1000
 
+	# Dandas and similar punctuation fall in the DEV Unicode range but are used
+	# across all Sanskrit text regardless of transliteration scheme, so they
+	# must not count as evidence of an Indic script.
+	_INDIC_PUNCTUATION = frozenset([
+		'\u0964',  # । danda
+		'\u0965',  # ॥ double danda
+	])
+
+	# Minimum number of Indic *letters* (non-punctuation) required to trigger
+	# the Indic fast-path.
+	_MIN_INDIC_CHARS = 3
+
 	def _detect_indic(self, text):
 		"""
-		Quick character-range check for Indic scripts.
-		Returns the script name if any Indic chars are found, else None.
+		Character-range check for Indic scripts.
+		Returns the script name only if at least _MIN_INDIC_CHARS non-punctuation
+		characters from that script are found, else None.
 		"""
+		counts = {}
 		for ch in text:
+			if ch in self._INDIC_PUNCTUATION:
+				continue
 			cp = ord(ch)
 			for script, (lo, hi) in _INDIC_RANGES.items():
 				if lo <= cp <= hi:
-					return script
+					counts[script] = counts.get(script, 0) + 1
+					if counts[script] >= self._MIN_INDIC_CHARS:
+						return script
 		return None
 
 	def _bigram_penalties(self, text):
