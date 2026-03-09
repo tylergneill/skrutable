@@ -85,6 +85,12 @@ to SLP   IAST_SLP, DEV_SLP, HK_SLP, VH_SLP, ITRANS_SLP
 from SLP  SLP_IAST, SLP_DEV, SLP_HK, SLP_VH, SLP_ITRANS
 """
 IAST_SLP = [
+('r̥','ṛ'),('R̥','ṛ'),
+('r̥̄','ṝ'),('R̥̄','ṝ'),
+('r̥̄','ṝ'),('R̥̄','ṝ'),
+('l̥','ḷ'),('L̥','ḷ'),
+('l̥̄','ḹ'),('L̥̄','ḹ'),
+('l̥̄','ḹ'),('L̥̄','ḹ'),
 # Normalization 1: merge of combining diacritics to precomposed combinations
 ('ā','ā'),('Ā','ā'),('Ā','ā'), # case also lowered throughout
 ('ī','ī'),('Ī','ī'),('Ī','ī'),
@@ -111,12 +117,6 @@ IAST_SLP = [
 ('ḫ','ḫ'),('Ḫ','h'),('Ḫ','h'),
 ('ṃ','ṃ'),('Ṃ','ṃ'),('Ṃ','ṃ'),
 # Normalization 2: change of ISO under-circles to under-dots, also ṁ's, ē's, ō's
-('r̥','ṛ'),('R̥','ṛ'),
-('r̥̄','ṝ'),('R̥̄','ṝ'),
-('r̥̄','ṝ'),('R̥̄','ṝ'),
-('l̥','ḷ'),('L̥','ḷ'),
-('l̥̄','ḹ'),('L̥̄','ḹ'),
-('l̥̄','ḹ'),('L̥̄','ḹ'),
 ('ṁ','ṃ'),('ṁ','ṃ'),
 ('ē','e'),('ē','e'),('ĕ','ĕ'),
 ('ō','o'),('ō','o'),('ŏ','ŏ'),
