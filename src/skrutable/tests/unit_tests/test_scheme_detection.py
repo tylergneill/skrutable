@@ -15,14 +15,15 @@ How to run:
     pytest src/skrutable/tests/unit_tests/test_scheme_detection.py -k large
 
     # Regenerate with a new seed (any tier):
-    DETECTION_SEED=123 pytest ... -k medium
+    DETECTION_SEED=123 pytest src/skrutable/tests/unit_tests/test_scheme_detection.py -k medium
 
     # Verbose mode (show every case, not just failures):
-    DETECTION_VERBOSE=1 pytest ... -k medium -s
+    DETECTION_VERBOSE=1 pytest src/skrutable/tests/unit_tests/test_scheme_detection.py -k medium -s
 """
 
 import os
 import random
+import urllib.request
 from collections import defaultdict
 
 import pytest
@@ -30,7 +31,25 @@ import pytest
 from skrutable.transliteration import Transliterator
 from skrutable.scheme_detection import SchemeDetector
 
-CORPUS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'mbh1-18u.txt')
+CORPUS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'scheme_detection_mbh_corpus.txt')
+CORPUS_URL = "https://github.com/tylergneill/skrutable/releases/download/corpus/scheme_detection_mbh_corpus.txt"
+
+
+def _ensure_corpus():
+    """Download the MBH corpus file if it's not present locally."""
+    if os.path.exists(CORPUS_PATH):
+        return
+    print(f"\nCorpus file not found at:\n  {CORPUS_PATH}")
+    print(f"Downloading from:\n  {CORPUS_URL}")
+    try:
+        os.makedirs(os.path.dirname(CORPUS_PATH), exist_ok=True)
+        urllib.request.urlretrieve(CORPUS_URL, CORPUS_PATH)
+        print("Download complete.")
+    except Exception as e:
+        pytest.skip(
+            f"Could not download corpus file ({e}). "
+            f"Download manually from {CORPUS_URL} and place it at {CORPUS_PATH}."
+        )
 
 SCHEMES = ['IAST', 'SLP', 'HK', 'ITRANS', 'VH', 'WX', 'DEV', 'BENGALI', 'GUJARATI']
 
@@ -253,6 +272,7 @@ def _run_detection_test(cases, max_small_failures):
 # --- Get seed from environment or use default ---
 _seed = int(os.environ.get('DETECTION_SEED', DEFAULT_SEED))
 
+_ensure_corpus()
 
 # --- Small: ~100 cases (2 snippets/size × 6 sizes × 9 schemes) ---
 
