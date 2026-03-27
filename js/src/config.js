@@ -1,0 +1,43 @@
+// Configuration settings for skrutable-js
+export const config = {
+  "default_scheme_in": "IAST",
+  "default_scheme_out": "IAST",
+  "avoid_virama_indic_scripts": true,
+  "avoid_virama_non_indic_scripts": false,
+  "scansion_syllable_separator": " ",
+  "additional_pAda_separators": ["\t", ";", ",", " / ", " | ", " । "],
+  "default_resplit_option": "resplit_max",
+  "default_resplit_keep_midpoint": false,
+  "disable_non_trizwuB_upajAti": true,
+  "meter_scores": {
+    "max score": 9,
+    "anuṣṭup, full, both halves perfect": 9,
+    "anuṣṭup, full, one half perfect, one imperfect": 7,
+    "anuṣṭup, half, single half perfect": 9,
+    "samavṛtta, perfect": 9,
+    "samavṛtta, imperfect (3)": 6,
+    "samavṛtta, imperfect (2)": 5,
+    "samavṛtta, quarter, perfect": 8,
+    "ardhasamavṛtta, perfect": 8,
+    "ardhasamavṛtta, perfect, unknown": 6,
+    "viṣamavṛtta, perfect": 9,
+    "upajātiḥ, perfect": 7,
+    "upajātiḥ, imperfect": 6,
+    "upajātiḥ, non-triṣṭubh, perfect": 5,
+    "upajātiḥ, triṣṭubh-jagatī-saṃkara, perfect": 4,
+    "upajātiḥ, non-triṣṭubh, imperfect": 3,
+    "jāti, perfect": 8,
+    "jāti, imperfect": 3,
+    "none found": 1
+  },
+  "preserve_punctuation_default": true,
+  "preserve_compound_hyphens_default": true
+};
+
+export function loadConfig() {
+  return config;
+}
+
+export function loadConfigDictFromJsonFile() {
+  return config;
+}
