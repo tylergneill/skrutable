@@ -166,10 +166,14 @@ From each respective Python module (`transliteration.py`, `scansion.py`, `meter_
 
 The following are the important function parameters:
 
-* transliteration: `from_scheme` and `to_scheme` (`IAST`, `HK`, `SLP`, `ITRANS`, `VH`, `WX`, `IASTreduced`, `DEV`, `BENGALI`, `GUJARATI`), `avoid_virama_indic_scripts` and  `avoid_virama_non_indic_scripts` (`True`, `False`)
-* scansion: `show_weights`, `show_morae`, `show_gaRas`, `show_alignment` (`True`, `False`)
-* meter identification: `resplit_option` (`none`, `resplit_lite`, `resplit_max`), `keep_mid` (`True`, `False`)
-* sandhi/compound splitting: `splitter_model` (`dharmamitra_2024_sept`, `splitter_2018`), `preserve_punctuation` (`True`, `False`), `preserve_compound_hyphens` (`True`, `False`)
+For all modules, `from_scheme` is optional at the time of calling the main method. If not supplied (or if the special auto-detect keywords `'AUTO'`, `'DETECT'`, `'AUTO DETECT'`, `'AUTO-DETECT'`, `'AUTO_DETECT'`, or `'AUTODETECT'` are passed — case-insensitive), the input scheme is detected automatically. Scheme abbreviations: `IAST`, `HK`, `SLP`, `ITRANS`, `VH`, `WX`, `IASTreduced`, `DEV`, `BENGALI`, `GUJARATI`.
+
+`Transliterator` additionally accepts `from_scheme` and `to_scheme` at constructor time, setting defaults for all subsequent calls. The method-call value takes precedence over the constructor default; if neither is supplied, auto-detection is used.
+
+* transliteration: constructor defaults `from_scheme`, `to_scheme`; method params `from_scheme`, `to_scheme`, `avoid_virama_indic_scripts` and `avoid_virama_non_indic_scripts` (`True`, `False`)
+* scansion: `from_scheme`; `show_weights`, `show_morae`, `show_gaRas`, `show_alignment` (`True`, `False`). Output is always IAST.
+* meter identification: `from_scheme`; `resplit_option` (`none`, `resplit_lite`, `resplit_max`), `keep_mid` (`True`, `False`). Output is always IAST.
+* sandhi/compound splitting: `from_scheme` (auto-detected if omitted), `to_scheme` (default IAST — the hub scheme for processing); `splitter_model` (`dharmamitra_2024_sept`, `splitter_2018`), `preserve_punctuation` (`True`, `False`), `preserve_compound_hyphens` (`True`, `False`)
 
 Examples:
 
@@ -180,31 +184,41 @@ input_string = "tava karakamalasthāṃ sphāṭikīmakṣamālāṃ , nakhakira
 1. `skrutable.transliteration`, `transliteration.Transliterator`, `Transliterator.transliterate()`
 ~~~
 from skrutable.transliteration import Transliterator
-T = Transliterator(to_scheme='DEV')  # using built-in default from_scheme IAST but passing in a default to_scheme 
-string_result_1 = T.transliterate( input_string )  # from_scheme=IAST, to_scheme=DEV
-string_result_2 = T.transliterate( input_string, to_scheme='BENGALI')  # overriding to_scheme
-string_result_3 = T.transliterate( input_string, avoid_virama_indic_scripts=False)  # output Devanāgarī with Roman-like spacing
+
+# Pattern A: set both schemes as constructor defaults; call with no scheme params
+T = Transliterator(from_scheme='IAST', to_scheme='DEV')
+string_result_1 = T.transliterate( input_string )
+
+# Pattern B: set only to_scheme at constructor; from_scheme auto-detected per call
+T = Transliterator(to_scheme='DEV')
+string_result_2 = T.transliterate( input_string )               # from_scheme auto-detected
+string_result_3 = T.transliterate( input_string, to_scheme='BENGALI')  # overriding to_scheme
+string_result_4 = T.transliterate( input_string, avoid_virama_indic_scripts=False)  # Devanāgarī with Roman-like spacing
+
+# Pattern C: constructor with a fixed from_scheme, but override it to auto-detect for one call
+T = Transliterator(from_scheme='DEV', to_scheme='IAST')
+string_result_5 = T.transliterate( input_string, from_scheme='auto')  # explicit auto-detect
 ~~~
 
 2. `skrutable.scansion`, `scansion.Scanner`, `Scanner.scan()`
 ~~~
 from skrutable.scansion import Scanner
-S = Scanner()  # has default IAST from_scheme and "show" options True
-Verse_result_1 = S.scan( input_string )  # using all defaults 
-print( Verse_result_1.summarize(show_label=False) )  # not showing empty label makes more sense 
-print( Verse_result_1.summarize(show_alignment=False, show_label=False) )  # can also toggle other things 
-Verse_result_2 = S.scan( input_string, from_scheme='DEV')  # can also specify different input scheme here if needed 
+S = Scanner()
+Verse_result_1 = S.scan( input_string )  # from_scheme auto-detected; output always IAST
+print( Verse_result_1.summarize(show_label=False) )  # not showing empty label makes more sense
+print( Verse_result_1.summarize(show_alignment=False, show_label=False) )  # can also toggle other things
+Verse_result_2 = S.scan( input_string, from_scheme='DEV')  # explicit input scheme
 ~~~
 
 3. `skrutable.meter_identification`, `meter_identification.MeterIdentifier`, `MeterIdentifier.identify_meter()`
 ~~~
 from skrutable.meter_identification import MeterIdentifier
 MI = MeterIdentifier()
-Verse_result_1 = MI.identify_meter(input_string)  # default from_scheme and resplit_option
+Verse_result_1 = MI.identify_meter(input_string)  # from_scheme auto-detected; output always IAST
 print( Verse_result_1.meter_label )
 print( Verse_result_1.summarize() )
 Verse_result_2 = MI.identify_meter(input_string, resplit_option='none')  # can change way pāda resplitting is done
-Verse_result_3 = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_lite')  # scheme options possible here too
+Verse_result_3 = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_lite')  # explicit input scheme
 ~~~
 
 4. `skrutable.splitting`, `splitting.Splitter`, `Splitter.split()`
@@ -212,10 +226,14 @@ Verse_result_3 = MI.identify_meter(input_string, from_scheme='DEV', resplit_opti
 from skrutable.splitting import Splitter
 Spl = Splitter()
 # this needs an internet connection to connect to the API server
-string_result_1 = Spl.split( input_string )  # default splitter-model and punctuation settings
-string_result_2 = Spl.split( input_string, preserve_punctuation=False )  # discard punctuation
-string_result_3 = Spl.split( input_string, preserve_compound_hyphens=False )  # discard hyphens used to represent compounds
-string_result_4 = Spl.split( input_string, splitter_model='splitter_2018')  # use older model
+string_result_1 = Spl.split( input_string )  # from_scheme auto-detected; output IAST
+string_result_2 = Spl.split( input_string, to_scheme='DEV')  # output in Devanagari
+string_result_3 = Spl.split( input_string, from_scheme='HK', to_scheme='HK')  # explicit HK in, HK out
+string_result_4 = Spl.split( input_string, preserve_punctuation=False )  # discard punctuation
+string_result_5 = Spl.split( input_string, preserve_compound_hyphens=False )  # discard hyphens used to represent compounds
+string_result_6 = Spl.split( input_string, splitter_model='splitter_2018')  # use older model
+# Note: from_scheme previously defaulted to IAST; it now auto-detects, so most existing
+# IAST-input calls continue to work unchanged.
 ~~~
 
 5. `skrutable.scheme_detection`, `scheme_detection.SchemeDetector`, `SchemeDetector.detect_scheme()`
@@ -228,7 +246,7 @@ print(SD.confidence)  # 'high' or 'low' (set as side-effect of detect_scheme())
 
 The `detect_scheme()` method accepts a string and returns a scheme abbreviation string (one of `IAST`, `HK`, `SLP`, `ITRANS`, `VH`, `WX`, `DEV`, `BENGALI`, `GUJARATI`), or `None` for empty input. After calling `detect_scheme()`, the `confidence` attribute is set to `'high'` or `'low'` based on how distinctive the input text was. Indic scripts always yield `'high'` confidence; for Roman schemes, confidence depends on input length and how clearly the character distribution matches one scheme over the others. Longer inputs (80+ characters) tend to yield higher confidence.
 
-The scheme abbreviation strings returned by `detect_scheme()` can be passed directly to `transliterate()` as `from_scheme` — or you can pass `'AUTO'` (or `'DETECT'`, `'AUTO_DETECT'`, etc.) to have transliteration call scheme detection automatically.
+The scheme abbreviation strings returned by `detect_scheme()` can be passed directly to `transliterate()` as `from_scheme` — or simply omit `from_scheme` entirely (equivalently, pass `'AUTO'`, `'DETECT'`, etc.) to have any module call scheme detection automatically.
 
 More examples of how to use the library can be found in the repo's `tests` folder (for use with `pytest`) and in the `jupyter_notebooks` folder.
 

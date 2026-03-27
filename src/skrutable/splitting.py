@@ -4,6 +4,7 @@ from time import sleep
 from typing import List, Tuple
 
 from skrutable.config import load_config_dict_from_json_file
+from skrutable.transliteration import Transliterator
 
 config = load_config_dict_from_json_file()
 PRESERVE_PUNCTUATION_DEFAULT = config["preserve_punctuation_default"]
@@ -228,6 +229,8 @@ class Splitter(object):
     def split(
             self,
             text: str,
+            from_scheme: str = None,
+            to_scheme: str = None,
             splitter_model: str='dharmamitra_2024_sept',
             preserve_compound_hyphens: bool = PRESERVE_COMPOUND_HYPHENS_DEFAULT,
             preserve_punctuation: bool=PRESERVE_PUNCTUATION_DEFAULT,
@@ -236,7 +239,15 @@ class Splitter(object):
         Splits sandhi and compounds of multi-line Sanskrit string,
         passing maximum of max_char_limit characters to Splitter at a time,
         and preserving original newlines and punctuation.
+
+        from_scheme: input transliteration scheme (None = auto-detect).
+        to_scheme:   output transliteration scheme (None = IAST, the hub scheme).
+        Processing always happens in IAST; transliteration wraps the call if needed.
         """
+
+        # transliterate input to IAST (auto-detects if from_scheme is None)
+        T = Transliterator()
+        text = T.transliterate(text, from_scheme=from_scheme, to_scheme='IAST')
 
         # save original punctuation
         sentences: List[str]
@@ -282,5 +293,9 @@ class Splitter(object):
             final_results = self._restore_punctuation(restored_sentences, saved_punctuation, markers)
         else:
             final_results = '\n'.join(restored_sentences).replace('_', ' ')
+
+        # transliterate output from IAST if requested
+        if to_scheme is not None and to_scheme.upper() != 'IAST':
+            final_results = T.transliterate(final_results, from_scheme='IAST', to_scheme=to_scheme)
 
         return final_results

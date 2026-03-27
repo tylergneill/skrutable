@@ -55,15 +55,16 @@ class SchemeDetector(object):
 		'\u0965',  # ॥ double danda
 	])
 
-	# Minimum number of Indic *letters* (non-punctuation) required to trigger
-	# the Indic fast-path.
-	_MIN_INDIC_CHARS = 3
+	# Fraction of sample characters that must be non-punctuation Indic letters
+	# to trigger the Indic fast-path before cosine.  A ratio is more robust than
+	# a fixed count: it handles both very short purely-Indic inputs (e.g. "आस")
+	# and long Roman texts with a handful of stray Indic characters correctly.
+	_MIN_INDIC_RATIO = 0.4
 
-	def _detect_indic(self, text):
+	def _count_indic(self, text):
 		"""
-		Character-range check for Indic scripts.
-		Returns the script name only if at least _MIN_INDIC_CHARS non-punctuation
-		characters from that script are found, else None.
+		Count non-punctuation Indic characters per script.
+		Returns (dominant_script, count), or (None, 0) if none found.
 		"""
 		counts = {}
 		for ch in text:
@@ -73,9 +74,11 @@ class SchemeDetector(object):
 			for script, (lo, hi) in _INDIC_RANGES.items():
 				if lo <= cp <= hi:
 					counts[script] = counts.get(script, 0) + 1
-					if counts[script] >= self._MIN_INDIC_CHARS:
-						return script
-		return None
+					break
+		if not counts:
+			return None, 0
+		dominant = max(counts, key=counts.get)
+		return dominant, counts[dominant]
 
 	def _bigram_penalties(self, text):
 		"""
@@ -122,15 +125,24 @@ class SchemeDetector(object):
 		"""
 		Detect the transliteration scheme of the input text.
 
-		1. Quick Indic check: scan for Devanagari/Bengali/Gujarati chars.
-		   If found, return immediately (no cosine needed).
+		1. Indic ratio check (fast-path): if ≥40% of sample characters are
+		   non-punctuation Indic letters, return the dominant script immediately.
+		   Dandas (।॥) are excluded — they appear in all Sanskrit texts regardless
+		   of scheme.  For mixed-script input the script with the most characters
+		   wins.
 
-		2. Cosine similarity: score each Roman scheme against reference
-		   vectors built from the MBH corpus, adjusted by a bigram
-		   penalty for impossible bigrams.
+		2a. Cosine similarity: build a character/bigram fingerprint of the input
+		    and compute cosine similarity against reference vectors for each Roman
+		    scheme, derived from the MBH corpus.
 
-		3. Priority tiebreaker: when adjusted scores are within tolerance,
-		   prefer more common schemes (IAST > HK > ITRANS > WX > SLP > VH).
+		2b. Impossible-bigram penalty: subtract a small penalty for each bigram
+		    that never occurs in a given scheme's MBH corpus.  This is applied
+		    directly to the cosine scores (not a separate elimination pass), so
+		    2a and 2b together produce a single set of adjusted scores.
+
+		3.  Priority tiebreaker: among schemes whose adjusted score falls within
+		    tolerance of the top, prefer the more common one
+		    (IAST > HK > ITRANS > WX > SLP > VH).
 
 		Confidence ('high'/'low') is stored in self.confidence.
 		"""
@@ -141,11 +153,13 @@ class SchemeDetector(object):
 
 		sample = file_data[:self._MAX_SAMPLE_CHARS]
 
-		# --- Indic script check (no cosine needed) ---
-		indic = self._detect_indic(sample)
-		if indic:
+		# --- Indic script check ---
+		# Use a ratio rather than a fixed count: robust for both very short
+		# purely-Indic inputs and long Roman texts with stray Indic characters.
+		indic_script, indic_count = self._count_indic(sample)
+		if indic_count / len(sample) >= self._MIN_INDIC_RATIO:
 			self.confidence = 'high'
-			return indic
+			return indic_script
 
 		# --- Cosine + bigram penalty for Roman schemes ---
 		file_vector = self.fingerprint(sample)
