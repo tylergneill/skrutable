@@ -353,6 +353,7 @@ class Scanner(object):
 
 		# set up Transliterator and schemes
 		T = Transliterator() # default settings
+		T.contents = cntnts
 		if from_scheme != None:
 			from_scheme = from_scheme.upper()
 			T.scheme_in = from_scheme
