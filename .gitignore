@@ -13,3 +13,5 @@ src/*.egg-info
 
 .claude
 CLAUDE.md
+
+scheme_detection_mbh_corpus.txt
