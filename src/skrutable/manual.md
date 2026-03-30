@@ -84,22 +84,19 @@ Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
     </tbody>
 </table>
 
-`skrutable` can also automatically detect the input scheme — see [scheme detection](#scheme-detection) below.
-
-There is also a lossy "IASTreduced" output option (e.g., "samskrtam pathamah") which can be useful in some contexts. Additional academic schemes not currently featured include CSX (Classical Sanskrit eXtended, e.g. "saüskçtaü paòâmaþ") and REE (by Ronald E. Emmerick, e.g. "saæsk­taæ paèÃma÷").
-
-More schemes, especially for additional Indic scripts, can be added by modifying `phonemes.py` and `scheme_maps.py`. For tools with wider script support or coverage of other South Asian languages, see [related projects](#related-projects).
+There is also a lossy "IASTreduced" output option (e.g., "samskrtam pathamah") which can be useful in some contexts. Additional academic schemes not currently featured include CSX (Classical Sanskrit eXtended, e.g. "saüskçtaü paòâmaþ") and REE (by Ronald E. Emmerick, e.g. "saæsk­taæ paèÃma÷"). More schemes, especially for additional Indic scripts, can be added by modifying `phonemes.py` and `scheme_maps.py`. For tools with wider script support or coverage of other South Asian languages, see [related projects](#related-projects).
 
 Terminology note: I say "scheme" as a generic term for different ways of writing Sanskrit. I use "encoding" only to refer to subtleties of UTF-8 Romanization and "script" in the sense of a distinct character set (e.g. Roman vs. Devanagari). I use neither "Roman" nor "Unicode" to refer to individual schemes. For other perspectives, see [here](http://indology.info/email/members/wujastyk/) and [here](http://sanskritlibrary.org/Sanskrit/pub/lies_sl.pdf).
 
-
 ## scheme detection
 
-Input schemes can be detected automatically using a three-step algorithm which checks Indic-character ratios, similarity against Mahābhārata reference vectors (with impossible-bigram penalties), and priority tiebreakers. Detection has the least success with short inputs in Roman ASCII schemes (HK, ITRANS, SLP, VH).
+`skrutable` is able to automatically detect the input scheme in a robust way.
+
+The algorithm involves three steps: 1. Indic-character ratios; 2. sample text compared against Mahābhārata reference vectors, with impossible-bigram penalties; and 3. priority tiebreakers. Accuracy is lowest with short inputs in Roman ASCII schemes (HK, ITRANS, SLP, VH).
 
 ## encoding normalization
 
-Some schemes have internal variation. For example, IAST can be encoded with combining diacritics or precomposed characters; ITRANS writes vocalic ṛ as 'Ri', 'RRi', or 'R^i'. Round-trip transliteration (e.g., IAST→IAST) normalizes such variation:
+Some schemes have internal variation. For example, IAST can be encoded with combining diacritics or precomposed characters, and ITRANS writes vocalic ṛ as 'Ri', 'RRi', or 'R^i'. Round-trip transliteration (e.g., IAST→IAST) normalizes such variation:
 
 ~~~
 "rāmaḥ" == 'r' + 'a' + '¯' (U+0304) + 'm' + 'a' + 'h' + '.' (U+0323)
@@ -133,6 +130,11 @@ Key terms:
 * *jāti*: four quarters with set patterns of total moraic length
 
 
+# sandhi and compound splitting
+
+`skrutable` provides a wrapper for applying pre-trained splitting models via separate online servers ([my own splitter_server for the 2018 model](https://2018emnlp-sanskrit-splitter-server.dharma.cl/) and https://dharmamitra.org). A working internet connection is required for this functionality. The wrapper preserves original sentence length and punctuation, and it also helps utilize the Dharmamitra ByT5-Sanskrit model's ability to distinguish compounds from inter-word breaks.
+
+
 # related projects
 
 Related projects are worth checking out, as some may be stronger than `skrutable` in certain respects (e.g., more script support, different opinions on edge cases, etc.)
@@ -148,11 +150,6 @@ Related projects are worth checking out, as some may be stronger than `skrutable
  | (n/a) | (n/a) | **[Chandojñānam](https://sanskrit.iitk.ac.in/jnanasangraha/chanda/)** | Hrishikesh Terdalkar |
 
 
-# sandhi and compound splitting
-
-`skrutable` provides a wrapper for applying pre-trained splitting models via separate online servers ([my own splitter_server for the 2018 model](https://2018emnlp-sanskrit-splitter-server.dharma.cl/) and https://dharmamitra.org). A working internet connection is required for this functionality. The wrapper preserves original sentence length and punctuation.
-
-
 # Python library
 
 ## installation
@@ -164,20 +161,21 @@ Related projects are worth checking out, as some may be stronger than `skrutable
 
 From each module (`transliteration.py`, `scansion.py`, `meter_identification.py`, `splitting.py`), import the respective class (`Transliterator`, `Scanner`, `MeterIdentifier`, `Splitter`), instantiate, and call the primary method (`transliterate()`, `scan()`, `identify_meter()`, `split()`). Transliteration and splitting return strings; scansion and meter identification return `Scansion.Verse` objects with a `meter_label` attribute and a `summarize()` method.
 
-## scheme detection
-
-For all modules, `from_scheme` is optional. If omitted — or if one of the auto-detect keywords is passed (`'AUTO'`, `'DETECT'`, `'AUTO DETECT'`, `'AUTO-DETECT'`, `'AUTO_DETECT'`, `'AUTODETECT'`, case-insensitive) — the input scheme is detected automatically using `SchemeDetector`.
-
-`Transliterator` additionally accepts `from_scheme` and `to_scheme` at constructor time, setting defaults for all subsequent calls. The method-call value takes precedence over the constructor default; if neither is supplied, auto-detection is used.
-
-`SchemeDetector` can also be used directly (see example 2 below), in which case the `confidence` attribute (`'high'` or `'low'`) is accessible after each call. Indic scripts always yield high confidence; Roman scheme confidence depends on input length and distinctiveness.
-
 ## parameters
 
 * **transliteration**: constructor defaults `from_scheme`, `to_scheme`; method params `from_scheme`, `to_scheme`, `avoid_virama_indic_scripts`, `avoid_virama_non_indic_scripts` (`True`/`False`)
 * **scansion**: `from_scheme`; `show_weights`, `show_morae`, `show_gaRas`, `show_alignment` (`True`/`False`). Output always IAST.
 * **meter identification**: `from_scheme`; `resplit_option` (`none`, `resplit_lite`, `resplit_max`), `keep_mid` (`True`/`False`). Output always IAST.
 * **splitting**: `from_scheme`, `to_scheme` (default IAST); `splitter_model` (`dharmamitra_2024_sept`, `splitter_2018`), `preserve_punctuation` (`True`/`False`), `preserve_compound_hyphens` (`True`/`False`)
+
+`Transliterator` optionally accepts `from_scheme` and `to_scheme` at constructor time, setting defaults for all subsequent calls. The method-call value takes precedence over the constructor default; if neither is supplied, auto-detection is used.
+
+
+## scheme detection
+
+For all modules, `from_scheme` is optional. If omitted — or if one of the auto-detect keywords is passed (`'AUTO'`, `'DETECT'`, `'AUTO DETECT'`, `'AUTO-DETECT'`, `'AUTO_DETECT'`, `'AUTODETECT'`, case-insensitive) — the input scheme is detected automatically using `SchemeDetector`.
+
+`SchemeDetector` can also be used directly (see example 2 below), e.g. to give easier access to its `confidence` attribute (`'high'` or `'low'`) after each call. Indic scripts always yield high confidence; confidence about Roman schemes depends on input length and distinctiveness.
 
 ## examples
 
@@ -259,5 +257,6 @@ See [skrutable.info/api](https://www.skrutable.info/api) for details.
 
 Get in touch — I'm Tyler
 ([Academia](https://uni-leipzig1.academia.edu/TylerNeill),
-[LinkedIn](https://www.linkedin.com/in/tyler-g-neill/))
-and my Gmail is tyler.g.neill.
+[LinkedIn](https://www.linkedin.com/in/tyler-g-neill/)),
+my Gmail is tyler.g.neill,
+and my website is [tylerneill.info](https://tylerneill.info).
