@@ -20,3 +20,6 @@ test-large-scheme:
 
 test-large-verbose:
 	DETECTION_SEED=$(DETECTION_SEED) DETECTION_VERBOSE=1 pytest tests/unit_tests/test_scheme_detection.py -k large -s
+
+examples:
+	python run_examples.py
