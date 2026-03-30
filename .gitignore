@@ -10,3 +10,8 @@ src/skrutable/splitter/wrapper_config.json
 build/
 dist/
 src/*.egg-info
+
+.claude
+CLAUDE.md
+
+scheme_detection_mbh_corpus.txt

@@ -29,7 +29,7 @@ class Transliterator():
 		self.contents = None
 
 		if from_scheme == None:
-			from_scheme = DEFAULT_SCHEME_IN
+			from_scheme = DEFAULT_SCHEME_IN  # now auto
 		from_scheme = from_scheme.upper()
 		self.scheme_in = from_scheme
 
@@ -164,10 +164,12 @@ class Transliterator():
 
 		self.contents = cntnts
 
-		# uppercase
-		if from_scheme != None:
+		# uppercase; None means "keep whatever self.scheme_in was set to"
+		# (default constructor sets it to 'AUTO' via config, so omitting
+		# from_scheme here still triggers auto-detection in the common case)
+		if from_scheme is not None:
 			self.scheme_in = from_scheme.upper()
-		if to_scheme != None:
+		if to_scheme is not None:
 			self.scheme_out = to_scheme.upper()
 
 		# looks for auto-detect keywords

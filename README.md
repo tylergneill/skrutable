@@ -8,6 +8,14 @@ Web-app interface live online at [skrutable.info](https://www.skrutable.info).
 
 Install package from [PyPi](https://pypi.org/project/skrutable/) with `pip install skrutable`.
 
+For local development, install in editable mode from the repo root:
+
+```bash
+pip install -e .
+```
+
+This ensures tests and scripts use the local source instead of any installed version.
+
 See [manual.md](https://github.com/tylergneill/skrutable/blob/main/src/skrutable/manual.md) for instructions.
 
 Feedback welcome!

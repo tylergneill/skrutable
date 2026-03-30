@@ -1,5 +1,5 @@
 {
-"default_scheme_in" : "IAST",
+"default_scheme_in" : "auto",
 "default_scheme_out" : "IAST",
 "avoid_virama_indic_scripts" : true,
 "avoid_virama_non_indic_scripts" : false,
