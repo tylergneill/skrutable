@@ -30,7 +30,9 @@ setup(
     ],
     package_data={'': [
 		'config.json',
-		'manual.md'
+		'manual.md',
+		'scheme_vectors.json',
+		'impossible_bigrams.json',
 	]},
     url='https://github.com/tylergneill/skrutable',
     keywords='Sanskrit text transliteration scansion meter identification sandhi compound splitting',
