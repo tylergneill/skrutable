@@ -24,32 +24,36 @@ def test_linear_preprocessing_cAtura():
 # anunāsika (candrabindu) round-trip tests
 
 def test_anunasika_dev_to_slp_to_dev():
-	# Devanagari ँ → SLP → Devanagari (identity)
+	# Devanagari ँ → SLP → Devanagari
 	T = Transliterator()
-	for (input, expected_output) in [
-		('अँ', 'अँ'),
-		('आँ', 'आँ'),
-		('इँ', 'इँ'),
-		('ईँ', 'ईँ'),
-		('उँ', 'उँ'),
-		('ऊँ', 'ऊँ'),
+	for (input, expected_preserve, expected_normalize) in [
+		('अँ', 'अँ', 'अं'),
+		('आँ', 'आँ', 'आं'),
+		('इँ', 'इँ', 'इं'),
+		('ईँ', 'ईँ', 'ईं'),
+		('उँ', 'उँ', 'उं'),
+		('ऊँ', 'ऊँ', 'ऊं'),
 	]:
-		output = T.transliterate(input, from_scheme='DEV', to_scheme='DEV')
-		assert expected_output == output, f"input={input!r} expected={expected_output!r} got={output!r}"
+		out_preserve = T.transliterate(input, from_scheme='DEV', to_scheme='DEV', preserve_anunasika=True)
+		assert expected_preserve == out_preserve, f"input={input!r} expected={expected_preserve!r} got={out_preserve!r}"
+		out_normalize = T.transliterate(input, from_scheme='DEV', to_scheme='DEV', preserve_anunasika=False)
+		assert expected_normalize == out_normalize, f"input={input!r} expected={expected_normalize!r} got={out_normalize!r}"
 
 def test_anunasika_dev_to_slp_to_bengali():
 	# Devanagari ँ → SLP → Bengali (cross-script)
 	T = Transliterator()
-	for (input, expected_output) in [
-		('अँ', 'অঁ'),
-		('आँ', 'আঁ'),
-		('इँ', 'ইঁ'),
-		('ईँ', 'ঈঁ'),
-		('उँ', 'উঁ'),
-		('ऊँ', 'ঊঁ'),
+	for (input, expected_preserve, expected_normalize) in [
+		('अँ', 'অঁ', 'অং'),
+		('आँ', 'আঁ', 'আং'),
+		('इँ', 'ইঁ', 'ইং'),
+		('ईँ', 'ঈঁ', 'ঈং'),
+		('उँ', 'উঁ', 'উং'),
+		('ऊँ', 'ঊঁ', 'ঊং'),
 	]:
-		output = T.transliterate(input, from_scheme='DEV', to_scheme='BENGALI')
-		assert expected_output == output, f"input={input!r} expected={expected_output!r} got={output!r}"
+		out_preserve = T.transliterate(input, from_scheme='DEV', to_scheme='BENGALI', preserve_anunasika=True)
+		assert expected_preserve == out_preserve, f"input={input!r} expected={expected_preserve!r} got={out_preserve!r}"
+		out_normalize = T.transliterate(input, from_scheme='DEV', to_scheme='BENGALI', preserve_anunasika=False)
+		assert expected_normalize == out_normalize, f"input={input!r} expected={expected_normalize!r} got={out_normalize!r}"
 
 def test_anunasika_iast_to_slp_to_iast_preserve():
 	# IAST ã → SLP → IAST with preserve_anunasika=True (identity)
