@@ -144,7 +144,7 @@ class Transliterator():
 		- For IAST, ISO 15919, ITRANS when preserve_anunasika is False
 		"""
 		always_normalize = ['HK', 'VH', 'WX', 'IASTREDUCED']
-		conditionally_normalize = ['IAST', 'ITRANS']
+		conditionally_normalize = ['IAST', 'ITRANS', 'SLP']
 		if to_scheme in always_normalize or (to_scheme in conditionally_normalize and not preserve_anunasika):
 			self.contents = self.contents.replace('~', 'M')
 
