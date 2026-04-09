@@ -15,3 +15,6 @@ src/*.egg-info
 CLAUDE.md
 
 scheme_detection_mbh_corpus.txt
+
+# claude
+settins.local.json
