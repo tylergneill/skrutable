@@ -21,5 +21,81 @@ def test_linear_preprocessing_cAtura():
 	expected_output = "चातुरa"
 	assert expected_output == output
 
+# anunāsika (candrabindu) round-trip tests
+
+def test_anunasika_dev_to_slp_to_dev():
+	# Devanagari ँ → SLP → Devanagari
+	T = Transliterator()
+	for (input, expected_preserve, expected_normalize) in [
+		('अँ', 'अँ', 'अं'),
+		('आँ', 'आँ', 'आं'),
+		('इँ', 'इँ', 'इं'),
+		('ईँ', 'ईँ', 'ईं'),
+		('उँ', 'उँ', 'उं'),
+		('ऊँ', 'ऊँ', 'ऊं'),
+	]:
+		out_preserve = T.transliterate(input, from_scheme='DEV', to_scheme='DEV', preserve_anunasika=True)
+		assert expected_preserve == out_preserve, f"input={input!r} expected={expected_preserve!r} got={out_preserve!r}"
+		out_normalize = T.transliterate(input, from_scheme='DEV', to_scheme='DEV', preserve_anunasika=False)
+		assert expected_normalize == out_normalize, f"input={input!r} expected={expected_normalize!r} got={out_normalize!r}"
+
+def test_anunasika_dev_to_slp_to_bengali():
+	# Devanagari ँ → SLP → Bengali (cross-script)
+	T = Transliterator()
+	for (input, expected_preserve, expected_normalize) in [
+		('अँ', 'অঁ', 'অং'),
+		('आँ', 'আঁ', 'আং'),
+		('इँ', 'ইঁ', 'ইং'),
+		('ईँ', 'ঈঁ', 'ঈং'),
+		('उँ', 'উঁ', 'উং'),
+		('ऊँ', 'ঊঁ', 'ঊং'),
+	]:
+		out_preserve = T.transliterate(input, from_scheme='DEV', to_scheme='BENGALI', preserve_anunasika=True)
+		assert expected_preserve == out_preserve, f"input={input!r} expected={expected_preserve!r} got={out_preserve!r}"
+		out_normalize = T.transliterate(input, from_scheme='DEV', to_scheme='BENGALI', preserve_anunasika=False)
+		assert expected_normalize == out_normalize, f"input={input!r} expected={expected_normalize!r} got={out_normalize!r}"
+
+def test_anunasika_iast_to_slp_to_iast_preserve():
+	# IAST ã → SLP → IAST with preserve_anunasika=True (identity)
+	T = Transliterator()
+	for (input, expected_output) in [
+		('a\u0303', 'a\u0303'),
+		('ā\u0303', 'ā\u0303'),
+		('i\u0303', 'i\u0303'),
+		('ī\u0303', 'ī\u0303'),
+		('u\u0303', 'u\u0303'),
+		('ū\u0303', 'ū\u0303'),
+	]:
+		output = T.transliterate(input, from_scheme='IAST', to_scheme='IAST', preserve_anunasika=True)
+		assert expected_output == output, f"input={input!r} expected={expected_output!r} got={output!r}"
+
+def test_anunasika_iast_to_slp_to_iast_normalize():
+	# IAST ã → SLP → IAST with preserve_anunasika=False (→ anusvāra)
+	T = Transliterator()
+	for (input, expected_output) in [
+		('a\u0303', 'aṃ'),
+		('ā\u0303', 'āṃ'),
+		('i\u0303', 'iṃ'),
+		('ī\u0303', 'īṃ'),
+		('u\u0303', 'uṃ'),
+		('ū\u0303', 'ūṃ'),
+	]:
+		output = T.transliterate(input, from_scheme='IAST', to_scheme='IAST', preserve_anunasika=False)
+		assert expected_output == output, f"input={input!r} expected={expected_output!r} got={output!r}"
+
+def test_anunasika_dev_to_slp_to_hk():
+	# Devanagari ँ → SLP → HK (mandatory normalization to anusvāra)
+	T = Transliterator()
+	for (input, expected_output) in [
+		('अँ', 'aM'),
+		('आँ', 'AM'),
+		('इँ', 'iM'),
+		('ईँ', 'IM'),
+		('उँ', 'uM'),
+		('ऊँ', 'UM'),
+	]:
+		output = T.transliterate(input, from_scheme='DEV', to_scheme='HK')
+		assert expected_output == output, f"input={input!r} expected={expected_output!r} got={output!r}"
+
 # def ():
 # 	assert expected_output == output

@@ -55,11 +55,11 @@ Roman_upper = [chr(n) for n in range(65,91)]
 Roman_lower = [chr(n) for n in range(97,123)]
 
 SLP_chars = ( [ c for c in Roman_upper if c not in ['L','V','Z'] ]
-        + Roman_lower )
+        + Roman_lower + ['~'] )
 
 IAST_chars = ( [c for c in Roman_lower if c not in ['f','q','w','x','z'] ]
         + ['ñ','ā','ī','ś','ū','ḍ','ḥ','ḷ','ḹ','ṃ','ṅ','ṇ','ṛ','ṝ','ṣ','ṭ','ẖ','ḫ','ï','ü','ĕ','ŏ']
-		+ ['̄', '́', '̇', '̣', '̥', '̱', '̮', '̱', 'ṁ', 'ē', 'ō'] ) # also accept ISO etc. alternates
+		+ ['̄', '́', '̇', '̣', '̥', '̱', '̮', '̱', 'ṁ', 'ē', 'ō', '\u0303'] ) # also accept ISO etc. alternates
 		# need to add more in case of capital letters, etc.; see scheme_maps.IAST_SLP
 
 HK_chars = ( ['A','D','G','H','I','J','M','N','R','S','T','U']

@@ -135,6 +135,19 @@ class Transliterator():
 		self.contents = content_out # hybrid
 
 
+	def normalize_anunasika(self, to_scheme, preserve_anunasika):
+		"""
+		Internal method.
+
+		Normalizes SLP ~ (anunāsika) to M (anusvāra) when required:
+		- Always for HK, VH, WX (no anunāsika representation)
+		- For IAST, ISO 15919, ITRANS when preserve_anunasika is False
+		"""
+		always_normalize = ['HK', 'VH', 'WX', 'IASTREDUCED']
+		conditionally_normalize = ['IAST', 'ITRANS', 'SLP', 'DEV', 'BENGALI', 'GUJARATI']
+		if to_scheme in always_normalize or (to_scheme in conditionally_normalize and not preserve_anunasika):
+			self.contents = self.contents.replace('~', 'M')
+
 	def transliterate(
 			self,
 			cntnts,
@@ -142,6 +155,7 @@ class Transliterator():
 			to_scheme=None,
 			avoid_virama_indic_scripts: bool = AVOID_VIRAMA_INDIC_SCRIPTS_DEFAULT,
 			avoid_virama_non_indic_scripts: bool = AVOID_VIRAMA_NON_INDIC_SCRIPTS_DEFAULT,
+			preserve_anunasika: bool = False,
 	):
 		"""
 		User-facing method.
@@ -179,6 +193,9 @@ class Transliterator():
 		# transliterate first to hub scheme SLP
 		self.linear_preprocessing(self.scheme_in, 'SLP')
 		self.map_replace(self.scheme_in, 'SLP')
+
+		# normalize anunāsika (~) to anusvāra (M) when target scheme cannot represent it
+		self.normalize_anunasika(self.scheme_out, preserve_anunasika)
 
 		# avoid undesirable virāmas specified in virāma_avoidance.py
 		if 	(
