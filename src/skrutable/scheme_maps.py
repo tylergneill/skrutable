@@ -85,6 +85,8 @@ to SLP   IAST_SLP, DEV_SLP, HK_SLP, VH_SLP, ITRANS_SLP
 from SLP  SLP_IAST, SLP_DEV, SLP_HK, SLP_VH, SLP_ITRANS
 """
 IAST_SLP = [
+# Normalization 0: anunāsika (candrabindu) — combining tilde above (U+0303) → SLP ~
+('\u0303','~'),
 # Normalization 1: ISO under-circles to under-dots (longs will feed into later rules_
 ('r̥','ṛ'),('R̥','ṛ'), # r ̥ -> ṛ
 ('l̥','ḷ'),('L̥','ḷ'), # l ̥ -> ḷ
@@ -208,6 +210,7 @@ DEV_SLP = [
 ('ऐ', 'E'),
 ('ओ', 'o'),
 ('औ', 'O'),
+('ँ', '~'), # U+0901 Devanagari candrabindu
 ('ं', 'M'),
 ('ः', 'H'),
 ('क', 'k'),
@@ -284,6 +287,7 @@ BENGALI_SLP = [
 ('ঐ', 'E'),
 ('ও', 'o'),
 ('ঔ', 'O'),
+('ঁ', '~'), # U+0981 Bengali candrabindu
 ('ং', 'M'),
 ('ঃ', 'H'),
 ('ক', 'k'),
@@ -360,6 +364,7 @@ GUJARATI_SLP = [
 ('ઐ', 'E'),
 ('ઓ', 'o'),
 ('ઔ', 'O'),
+('ઁ', '~'), # U+0A81 Gujarati candrabindu
 ('ં', 'M'),
 ('ઃ', 'H'),
 ('ક', 'k'),
@@ -569,6 +574,7 @@ SLP_SLP = [
 
 SLP_IAST = [
 # Transliteration 1: all simple mappings
+('~','\u0303'), # anunāsika: combining tilde above onto preceding vowel
 ('A','ā'),
 ('I','ī'),
 ('U','ū'),
@@ -646,6 +652,7 @@ SLP_DEV = [
 ('E', 'ऐ'),
 ('o', 'ओ'),('ŏ' 'ओ'),
 ('O', 'औ'),
+('~', 'ँ'), # U+0901 Devanagari candrabindu
 ('M', 'ं'),
 ('H', 'ः'),
 ('k', 'क'),
@@ -710,6 +717,7 @@ SLP_BENGALI = [
 ('E', 'ঐ'),
 ('o', 'ও'),('ŏ' 'ও'),
 ('O', 'ঔ'),
+('~', 'ঁ'), # U+0981 Bengali candrabindu
 ('M', 'ং'),
 ('H', 'ঃ'),
 ('k', 'ক'),
@@ -774,6 +782,7 @@ SLP_GUJARATI = [
 ('E', 'ઐ'),
 ('o', 'ઓ'),('ŏ' 'ઓ'),
 ('O', 'ઔ'),
+('~', 'ઁ'), # U+0A81 Gujarati candrabindu
 ('M', 'ં'),
 ('H', 'ઃ'),
 ('k', 'ક'),
