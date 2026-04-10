@@ -9,7 +9,7 @@ from skrutable.transliteration import Transliterator
 config = load_config_dict_from_json_file()
 PRESERVE_PUNCTUATION_DEFAULT = config["preserve_punctuation_default"]
 PRESERVE_COMPOUND_HYPHENS_DEFAULT = config["preserve_compound_hyphens_default"]
-SPLITTER_SERVER_URL = 'https://2018emnlp-sanskrit-splitter-server.dharma.cl/api/split/'
+SPLITTER_SERVER_URL = 'https://2018emnlp-sanskrit-splitter-server.duckdns.org/api/split/'
 
 HEADERS = {'Content-Type': 'application/json'}
 RETRY_DELAY_SEC = 5
