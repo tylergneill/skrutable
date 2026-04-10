@@ -132,7 +132,7 @@ Key terms:
 
 # sandhi and compound splitting
 
-`skrutable` provides a wrapper for applying pre-trained splitting models via separate online servers ([my own splitter_server for the 2018 model](https://2018emnlp-sanskrit-splitter-server.dharma.cl/) and https://dharmamitra.org). A working internet connection is required for this functionality. The wrapper preserves original sentence length and punctuation, and it also helps utilize the Dharmamitra ByT5-Sanskrit model's ability to distinguish compounds from inter-word breaks.
+`skrutable` provides a wrapper for applying pre-trained splitting models via separate online servers ([my own splitter_server for the 2018 model](https://2018emnlp-sanskrit-splitter-server.duckdns.org/) and https://dharmamitra.org). A working internet connection is required for this functionality. The wrapper preserves original sentence length and punctuation, and it also helps utilize the Dharmamitra ByT5-Sanskrit model's ability to distinguish compounds from inter-word breaks.
 
 
 # related projects
