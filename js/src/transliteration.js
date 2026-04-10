@@ -160,12 +160,28 @@ export class Transliterator {
     this.contents = contentOut; // hybrid
   }
 
+  normalizeAnunasika(toScheme, preserveAnunasika) {
+    /**
+     * Internal method.
+     *
+     * Normalizes SLP ~ (anunāsika) to M (anusvāra) when required:
+     * - Always for HK, VH, WX, IASTREDUCED (no anunāsika representation)
+     * - For IAST, ITRANS, SLP, DEV, BENGALI, GUJARATI when preserveAnunasika is false
+     */
+    const alwaysNormalize = ['HK', 'VH', 'WX', 'IASTREDUCED'];
+    const conditionallyNormalize = ['IAST', 'ITRANS', 'SLP', 'DEV', 'BENGALI', 'GUJARATI'];
+    if (alwaysNormalize.includes(toScheme) || (conditionallyNormalize.includes(toScheme) && !preserveAnunasika)) {
+      this.contents = this.contents.split('~').join('M');
+    }
+  }
+
   transliterate(
     cntnts,
     fromScheme = null,
     toScheme = null,
     avoidViramaIndicScripts = AVOID_VIRAMA_INDIC_SCRIPTS_DEFAULT,
-    avoidViramaNonIndicScripts = AVOID_VIRAMA_NON_INDIC_SCRIPTS_DEFAULT
+    avoidViramaNonIndicScripts = AVOID_VIRAMA_NON_INDIC_SCRIPTS_DEFAULT,
+    preserveAnunasika = false
   ) {
     /**
      * User-facing method.
@@ -205,6 +221,9 @@ export class Transliterator {
     // transliterate first to hub scheme SLP
     this.linearPreprocessing(this.schemeIn, 'SLP');
     this.mapReplace(this.schemeIn, 'SLP');
+
+    // normalize anunāsika (~) to anusvāra (M) when target scheme cannot represent it
+    this.normalizeAnunasika(this.schemeOut, preserveAnunasika);
 
     // avoid undesirable virāmas specified in virAma_avoidance.js
     if (

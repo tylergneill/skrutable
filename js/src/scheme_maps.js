@@ -7,47 +7,48 @@ export const all_schemes = [...roman_schemes_1, ...indic_schemes, ...roman_schem
 
 // IAST to SLP mappings
 export const IAST_SLP = [
-    // Normalization 1: merge of combining diacritics to precomposed combinations
-    ['ā','ā'],['Ā','ā'],['Ā','ā'], // case also lowered throughout
-    ['ī','ī'],['Ī','ī'],['Ī','ī'],
-    ['ï','ï'], // for Prakrit
-    ['ū','ū'],['Ū','ū'],['Ū','ū'],
-    ['ü','ü'], // for Prakrit
-    ['ṛ','ṛ'],['Ṛ','ṛ'],['Ṛ','ṛ'],
-    ['ṝ','ṝ'],          ['Ṝ','ṝ'], // r ̣ ̄ R ̣ ̄
-    ['ṝ','ṝ'],          ['Ṝ','ṝ'], // r ̄ ̣ R ̄ ̣
-    ['ṝ','ṝ'],          ['Ṝ','ṝ'], // ṛ ̄	Ṛ ̄
-    ['ḷ','ḷ'],['Ḷ','ḷ'],['Ḷ','ḷ'],
-    ['ḹ','ḹ'],          ['Ḹ','ḹ'], // l ̣ ̄ L ̣ ̄
-    ['ḹ','ḹ'],          ['Ḹ','ḹ'], // l ̄ ̣ L ̄ ̣
-    ['ḹ','ḹ'],          ['Ḹ','ḹ'], // ḷ ̄ Ḷ ̄
-    ['ṅ','ṅ'],['Ṅ','ṅ'],['Ṅ','ṅ'],
-    ['ñ','ñ'],['Ñ','ñ'],['Ñ','ñ'],
-    ['ṭ','ṭ'],['Ṭ','ṭ'],['Ṭ','ṭ'],
-    ['ḍ','ḍ'],['Ḍ','ḍ'],['Ḍ','ḍ'],
-    ['ṇ','ṇ'],['Ṇ','ṇ'],['Ṇ','ṇ'],
-    ['ś','ś'],['Ś','ś'],['Ś','ś'],
-    ['ṣ','ṣ'],['Ṣ','ṣ'],['Ṣ','ṣ'],
-    ['ḥ','ḥ'],['Ḥ','ḥ'],['Ḥ','ḥ'],
-    ['ẖ','ẖ'],['H̱','h'],
-    ['ḫ','ḫ'],['Ḫ','h'],['Ḫ','h'],
-    ['ṃ','ṃ'],['Ṃ','ṃ'],['Ṃ','ṃ'],
-    // Normalization 2: change of ISO under-circles to under-dots, also ṁ's, ē's, ō's
-    ['r̥','ṛ'],['R̥','ṛ'],
-    ['r̥̄','ṝ'],['R̥̄','ṝ'],
-    ['r̥̄','ṝ'],['R̥̄','ṝ'],
-    ['l̥','ḷ'],['L̥','ḷ'],
-    ['l̥̄','ḹ'],['L̥̄','ḹ'],
-    ['l̥̄','ḹ'],['L̥̄','ḹ'],
+    // Normalization 0: anunāsika (candrabindu) — combining tilde above (U+0303) → SLP ~
+    ['\u0303','~'],
+    // Normalization 1: ISO under-circles to under-dots (longs will feed into later rules)
+    ['r̥','ṛ'],['R̥','ṛ'], // r ̥ -> ṛ
+    ['l̥','ḷ'],['L̥','ḷ'], // l ̥ -> ḷ
+    // Normalization 2: ISO ṁ's, ē's, ō's
     ['ṁ','ṃ'],['ṁ','ṃ'],
     ['ē','e'],['ē','e'],['ĕ','ĕ'],
     ['ō','o'],['ō','o'],['ŏ','ŏ'],
-    // Normalization 3: lowering of remaining uppercase
+    // Normalization 3: merge of combining diacritics to precomposed combinations
+    ['ā', 'ā'], ['Ā','Ā'],
+    ['ī','ī'], ['Ī','Ī'],
+    ['ū','ū'], ['Ū','Ū'],
+    ['ï','ï'], ['ü','ü'],  // Prakrit
+    ['ṛ','ṛ'], ['Ṛ','Ṛ'],
+    ['ṝ','ṝ'], ['Ṝ','Ṝ'],  // r ̣ ̄ R ̣ ̄
+    ['ṝ','ṝ'], ['Ṝ','Ṝ'],  // r ̄ ̣ R ̄ ̣
+    ['ṝ','ṝ'], ['Ṝ','Ṝ'],  // ṛ ̄ Ṛ ̄
+    ['ḷ','ḷ'], ['Ḷ','Ḷ'],
+    ['ḹ','ḹ'], ['Ḹ','Ḹ'],  // l ̣ ̄ L ̣ ̄
+    ['ḹ','ḹ'], ['Ḹ','Ḹ'],  // l ̄ ̣ L ̄ ̣
+    ['ḹ','ḹ'], ['Ḹ','Ḹ'],  // ḷ ̄ Ḷ ̄
+    ['ṅ','ṅ'], ['Ṅ','Ṅ'],
+    ['ñ','ñ'], ['Ñ','Ñ'],
+    ['ṭ','ṭ'], ['Ṭ','Ṭ'],
+    ['ḍ','ḍ'], ['Ḍ','Ḍ'],
+    ['ṇ','ṇ'], ['Ṇ','Ṇ'],
+    ['ś','ś'], ['Ś','Ś'],
+    ['ṣ','ṣ'], ['Ṣ','Ṣ'],
+    ['ḥ','ḥ'], ['Ḥ','Ḥ'],
+    ['ẖ','ẖ'], ['H̱','H'],
+    ['ḫ','ḫ'], ['Ḫ','H'],
+    ['ṃ','ṃ'], ['Ṃ','Ṃ'],
+    // Normalization 4: lowering of uppercase
     ['A','a'],['B','b'],['C','c'],['D','d'],['E','e'],
     ['F','f'],['G','g'],['H','h'],['I','i'],['J','j'],
     ['K','k'],['L','l'],['M','m'],['N','n'],['O','o'],
     ['P','p'],['Q','q'],['R','r'],['S','s'],['T','t'],
     ['U','u'],['V','v'],['W','w'],['X','x'],['Y','y'],['Z','z'],
+    ['Ā','ā'],['Ī','ī'],['Ū','ū'],['Ṛ','ṛ'],['Ḷ','ḷ'],
+    ['Ṅ','ṅ'],['Ñ','ñ'],['Ṭ','ṭ'],['Ḍ','ḍ'],['Ṇ','ṇ'],
+    ['Ś','ś'],['Ṣ','ṣ'],['Ḥ','ḥ'],['Ḫ','h'],['Ṃ','ṃ'],
     // Transliteration 1: careful ordering to avoid bleeding/feeding
     ['ṭh','W'],
     ['ṭ','w'],
@@ -130,6 +131,7 @@ export const DEV_SLP = [
     ['ऐ', 'E'],
     ['ओ', 'o'],
     ['औ', 'O'],
+    ['ँ', '~'], // U+0901 Devanagari candrabindu
     ['ं', 'M'],
     ['ः', 'H'],
     ['क', 'k'],
@@ -207,6 +209,7 @@ export const BENGALI_SLP = [
     ['ঐ', 'E'],
     ['ও', 'o'],
     ['ঔ', 'O'],
+    ['ঁ', '~'], // U+0981 Bengali candrabindu
     ['ং', 'M'],
     ['ঃ', 'H'],
     ['ক', 'k'],
@@ -284,6 +287,7 @@ export const GUJARATI_SLP = [
     ['ઐ', 'E'],
     ['ઓ', 'o'],
     ['ઔ', 'O'],
+    ['ઁ', '~'], // U+0A81 Gujarati candrabindu
     ['ં', 'M'],
     ['ઃ', 'H'],
     ['ક', 'k'],
@@ -406,7 +410,6 @@ export const WX_SLP = [
 // ITRANS to SLP mappings
 export const ITRANS_SLP = [
     // Transliteration 1: careful ordering to avoid bleeding/feeding
-    ['w', 'v'],
     ['T', 'w'],
     ['Th', 'W'],
     ['D', 'q'],
@@ -421,8 +424,6 @@ export const ITRANS_SLP = [
     ['aa', 'A'],
     ['ii', 'I'],
     ['uu', 'U'],
-    ['ee', 'e'],
-    ['oo', 'o'],
     ['E', 'e'],
     ['ai', 'E'],
     ['O', 'o'],
@@ -442,9 +443,8 @@ export const ITRANS_SLP = [
     ['sh', 'S'],
     ['Sh', 'z'],
     ['.m', 'M'],
-    ['.h', 'H'],
     ['.a', "'"],
-    ["'", "'"]
+    // Remain the same: a, i, u, e, o, k, g, j, t, d, p, b, m, n, y, r, l, v, s, h, H
 ];
 
 // SLP to SLP (identity with normalization)
@@ -456,6 +456,7 @@ export const SLP_SLP = [
 // SLP to IAST mappings
 export const SLP_IAST = [
     // Transliteration 1: all simple mappings
+    ['~','\u0303'], // anunāsika: combining tilde above onto preceding vowel
     ['A','ā'],
     ['I','ī'],
     ['U','ū'],
@@ -534,6 +535,7 @@ export const SLP_DEV = [
     ['E', 'ऐ'],
     ['o', 'ओ'],['ŏ', 'ओ'],
     ['O', 'औ'],
+    ['~', 'ँ'], // U+0901 Devanagari candrabindu
     ['M', 'ं'],
     ['H', 'ः'],
     ['k', 'क'],
@@ -599,6 +601,7 @@ export const SLP_BENGALI = [
     ['E', 'ঐ'],
     ['o', 'ও'],['ŏ', 'ও'],
     ['O', 'ঔ'],
+    ['~', 'ঁ'], // U+0981 Bengali candrabindu
     ['M', 'ং'],
     ['H', 'ঃ'],
     ['k', 'ক'],
@@ -664,6 +667,7 @@ export const SLP_GUJARATI = [
     ['E', 'ઐ'],
     ['o', 'ઓ'],['ŏ', 'ઓ'],
     ['O', 'ઔ'],
+    ['~', 'ઁ'], // U+0A81 Gujarati candrabindu
     ['M', 'ં'],
     ['H', 'ઃ'],
     ['k', 'ક'],
@@ -777,7 +781,6 @@ export const SLP_ITRANS = [
     ['T','th'],
     ['w','T'],
     ['W','Th'],
-    ['v','w'],
     ['D','dh'],
     ['q','D'],
     // Transliteration 2: simpler remaining mappings
@@ -788,12 +791,10 @@ export const SLP_ITRANS = [
     ['F','RI'],
     ['x','Li'],
     ['X','LI'],
-    ['e','ee'],
-    ['o','oo'],
     ['E','ai'],
     ['O','au'],
     ['M','.m'],
-    ['H','.h'],
+    ['H','H'],
     ['K','kh'],
     ['G','gh'],
     ['c','ch'],

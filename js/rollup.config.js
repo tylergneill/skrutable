@@ -1,12 +1,13 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
 
 export default {
-    input: 'src/index.js', // adjust if your path is different
+    input: 'src/index.js',
     output: {
         file: 'dist/skrutable.bundle.js',
-        format: 'umd', // or 'iife' for direct <script> use
-        name: 'Skrutable', // global variable name for browser
+        format: 'umd',
+        name: 'Skrutable',
     },
-    plugins: [resolve(), commonjs()],
+    plugins: [resolve(), commonjs(), json()],
 };

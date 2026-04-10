@@ -1,6 +1,6 @@
 {
   "name": "skrutable-js",
-  "version": "2.0.7",
+  "version": "2.1.2",
   "description": "JavaScript toolkit for Sanskrit text transliteration, scansion, and meter identification",
   "main": "src/index.js",
   "type": "module",
@@ -38,10 +38,11 @@
   "devDependencies": {
     "@babel/core": "^7.23.0",
     "@babel/preset-env": "^7.23.0",
-    "jest": "^29.7.0",
-    "rollup": "^4.0.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.0",
-    "@rollup/plugin-commonjs": "^25.0.0"
+    "jest": "^29.7.0",
+    "rollup": "^4.0.0"
   },
   "jest": {
     "testEnvironment": "node",
@@ -50,6 +51,11 @@
     },
     "testMatch": [
       "**/tests/**/*.test.js"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^.+scheme_vectors\\.json$": "<rootDir>/src/scheme_vectors.json",
+      "^.+impossible_bigrams\\.json$": "<rootDir>/src/impossible_bigrams.json"
+    }
+
   }
 }
