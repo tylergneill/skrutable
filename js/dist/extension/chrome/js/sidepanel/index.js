@@ -43,22 +43,15 @@ const DEFAULTS = {
   [SK.preserveAnunasika]:       false,
   [SK.preserveCompoundHyphens]: true,
   [SK.preservePunctuation]:     true,
-  [SK.fontSize]:                "small",
+  [SK.fontSize]:                "medium",
 };
 
-const FONT_SIZE_MAP = { small: "0.85rem", medium: "1rem", large: "1.15rem" };
+const FONT_SIZE_MAP = { small: "1rem", medium: "1.15rem", large: "1.3rem" };
 const MELODY_BASE = "https://www.skrutable.info/assets/melodies/";
-const EXAMPLES = [
-  "adyāsmi bahir nagarād āgacchatānekasiddhadeśajanitapratyayena lakṣaṇinā brāhmaṇenāham ādiṣṭaḥ |",
-  "śrūyatām | adyāsmi bahirnagarādāgacchatānekasiddhadeśajanitapratyayena brāhmaṇenāhamādiṣṭaḥ | adya saptame 'hani tava rājākule prekṣā bhaviṣyati | tatastvatprayogaparipuṣṭena rājñā dattāṃ mahatiṃ śriyamāvāpsyasi | tasya brāhmaṇasyāmithyādeśitāya janitotsāhaḥ saṅgītakaṃ kariṣyāmi |",
-  "dharakṣetre kurukṣetre samavetā yuyutsavaḥ / māmakāḥ pāṇḍavāś caiva kim akurvata sañjaya //",
-];
-
 // --- Page state ---
 var currentAction = "";
 var currentMeterLabel = "";
 var currentMelodyOptions = [];
-var currentExampleIndex = 0;
 
 // --- Settings state (mirrors web app globals) ---
 var currentAvoidVirama = true;
@@ -154,7 +147,7 @@ async function restoreSettings() {
 
 // --- Font size ---
 function applyFontSize(size) {
-  document.querySelector(".main-content").style.fontSize = FONT_SIZE_MAP[size] || FONT_SIZE_MAP.small;
+  document.body.style.fontSize = FONT_SIZE_MAP[size] || FONT_SIZE_MAP.medium;
 }
 
 // --- Text persistence (localStorage) ---
@@ -200,17 +193,6 @@ function swapTexts() {
   inp.value = out.value;
   out.value = tmp;
   saveTexts();
-}
-
-// --- Example loader ---
-function loadExample() {
-  currentExampleIndex = (currentExampleIndex % EXAMPLES.length) + 1;
-  document.getElementById("text_input").value = EXAMPLES[currentExampleIndex - 1];
-  document.getElementById("text_output").value = "";
-  saveTexts();
-  var link = document.getElementById("example-link");
-  var next = (currentExampleIndex % EXAMPLES.length) + 1;
-  link.textContent = "ex" + next;
 }
 
 // --- Scheme helpers (mirrors settings.js) ---
@@ -499,10 +481,10 @@ document.addEventListener("DOMContentLoaded", async function() {
   });
 
   // Action buttons
-  document.getElementById("transliterate_button").addEventListener("click", function() { onActionButton("transliterate"); });
-  document.getElementById("scan_button").addEventListener("click", function() { onActionButton("scan"); });
-  document.getElementById("identify_meter_button").addEventListener("click", function() { onActionButton("identify meter"); });
-  document.getElementById("split_button").addEventListener("click", function() { onActionButton("split"); });
+  document.getElementById("transliterate_button").addEventListener("click", function() { closeSidebarOnMobile(); onActionButton("transliterate"); });
+  document.getElementById("scan_button").addEventListener("click", function() { closeSidebarOnMobile(); onActionButton("scan"); });
+  document.getElementById("identify_meter_button").addEventListener("click", function() { closeSidebarOnMobile(); onActionButton("identify meter"); });
+  document.getElementById("split_button").addEventListener("click", function() { closeSidebarOnMobile(); onActionButton("split"); });
 
   // Scheme controls
   document.getElementById("from_scheme").addEventListener("change", onSidebarChange);
@@ -526,8 +508,8 @@ document.addEventListener("DOMContentLoaded", async function() {
 
   // Sidebar bottom links
   document.getElementById("clear-texts-link").addEventListener("click", function(e) { e.preventDefault(); clearTexts(); });
-  document.getElementById("example-link").addEventListener("click", function(e) { e.preventDefault(); loadExample(); });
-  document.getElementById("settings-link").addEventListener("click", function(e) { e.preventDefault(); toggleSettings(); });
+  document.getElementById("settings-link").addEventListener("click", function(e) { e.preventDefault(); closeSidebarOnMobile(); toggleSettings(); });
+  document.getElementById("back-to-workbench-link").addEventListener("click", function(e) { e.preventDefault(); toggleSettings(); });
 
   // Melody dropdown change
   document.getElementById("melody_option").addEventListener("change", updateMelody);

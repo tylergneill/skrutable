@@ -42,13 +42,23 @@ body {
 }
 
 /* Tighter textareas */
-.textarea-input  { min-height: 80px;  font-size: 0.9rem; }
-.textarea-output { min-height: 160px; font-size: 0.9rem; font-weight: bold; }
+.textarea-input  { min-height: 80px;  font-size: 0.9em; }
+.textarea-output { min-height: 160px; font-size: 0.9em; font-weight: bold; }
 
 /* Settings view */
 .settings-group {
   margin: 0.5rem 0 1rem;
   line-height: 2;
+}
+
+/* Sidebar brand — not a link in the extension */
+.sidebar-brand h1 {
+  cursor: default;
+}
+
+/* Back link in settings view */
+#back-to-workbench-link {
+  font-size: 1.1rem;
 }
 
 /* Melody player */
