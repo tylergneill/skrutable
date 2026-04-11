@@ -86,7 +86,7 @@ class AnuzwuBHalfResult:
     even_count: int                # actual syllable count of even pāda
 ```
 
-The `Verse` object (or a new `AnuzwuBDiagnostics` attribute on it) should carry this information through to whatever is returned by `do_identify_meter()` in `flask_app.py` and included in the JSON payload for the new batch results page.
+The diagnostic result should be stored as a new attribute on the existing `Verse` object — e.g. `Verse.anuzwuB_diagnostics` — rather than motivating a new serialization format. This is a non-breaking addition: existing code that doesn't read the attribute is unaffected. A JSON output mode for the library's public API is a separate, orthogonal question and should not be coupled to this work. The front end reads the `Verse` object directly (via `do_identify_meter()` in `flask_app.py`) and can include the diagnostic data in whatever JSON payload it constructs for the browser.
 
 ## Priority and sequencing note
 
