@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Skrutable Sanskrit Tools</title>
+  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+
+  <header class="skrutable-header">
+    <span class="header-title">Skrutable</span>
+    <div class="header-buttons">
+      <button id="refresh-selection" class="icon-btn" title="Refresh selection" aria-label="Refresh selection">↺</button>
+      <button id="ext-options-btn" class="icon-btn" title="Extension options" aria-label="Extension options">⚙</button>
+    </div>
+  </header>
+
+  <!-- Selected text collapsible -->
+  <section class="text-selection">
+    <details>
+      <summary>
+        <div class="summary-heading">Selected Text</div>
+        <div id="selected-text-preview" aria-live="polite"></div>
+      </summary>
+      <div id="selected-text" aria-live="polite"></div>
+    </details>
+  </section>
+
+  <!-- Feature tab nav -->
+  <nav id="feature-tabs-nav" aria-label="Feature tabs">
+    <button data-feature="transliterate">Transliterate</button>
+    <button data-feature="scan">Scan</button>
+    <button data-feature="identify">Identify</button>
+    <button data-feature="split">Split</button>
+  </nav>
+
+  <!-- Per-feature option panels -->
+
+  <div id="transliterate-options" class="options-panel">
+    <div class="select-row">
+      <label for="from-scheme-select">Input Scheme</label>
+      <select id="from-scheme-select"></select>
+    </div>
+    <div class="select-row">
+      <label for="to-scheme-select">Output Scheme</label>
+      <select id="to-scheme-select"></select>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="avoid-virama-indic-checkbox">
+      <label for="avoid-virama-indic-checkbox" style="margin-bottom:0;font-weight:normal;">avoid virāma in Indic output</label>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="avoid-virama-non-indic-checkbox">
+      <label for="avoid-virama-non-indic-checkbox" style="margin-bottom:0;font-weight:normal;">un-space Roman output</label>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="preserve-anunasika-checkbox">
+      <label for="preserve-anunasika-checkbox" style="margin-bottom:0;font-weight:normal;">preserve anunāsika i.e. candrabindu</label>
+    </div>
+  </div>
+
+  <div id="scan-options" class="options-panel" style="display:none;">
+    <div class="select-row">
+      <label for="from-scheme-select">Input Scheme</label>
+      <!-- reuse the same selects via JS — scan shares from-scheme -->
+    </div>
+    <p style="color:var(--color-text-muted);margin:0 0 var(--space-xs);font-size:var(--font-size-sm);">Scansion uses the input scheme above. Output is always in IAST.</p>
+    <div class="checkbox-row">
+      <input type="checkbox" id="show-weights-checkbox">
+      <label for="show-weights-checkbox" style="margin-bottom:0;font-weight:normal;">show weights</label>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="show-morae-checkbox">
+      <label for="show-morae-checkbox" style="margin-bottom:0;font-weight:normal;">show morae</label>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="show-garas-checkbox">
+      <label for="show-garas-checkbox" style="margin-bottom:0;font-weight:normal;">show gaṇas</label>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="show-alignment-checkbox">
+      <label for="show-alignment-checkbox" style="margin-bottom:0;font-weight:normal;">show alignment</label>
+    </div>
+  </div>
+
+  <div id="identify-options" class="options-panel" style="display:none;">
+    <div class="select-row">
+      <label for="resplit-select">Resplit Mode</label>
+      <select id="resplit-select"></select>
+    </div>
+  </div>
+
+  <div id="split-options" class="options-panel" style="display:none;">
+    <div class="select-row">
+      <label for="splitter-model-select">Splitter Model</label>
+      <select id="splitter-model-select"></select>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="preserve-compound-hyphens-checkbox">
+      <label for="preserve-compound-hyphens-checkbox" style="margin-bottom:0;font-weight:normal;">Preserve compound hyphens</label>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="preserve-punctuation-checkbox">
+      <label for="preserve-punctuation-checkbox" style="margin-bottom:0;font-weight:normal;">Preserve punctuation</label>
+    </div>
+    <div class="select-row" style="margin-top:var(--space-xs);">
+      <label for="to-scheme-select">Output Scheme</label>
+    </div>
+  </div>
+
+  <!-- Output -->
+  <section id="output-section" aria-live="polite"></section>
+
+  <!-- Display options (font size) at bottom -->
+  <details style="margin-top:var(--space-xl);">
+    <summary style="cursor:pointer;color:var(--color-text-muted);font-size:var(--font-size-sm);">Display Options</summary>
+    <fieldset class="radio-buttons">
+      <legend>Font Size</legend>
+      <label><input type="radio" name="font-size" value="small" checked> Small</label>
+      <label><input type="radio" name="font-size" value="medium"> Medium</label>
+      <label><input type="radio" name="font-size" value="large"> Large</label>
+    </fieldset>
+  </details>
+
+  <script src="../js/vendor/webextension-polyfill.min.js"></script>
+  <script src="../dist/skrutable.bundle.js"></script>
+  <script type="module" src="../js/sidepanel/index.js"></script>
+
+</body>
+</html>

@@ -1,3 +1,7 @@
+# dist/extension/chrome/ and dist/extension/firefox/ are committed so that
+# the extension can be loaded unpacked or zipped for store submission without
+# requiring a build step. Run the appropriate target below after any changes.
+
 .PHONY: build build-extension-chrome build-extension-firefox \
         release-extension-chrome release-extension-firefox \
         all clean
