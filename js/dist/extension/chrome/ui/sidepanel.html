@@ -14,12 +14,13 @@
 <div class="mobile-header">
   <button class="burger" id="sidebar-burger" aria-label="Toggle navigation">&#9776;</button>
   <a class="brand" href="#">skrutable</a>
+  <a href="#" id="settings-back-arrow" class="brand" style="display:none;" aria-label="Back to workbench">&#8592; skrutable</a>
 </div>
 
 <aside class="sidebar" id="sidebar">
 
   <div class="sidebar-brand">
-    <h1>skrutable</h1>
+    <h1>skrutable <a href="https://www.skrutable.info/about" target="_blank" rel="noopener" class="brand-about">about <svg class="ext-link-icon" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 9 L9 1 M5 1 L9 1 L9 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h1>
   </div>
 
   <div class="sidebar-controls">
@@ -109,10 +110,9 @@
 
   <div class="sidebar-bottom">
     <a href="#" id="clear-texts-link">clear</a>
-    <a href="https://www.skrutable.info/?example=1" target="_blank" rel="noopener">ex</a>
+    <a href="https://www.skrutable.info/?example=1" target="_blank" rel="noopener">example <svg class="ext-link-icon" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 9 L9 1 M5 1 L9 1 L9 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     <a href="#" id="settings-link">settings</a>
-    <a href="https://www.skrutable.info/help" target="_blank" rel="noopener">help</a>
-    <a href="#" id="dark-mode-toggle" title="Toggle dark mode">&#9790;</a>
+    <a href="https://www.skrutable.info/help" target="_blank" rel="noopener">help <svg class="ext-link-icon" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 9 L9 1 M5 1 L9 1 L9 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   </div>
 
 </aside>
@@ -170,11 +170,12 @@
 
     <h3>display</h3>
     <div class="settings-group">
-      <label>font size: <select id="font_size_select">
+      <div><label>font size: <select id="font_size_select">
         <option value="small">Small</option>
         <option value="medium">Medium</option>
         <option value="large">Large</option>
-      </select></label>
+      </select></label></div>
+      <div><label><input type="checkbox" id="dark_mode_checkbox"> dark mode</label></div>
     </div>
 
     <h3>restore defaults</h3>
@@ -187,7 +188,7 @@
 </main>
 
 <script src="../js/vendor/webextension-polyfill.min.js"></script>
-<script src="../dist/skrutable.bundle.js"></script>
+<script src="__SKRUTABLE_BUNDLE_SRC__"></script>
 <script src="../js/sidepanel/index.js"></script>
 
 </body>

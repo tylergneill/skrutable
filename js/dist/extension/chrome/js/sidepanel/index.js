@@ -417,6 +417,8 @@ function toggleSettings() {
   var isSettings = settings.style.display !== "none";
   workbench.style.display = isSettings ? "" : "none";
   settings.style.display = isSettings ? "none" : "";
+  document.body.classList.toggle("settings-open", !isSettings);
+  if (!isSettings) closeSidebarOnMobile();
 }
 
 // --- Settings panel change handlers ---
@@ -482,11 +484,6 @@ function resetAllSettings() {
 // --- Dark mode ---
 function applyTheme(dark) {
   document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-  var toggle = document.getElementById("dark-mode-toggle");
-  if (toggle) {
-    toggle.innerHTML = dark ? "&#9788;" : "&#9790;";
-    toggle.title = dark ? "Toggle light mode" : "Toggle dark mode";
-  }
 }
 
 // --- Background message listener (inject selected text) ---
@@ -525,10 +522,11 @@ document.addEventListener("DOMContentLoaded", async function() {
   initBurger();
 
   // Dark mode
-  applyTheme(localStorage.getItem("theme") === "dark");
-  document.getElementById("dark-mode-toggle").addEventListener("click", function(e) {
-    e.preventDefault();
-    var isDark = document.documentElement.getAttribute("data-theme") !== "dark";
+  var isDarkInit = localStorage.getItem("theme") === "dark";
+  applyTheme(isDarkInit);
+  document.getElementById("dark_mode_checkbox").checked = isDarkInit;
+  document.getElementById("dark_mode_checkbox").addEventListener("change", function() {
+    var isDark = this.checked;
     localStorage.setItem("theme", isDark ? "dark" : "light");
     applyTheme(isDark);
   });
@@ -563,6 +561,7 @@ document.addEventListener("DOMContentLoaded", async function() {
   document.getElementById("clear-texts-link").addEventListener("click", function(e) { e.preventDefault(); clearTexts(); });
   document.getElementById("settings-link").addEventListener("click", function(e) { e.preventDefault(); closeSidebarOnMobile(); toggleSettings(); });
   document.getElementById("back-to-workbench-link").addEventListener("click", function(e) { e.preventDefault(); toggleSettings(); });
+  document.getElementById("settings-back-arrow").addEventListener("click", function(e) { e.preventDefault(); toggleSettings(); });
 
   // Melody dropdown change
   document.getElementById("melody_option").addEventListener("change", updateMelody);

@@ -51,9 +51,10 @@ body {
   line-height: 2;
 }
 
-/* Sidebar brand — not a link in the extension */
+/* Sidebar brand and mobile header brand — not links in the extension */
 .sidebar-brand,
-.sidebar-brand h1 {
+.sidebar-brand h1,
+.mobile-header .brand {
   cursor: default !important;
 }
 
@@ -62,6 +63,22 @@ body {
   font-size: 1.1rem;
   display: block;
   margin-bottom: 1.5em;
+}
+
+/* Hide burger/sidebar when settings view is active */
+body.settings-open .sidebar,
+body.settings-open .sidebar-overlay {
+  display: none !important;
+}
+
+/* On settings view, hide burger and brand; show back arrow */
+body.settings-open .burger,
+body.settings-open .mobile-header .brand {
+  display: none !important;
+}
+
+body.settings-open .mobile-header #settings-back-arrow {
+  display: flex;
 }
 
 /* Settings view heading spacing */
