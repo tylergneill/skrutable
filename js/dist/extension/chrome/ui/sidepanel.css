@@ -54,16 +54,11 @@ body {
 /* Sidebar brand and mobile header brand — not links in the extension */
 .sidebar-brand,
 .sidebar-brand h1,
-.mobile-header .brand {
+#main-brand,
+#settings-back-brand {
   cursor: default !important;
 }
 
-/* Back link in settings view */
-#back-to-workbench-link {
-  font-size: 1.1rem;
-  display: block;
-  margin-bottom: 1.5em;
-}
 
 /* Hide burger/sidebar when settings view is active */
 body.settings-open .sidebar,
@@ -71,14 +66,32 @@ body.settings-open .sidebar-overlay {
   display: none !important;
 }
 
-/* On settings view, hide burger and brand; show back arrow */
-body.settings-open .burger,
-body.settings-open .mobile-header .brand {
+/* On settings view, hide burger and main brand; show back arrow and brand */
+body.settings-open #sidebar-burger,
+body.settings-open #main-brand {
   display: none !important;
 }
 
-body.settings-open .mobile-header #settings-back-arrow {
-  display: flex;
+body.settings-open #settings-back-arrow,
+body.settings-open #settings-back-brand {
+  display: flex !important;
+}
+
+/* Back button styling — matches burger visually, fixed width so brand doesn't shift */
+.settings-back-btn {
+  background: none;
+  border: none;
+  color: var(--sidebar-text);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.burger,
+.settings-back-btn {
+  width: 2rem;
+  text-align: center;
 }
 
 /* Settings view heading spacing */

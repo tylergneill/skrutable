@@ -13,8 +13,9 @@
 
 <div class="mobile-header">
   <button class="burger" id="sidebar-burger" aria-label="Toggle navigation">&#9776;</button>
-  <a class="brand" href="#">skrutable</a>
-  <a href="#" id="settings-back-arrow" class="brand" style="display:none;" aria-label="Back to workbench">&#8592; skrutable</a>
+  <a class="brand" id="main-brand" href="#">skrutable</a>
+  <button class="settings-back-btn" id="settings-back-arrow" style="display:none;" aria-label="Back to workbench">&#8592;</button>
+  <span class="brand" id="settings-back-brand" style="display:none;">skrutable</span>
 </div>
 
 <aside class="sidebar" id="sidebar">
@@ -148,7 +149,6 @@
 
   <!-- Settings overlay (replaces /settings page) -->
   <div id="settings-view" style="display:none;" class="page-content">
-    <a href="#" id="back-to-workbench-link">&larr; back</a>
     <h2>extra settings</h2>
 
     <h3>transliteration</h3>

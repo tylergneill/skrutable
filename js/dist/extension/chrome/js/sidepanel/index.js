@@ -560,8 +560,8 @@ document.addEventListener("DOMContentLoaded", async function() {
   // Sidebar bottom links
   document.getElementById("clear-texts-link").addEventListener("click", function(e) { e.preventDefault(); clearTexts(); });
   document.getElementById("settings-link").addEventListener("click", function(e) { e.preventDefault(); closeSidebarOnMobile(); toggleSettings(); });
-  document.getElementById("back-to-workbench-link").addEventListener("click", function(e) { e.preventDefault(); toggleSettings(); });
-  document.getElementById("settings-back-arrow").addEventListener("click", function(e) { e.preventDefault(); toggleSettings(); });
+  document.getElementById("settings-back-arrow").addEventListener("click", toggleSettings);
+  document.getElementById("settings-back-brand").addEventListener("click", function(e) { e.preventDefault(); toggleSettings(); });
 
   // Melody dropdown change
   document.getElementById("melody_option").addEventListener("change", updateMelody);
