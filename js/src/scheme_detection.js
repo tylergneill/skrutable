@@ -1,123 +1,179 @@
 // Scheme detection for Sanskrit text processing
-// Simplified implementation without full Mahabharata vectors
+// Hybrid heuristic + statistical approach using MBH corpus vectors
+
+import schemeVectorsData from './scheme_vectors.json' with { type: 'json' };
+import impossibleBigramsData from './impossible_bigrams.json' with { type: 'json' };
 
 export const auto_detect_synonyms = [
   'AUTO', 'DETECT', 'AUTO DETECT',
   'AUTO-DETECT', 'AUTO_DETECT', 'AUTODETECT'
 ];
 
-// Vector dot product calculation
-function dot(a, b) {
-  let sum = 0;
-  for (let i = 0; i < Math.min(a.length, b.length); i++) {
-    sum += a[i] * b[i];
-  }
-  return sum;
-}
+const _featureIndex = schemeVectorsData['feature_index'];
+const _referenceVectors = schemeVectorsData['vectors'];
+const _impossibleBigrams = impossibleBigramsData;
 
-// Vector magnitude calculation
-function norm(vector) {
-  return Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
-}
+const _SCHEME_PRIORITY = [
+  'DEV', 'BENGALI', 'GUJARATI',
+  'IAST', 'HK', 'ITRANS', 'WX', 'SLP', 'VH',
+];
+
+const _ROMAN_SCHEMES = ['IAST', 'HK', 'ITRANS', 'WX', 'SLP', 'VH'];
+
+// Unicode ranges for quick Indic script detection
+const _INDIC_RANGES = {
+  'DEV':      [0x0900, 0x097F],
+  'BENGALI':  [0x0980, 0x09FF],
+  'GUJARATI': [0x0A80, 0x0AFF],
+};
+
+// Per impossible-bigram-instance penalty subtracted from cosine scores.
+const _BIGRAM_PENALTY = 0.01;
+
+// Dandas and similar punctuation fall in the DEV Unicode range but are used
+// across all Sanskrit text regardless of transliteration scheme.
+const _INDIC_PUNCTUATION = new Set(['\u0964', '\u0965']);
 
 export class SchemeDetector {
-  constructor() {
-    // For client-side use, we'll use simplified character frequency detection
-    // instead of the full Mahabharata vectors
-  }
+  constructor() {}
 
-  fingerprint(fileData) {
-    // Returns a Unicode frequency vector for common character ranges
-    const codePointFrequencyVector = new Array(10000).fill(0);
-    for (const char of fileData) {
-      const codePoint = char.charCodeAt(0);
-      if (codePoint < 10000) {
-        codePointFrequencyVector[codePoint]++;
+  _countIndic(text) {
+    /**
+     * Count non-punctuation Indic characters per script.
+     * Returns [dominantScript, count], or [null, 0] if none found.
+     */
+    const counts = {};
+    for (const ch of text) {
+      if (_INDIC_PUNCTUATION.has(ch)) continue;
+      const cp = ch.codePointAt(0);
+      for (const [script, [lo, hi]] of Object.entries(_INDIC_RANGES)) {
+        if (cp >= lo && cp <= hi) {
+          counts[script] = (counts[script] || 0) + 1;
+          break;
+        }
       }
     }
-    return codePointFrequencyVector;
+    if (Object.keys(counts).length === 0) return [null, 0];
+    const dominant = Object.entries(counts).reduce((a, b) => b[1] > a[1] ? b : a)[0];
+    return [dominant, counts[dominant]];
+  }
+
+  _bigramPenalties(text) {
+    /**
+     * Count impossible-bigram instances in text for each scheme.
+     * Returns dict of scheme -> penalty (count * _BIGRAM_PENALTY).
+     */
+    const counts = {};
+    for (let i = 0; i < text.length - 1; i++) {
+      const bg = text[i] + text[i + 1];
+      const excluded = _impossibleBigrams[bg];
+      if (excluded) {
+        for (const s of excluded) {
+          counts[s] = (counts[s] || 0) + 1;
+        }
+      }
+    }
+    const penalties = {};
+    for (const s of _ROMAN_SCHEMES) {
+      penalties[s] = (counts[s] || 0) * _BIGRAM_PENALTY;
+    }
+    return penalties;
+  }
+
+  fingerprint(text) {
+    /**
+     * Returns a feature vector with frequency counts for curated
+     * characters and bigrams that discriminate between schemes.
+     */
+    const charCounts = {};
+    const bigramCounts = {};
+    for (const ch of text) {
+      charCounts[ch] = (charCounts[ch] || 0) + 1;
+    }
+    for (let i = 0; i < text.length - 1; i++) {
+      const bg = text[i] + text[i + 1];
+      bigramCounts[bg] = (bigramCounts[bg] || 0) + 1;
+    }
+    return _featureIndex.map(feat =>
+      feat.length === 1
+        ? (charCounts[feat] || 0)
+        : (bigramCounts[feat] || 0)
+    );
   }
 
   cosineSimilarity(a, b) {
-    const dotProduct = dot(a, b);
-    const normA = norm(a);
-    const normB = norm(b);
-    
-    if (normA === 0 || normB === 0) {
-      return 0;
+    let dot = 0, normA = 0, normB = 0;
+    for (let i = 0; i < a.length; i++) {
+      dot += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
     }
-    
-    return dotProduct / (normA * normB);
+    const denom = Math.sqrt(normA) * Math.sqrt(normB);
+    return denom === 0 ? 0 : dot / denom;
   }
 
-  // Simplified detection based on character presence
-  detectSchemeSimple(fileData) {
-    if (!fileData || fileData.length === 0) {
+  detectScheme(fileData = '') {
+    /**
+     * Detect the transliteration scheme of the input text.
+     *
+     * 1. Indic ratio check (fast-path): if ≥40% of sample characters are
+     *    non-punctuation Indic letters, return the dominant script immediately.
+     *
+     * 2a. Cosine similarity: build a character/bigram fingerprint and compute
+     *     cosine similarity against MBH corpus reference vectors per scheme.
+     *
+     * 2b. Impossible-bigram penalty: subtract a small penalty for each bigram
+     *     that never occurs in a given scheme's MBH corpus.
+     *
+     * 3.  Priority tiebreaker: among schemes within tolerance, prefer the more
+     *     common one (IAST > HK > ITRANS > WX > SLP > VH).
+     */
+    if (fileData === '') {
+      this.confidence = null;
       return null;
     }
 
-    // Count characteristic characters for each scheme
-    const schemes = {
-      'DEV': 0,
-      'BENGALI': 0,
-      'GUJARATI': 0,
-      'IAST': 0,
-      'HK': 0,
-      'SLP': 0,
-      'ITRANS': 0,
-      'VH': 0
-    };
+    const MAX_SAMPLE_CHARS = 1000;
+    const MIN_INDIC_RATIO = 0.4;
+    const sample = fileData.slice(0, MAX_SAMPLE_CHARS);
 
-    // Devanagari Unicode range: 0900-097F
-    const devChars = fileData.match(/[\u0900-\u097F]/g);
-    if (devChars) schemes.DEV = devChars.length;
+    // --- Indic script check ---
+    const [indicScript, indicCount] = this._countIndic(sample);
+    if (indicCount / sample.length >= MIN_INDIC_RATIO) {
+      this.confidence = 'high';
+      return indicScript;
+    }
 
-    // Bengali Unicode range: 0980-09FF
-    const bengaliChars = fileData.match(/[\u0980-\u09FF]/g);
-    if (bengaliChars) schemes.BENGALI = bengaliChars.length;
+    // --- Cosine + bigram penalty for Roman schemes ---
+    const fileVector = this.fingerprint(sample);
+    const penalties = this._bigramPenalties(sample);
 
-    // Gujarati Unicode range: 0A80-0AFF
-    const gujaratiChars = fileData.match(/[\u0A80-\u0AFF]/g);
-    if (gujaratiChars) schemes.GUJARATI = gujaratiChars.length;
+    const adjustedScores = {};
+    for (const scheme of _ROMAN_SCHEMES) {
+      const refVec = _referenceVectors[scheme];
+      const raw = this.cosineSimilarity(fileVector, refVec);
+      adjustedScores[scheme] = raw - (penalties[scheme] || 0);
+    }
 
-    // IAST diacritics
-    const iastChars = fileData.match(/[āīūṛṝḷḹēōṃḥṅñṭḍṇśṣ]/g);
-    if (iastChars) schemes.IAST = iastChars.length;
+    const topScore = Math.max(...Object.values(adjustedScores));
+    const tolerance = 0.03;
+    const CONFIDENCE_REF_LEN = 80;
+    const confidenceThreshold = tolerance * Math.max(1, CONFIDENCE_REF_LEN / sample.length);
 
-    // Harvard-Kyoto uppercase chars
-    const hkChars = fileData.match(/[AIUGRNCTDPBSHJY]/g);
-    if (hkChars) schemes.HK = hkChars.length;
-
-    // SLP specific chars
-    const slpChars = fileData.match(/[fFxXwWqQRzMH]/g);
-    if (slpChars) schemes.SLP = slpChars.length;
-
-    // ITRANS dots and tildes
-    const itransChars = fileData.match(/[~\^\.]/g);
-    if (itransChars) schemes.ITRANS = itransChars.length;
-
-    // Velthuis dots and quotes
-    const vhChars = fileData.match(/[\.\"]/g);
-    if (vhChars) schemes.VH = vhChars.length;
-
-    // Return scheme with highest score
-    let maxScheme = 'IAST'; // default
-    let maxScore = 0;
-    
-    for (const [scheme, score] of Object.entries(schemes)) {
-      if (score > maxScore) {
-        maxScore = score;
-        maxScheme = scheme;
+    for (const scheme of _SCHEME_PRIORITY) {
+      const score = adjustedScores[scheme] !== undefined ? adjustedScores[scheme] : -1;
+      if (score > 0 && topScore - score < tolerance) {
+        const remaining = _ROMAN_SCHEMES.filter(s => s !== scheme);
+        const second = Math.max(...remaining.map(s => adjustedScores[s]));
+        const gap = adjustedScores[scheme] - second;
+        this.confidence = gap >= confidenceThreshold ? 'high' : 'low';
+        return scheme;
       }
     }
 
-    return maxScheme;
-  }
-
-  detectScheme(fileData = "") {
-    if (fileData === "") return null;
-
-    // Use simplified detection for now
-    return this.detectSchemeSimple(fileData);
+    // Fallback: cosine winner
+    const best = Object.entries(adjustedScores).reduce((a, b) => b[1] > a[1] ? b : a)[0];
+    this.confidence = 'low';
+    return best;
   }
 }

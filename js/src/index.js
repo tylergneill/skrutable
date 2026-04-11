@@ -7,6 +7,7 @@ export class Skrutable {
     this.transliterator = new Transliterator();
     this.scanner = new Scanner();
     this.meterIdentifier = new MeterIdentifier();
+    this.splitter = new Splitter();
   }
 
   /**
@@ -43,6 +44,20 @@ export class Skrutable {
   }
 
   /**
+   * Split sandhi and compounds of Sanskrit text
+   * @param {string} text - Sanskrit text to split
+   * @param {string} fromScheme - Input scheme (optional, auto-detected if null)
+   * @param {string} toScheme - Output scheme (optional, defaults to IAST)
+   * @param {string} splitterModel - 'dharmamitra_2024_sept' or 'splitter_2018'
+   * @param {boolean} preserveCompoundHyphens - Whether to mark compound boundaries with hyphens
+   * @param {boolean} preservePunctuation - Whether to preserve original punctuation
+   * @returns {Promise<string>} Split text
+   */
+  split(text, fromScheme = null, toScheme = null, splitterModel = 'dharmamitra_2024_sept', preserveCompoundHyphens = true, preservePunctuation = true) {
+    return this.splitter.split(text, fromScheme, toScheme, splitterModel, preserveCompoundHyphens, preservePunctuation);
+  }
+
+  /**
    * Get a formatted summary of scansion and meter identification
    * @param {string} text - Sanskrit verse text
    * @param {string} fromScheme - Input scheme (optional)
@@ -67,3 +82,5 @@ export class Skrutable {
 import { Transliterator } from './transliteration.js';
 import { Scanner, Verse } from './scansion.js';
 import { MeterIdentifier } from './meter_identification.js';
+import { Splitter } from './splitting.js';
+export { Transliterator, Scanner, Verse, MeterIdentifier, Splitter };
