@@ -1,131 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Skrutable Sanskrit Tools</title>
-  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="skrutable.css">
   <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
 
-  <header class="skrutable-header">
-    <span class="header-title">Skrutable</span>
-    <div class="header-buttons">
-      <button id="refresh-selection" class="icon-btn" title="Refresh selection" aria-label="Refresh selection">↺</button>
-      <button id="ext-options-btn" class="icon-btn" title="Extension options" aria-label="Extension options">⚙</button>
-    </div>
-  </header>
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-  <!-- Selected text collapsible -->
-  <section class="text-selection">
-    <details>
-      <summary>
-        <div class="summary-heading">Selected Text</div>
-        <div id="selected-text-preview" aria-live="polite"></div>
-      </summary>
-      <div id="selected-text" aria-live="polite"></div>
-    </details>
-  </section>
+<div class="mobile-header">
+  <button class="burger" id="sidebar-burger" aria-label="Toggle navigation">&#9776;</button>
+  <a class="brand" href="#">skrutable</a>
+</div>
 
-  <!-- Feature tab nav -->
-  <nav id="feature-tabs-nav" aria-label="Feature tabs">
-    <button data-feature="transliterate">Transliterate</button>
-    <button data-feature="scan">Scan</button>
-    <button data-feature="identify">Identify</button>
-    <button data-feature="split">Split</button>
-  </nav>
+<aside class="sidebar" id="sidebar">
 
-  <!-- Per-feature option panels -->
+  <div class="sidebar-brand">
+    <h1>skrutable</h1>
+  </div>
 
-  <div id="transliterate-options" class="options-panel">
-    <div class="select-row">
-      <label for="from-scheme-select">Input Scheme</label>
-      <select id="from-scheme-select"></select>
+  <div class="sidebar-controls">
+
+    <!-- Transliterate + schemes -->
+    <div class="action-row">
+      <button type="button" id="transliterate_button" class="btn btn-primary action-btn">Transliterate</button>
+      <div class="action-options scheme-options-row">
+        <div class="scheme-labels">
+          <label class="scheme-label">in: <select id="from_scheme">
+            <option value="Auto" id="auto_scheme_option">Auto</option>
+            <optgroup label="Romanizations">
+              <option value="IAST">IAST</option>
+              <option value="HK">HK</option>
+              <option value="SLP">SLP</option>
+              <option value="ITRANS">ITRANS</option>
+              <option value="VH">VH</option>
+              <option value="WX">WX</option>
+            </optgroup>
+            <optgroup label="Indic Scripts">
+              <option value="DEV">DEV</option>
+              <option value="BENGALI">BENGALI</option>
+              <option value="GUJARATI">GUJARATI</option>
+            </optgroup>
+          </select></label>
+          <label class="scheme-label">out: <select id="to_scheme">
+            <optgroup label="Romanizations">
+              <option value="IAST">IAST</option>
+              <option value="HK">HK</option>
+              <option value="SLP">SLP</option>
+              <option value="ITRANS">ITRANS</option>
+              <option value="VH">VH</option>
+              <option value="WX">WX</option>
+            </optgroup>
+            <optgroup label="Indic Scripts">
+              <option value="DEV">DEV</option>
+              <option value="BENGALI">BENGALI</option>
+              <option value="GUJARATI">GUJARATI</option>
+            </optgroup>
+          </select></label>
+        </div>
+        <button type="button" id="swap_scheme_button" class="btn btn-primary btn-swap-scheme" title="Swap in/out schemes">&#8645;</button>
+      </div>
     </div>
-    <div class="select-row">
-      <label for="to-scheme-select">Output Scheme</label>
-      <select id="to-scheme-select"></select>
+
+    <!-- Scan + detail checkboxes -->
+    <div class="action-row">
+      <button type="button" id="scan_button" class="btn btn-primary action-btn">Scan</button>
+      <div class="action-options">
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="weights" checked/> lglgl</label>
+          <label><input type="checkbox" id="morae" checked/> {mora}</label>
+          <label><input type="checkbox" id="gaRas" checked/> [ga&#7751;a]</label>
+          <label><input type="checkbox" id="alignment" checked/> align</label>
+        </div>
+      </div>
     </div>
-    <div class="checkbox-row">
-      <input type="checkbox" id="avoid-virama-indic-checkbox">
-      <label for="avoid-virama-indic-checkbox" style="margin-bottom:0;font-weight:normal;">avoid virāma in Indic output</label>
+
+    <!-- Identify Meter + resplit -->
+    <div class="action-row">
+      <button type="button" id="identify_meter_button" class="btn btn-primary action-btn">Identify Meter</button>
+      <div class="action-options">
+        <select id="resplit_option">
+          <option value="none">don't resplit</option>
+          <option value="resplit_lite">resplit lite</option>
+          <option value="resplit_lite_keep_mid">resplit lite keep mid</option>
+          <option value="resplit_max" selected>resplit max</option>
+          <option value="resplit_max_keep_mid">resplit max keep mid</option>
+        </select>
+      </div>
     </div>
-    <div class="checkbox-row">
-      <input type="checkbox" id="avoid-virama-non-indic-checkbox">
-      <label for="avoid-virama-non-indic-checkbox" style="margin-bottom:0;font-weight:normal;">un-space Roman output</label>
+
+    <!-- Split Words + model -->
+    <div class="action-row">
+      <button type="button" id="split_button" class="btn btn-primary action-btn">Split Words</button>
+      <div class="action-options">
+        <label class="scheme-label scheme-label-wide">model: <select id="splitter_model_sidebar">
+          <option value="dharmamitra_2024_sept">2024 ByT5-Sanskrit</option>
+          <option value="splitter_2018">2018 Sandhi &amp; Compound</option>
+        </select></label>
+      </div>
     </div>
-    <div class="checkbox-row">
-      <input type="checkbox" id="preserve-anunasika-checkbox">
-      <label for="preserve-anunasika-checkbox" style="margin-bottom:0;font-weight:normal;">preserve anunāsika i.e. candrabindu</label>
+
+  </div><!-- .sidebar-controls -->
+
+  <hr class="sidebar-divider">
+
+  <div class="sidebar-bottom">
+    <a href="#" id="clear-texts-link">clear</a>
+    <a href="#" id="example-link">ex1</a>
+    <a href="#" id="settings-link">settings</a>
+    <a href="https://www.skrutable.info/help" target="_blank" rel="noopener">help</a>
+    <a href="#" id="dark-mode-toggle" title="Toggle dark mode">&#9790;</a>
+  </div>
+
+</aside>
+
+<main class="main-content" id="main-content">
+
+  <!-- Workbench view -->
+  <div id="workbench-view">
+    <div class="textarea-swap-group">
+      <textarea id="text_input" class="textarea-input" rows="4" spellcheck="false"
+        placeholder="Enter text here"></textarea>
+      <div class="textarea-action-row">
+        <button type="button" id="clear_textareas_button" class="btn btn-primary btn-textarea-action" title="Clear text boxes">&#x2715;</button>
+        <button type="button" class="btn btn-primary btn-textarea-action"
+          id="repeat_action_button" title="Repeat last action" disabled>&#x21BA;</button>
+        <button type="button" id="swap_texts_button" class="btn btn-primary btn-textarea-action" title="Swap in/out text">&#8645;</button>
+      </div>
+      <textarea id="text_output" class="textarea-output" rows="15" spellcheck="false"
+        readonly></textarea>
+    </div>
+
+    <!-- Melody player -->
+    <div class="melody-player" id="melodyPlayer">
+      <audio id="audio" controls>
+        <source type="audio/mp3">
+      </audio>
+      <div>
+        <label for="melody_option">Meter Melody Type Recited by</label>
+        <select id="melody_option"></select>
+      </div>
     </div>
   </div>
 
-  <div id="scan-options" class="options-panel" style="display:none;">
-    <div class="select-row">
-      <label for="from-scheme-select">Input Scheme</label>
-      <!-- reuse the same selects via JS — scan shares from-scheme -->
+  <!-- Settings overlay (replaces /settings page) -->
+  <div id="settings-view" style="display:none;" class="page-content">
+    <h2>Extra Settings</h2>
+
+    <h3>Transliteration</h3>
+    <div class="settings-group">
+      <label><input type="checkbox" id="avoid_virama"> avoid vir&#257;ma in Indic output</label><br>
+      <label><input type="checkbox" id="avoid_virama_non_indic"> un-space Roman output</label><br>
+      <label><input type="checkbox" id="preserve_anunasika"> preserve anun&#257;sika i.e. candrabindu</label>
     </div>
-    <p style="color:var(--color-text-muted);margin:0 0 var(--space-xs);font-size:var(--font-size-sm);">Scansion uses the input scheme above. Output is always in IAST.</p>
-    <div class="checkbox-row">
-      <input type="checkbox" id="show-weights-checkbox">
-      <label for="show-weights-checkbox" style="margin-bottom:0;font-weight:normal;">show weights</label>
+
+    <h3>Split Words</h3>
+    <div class="settings-group">
+      <label><input type="checkbox" id="preserve_compound_hyphens"> preserve compound hyphens</label><br>
+      <label><input type="checkbox" id="preserve_punctuation"> preserve punctuation</label>
     </div>
-    <div class="checkbox-row">
-      <input type="checkbox" id="show-morae-checkbox">
-      <label for="show-morae-checkbox" style="margin-bottom:0;font-weight:normal;">show morae</label>
-    </div>
-    <div class="checkbox-row">
-      <input type="checkbox" id="show-garas-checkbox">
-      <label for="show-garas-checkbox" style="margin-bottom:0;font-weight:normal;">show gaṇas</label>
-    </div>
-    <div class="checkbox-row">
-      <input type="checkbox" id="show-alignment-checkbox">
-      <label for="show-alignment-checkbox" style="margin-bottom:0;font-weight:normal;">show alignment</label>
+
+    <h3>Display</h3>
+    <div class="settings-group">
+      <label>Font size:
+        <select id="font_size_select">
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
+      </label>
     </div>
   </div>
 
-  <div id="identify-options" class="options-panel" style="display:none;">
-    <div class="select-row">
-      <label for="resplit-select">Resplit Mode</label>
-      <select id="resplit-select"></select>
-    </div>
-  </div>
+</main>
 
-  <div id="split-options" class="options-panel" style="display:none;">
-    <div class="select-row">
-      <label for="splitter-model-select">Splitter Model</label>
-      <select id="splitter-model-select"></select>
-    </div>
-    <div class="checkbox-row">
-      <input type="checkbox" id="preserve-compound-hyphens-checkbox">
-      <label for="preserve-compound-hyphens-checkbox" style="margin-bottom:0;font-weight:normal;">Preserve compound hyphens</label>
-    </div>
-    <div class="checkbox-row">
-      <input type="checkbox" id="preserve-punctuation-checkbox">
-      <label for="preserve-punctuation-checkbox" style="margin-bottom:0;font-weight:normal;">Preserve punctuation</label>
-    </div>
-    <div class="select-row" style="margin-top:var(--space-xs);">
-      <label for="to-scheme-select">Output Scheme</label>
-    </div>
-  </div>
-
-  <!-- Output -->
-  <section id="output-section" aria-live="polite"></section>
-
-  <!-- Display options (font size) at bottom -->
-  <details style="margin-top:var(--space-xl);">
-    <summary style="cursor:pointer;color:var(--color-text-muted);font-size:var(--font-size-sm);">Display Options</summary>
-    <fieldset class="radio-buttons">
-      <legend>Font Size</legend>
-      <label><input type="radio" name="font-size" value="small" checked> Small</label>
-      <label><input type="radio" name="font-size" value="medium"> Medium</label>
-      <label><input type="radio" name="font-size" value="large"> Large</label>
-    </fieldset>
-  </details>
-
-  <script src="../js/vendor/webextension-polyfill.min.js"></script>
-  <script src="../dist/skrutable.bundle.js"></script>
-  <script type="module" src="../js/sidepanel/index.js"></script>
+<script src="../js/vendor/webextension-polyfill.min.js"></script>
+<script src="../dist/skrutable.bundle.js"></script>
+<script src="../js/sidepanel/index.js"></script>
 
 </body>
 </html>
