@@ -32,7 +32,7 @@ const DEFAULTS = {
   [SK.action]:                  "transliterate",
   [SK.fromScheme]:              "Auto",
   [SK.toScheme]:                "IAST",
-  [SK.resplitOption]:           "resplit_max",
+  [SK.resplitOption]:           "resplit_lite_keep_mid",
   [SK.splitterModel]:           "dharmamitra_2024_sept",
   [SK.weights]:                 true,
   [SK.morae]:                   true,
@@ -290,7 +290,7 @@ async function doScan() {
     var fromScheme = s.from_scheme === "Auto" ? null : s.from_scheme;
     var S = new Skrutable.Scanner();
     var verse = S.scan(document.getElementById("text_input").value, fromScheme);
-    var result = verse.summarize(s.weights, s.morae, s.gaRas, s.alignment, true);
+    var result = verse.summarize(s.weights, s.morae, s.gaRas, s.alignment, false);
     document.getElementById("text_output").value = result;
     saveTexts();
     set_action("scan");
