@@ -149,30 +149,38 @@
   <!-- Settings overlay (replaces /settings page) -->
   <div id="settings-view" style="display:none;" class="page-content">
     <a href="#" id="back-to-workbench-link">&larr; back</a>
-    <h2>Extra Settings</h2>
+    <h2>extra settings</h2>
 
-    <h3>Transliteration</h3>
+    <h3>transliteration</h3>
     <div class="settings-group">
-      <label><input type="checkbox" id="avoid_virama"> avoid vir&#257;ma in Indic output</label><br>
-      <label><input type="checkbox" id="avoid_virama_non_indic"> un-space Roman output</label><br>
-      <label><input type="checkbox" id="preserve_anunasika"> preserve anun&#257;sika i.e. candrabindu</label>
+      <div><input type="checkbox" id="avoid_virama"> <label for="avoid_virama">avoid vir&#257;ma in Indic output (<span id="virama_example_on">किमकुर्वत</span><span id="virama_example_off" style="display:none">किम् अकुर्वत</span>)</label></div>
+      <div><input type="checkbox" id="avoid_virama_non_indic"> <label for="avoid_virama_non_indic">un-space Roman output (<span id="virama_non_indic_example_on">kimakurvata</span><span id="virama_non_indic_example_off" style="display:none">kim akurvata</span>)</label></div>
+      <div><input type="checkbox" id="preserve_anunasika"> <label for="preserve_anunasika">preserve anun&#257;sika i.e. candrabindu (<span id="anunasika_example_on">ã / अँ</span><span id="anunasika_example_off" style="display:none">aṃ / अं</span>)</label></div>
     </div>
 
-    <h3>Split Words</h3>
+    <h3>splitting</h3>
     <div class="settings-group">
-      <label><input type="checkbox" id="preserve_compound_hyphens"> preserve compound hyphens</label><br>
-      <label><input type="checkbox" id="preserve_punctuation"> preserve punctuation</label>
+      <div><input type="checkbox" id="preserve_punctuation"> <label for="preserve_punctuation">preserve punctuation</label></div>
+      <div><label for="splitter_model_settings">model: <select id="splitter_model_settings">
+        <option value="dharmamitra_2024_sept">2024 ByT5-Sanskrit by Dharmamitra</option>
+        <option value="splitter_2018">2018 Sandhi and Compound Splitter</option>
+      </select></label></div>
+      <div id="preserve_compound_hyphens_row"><input type="checkbox" id="preserve_compound_hyphens"> <label for="preserve_compound_hyphens">preserve compound hyphens (<span id="hyphens_example_on">dharma-k&#7779;etre</span><span id="hyphens_example_off" style="display:none">dharma k&#7779;etre</span>)</label></div>
     </div>
 
-    <h3>Display</h3>
+    <h3>display</h3>
     <div class="settings-group">
-      <label>Font size:
-        <select id="font_size_select">
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-        </select>
-      </label>
+      <label>font size: <select id="font_size_select">
+        <option value="small">Small</option>
+        <option value="medium">Medium</option>
+        <option value="large">Large</option>
+      </select></label>
+    </div>
+
+    <h3>restore defaults</h3>
+    <div class="settings-group">
+      <button type="button" class="btn btn-primary" id="reset_extra_button">Reset Extra Settings</button>
+      <button type="button" class="btn btn-primary" id="reset_all_button">Reset ALL Settings</button>
     </div>
   </div>
 

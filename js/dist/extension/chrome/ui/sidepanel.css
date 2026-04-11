@@ -52,13 +52,27 @@ body {
 }
 
 /* Sidebar brand — not a link in the extension */
+.sidebar-brand,
 .sidebar-brand h1 {
-  cursor: default;
+  cursor: default !important;
 }
 
 /* Back link in settings view */
 #back-to-workbench-link {
   font-size: 1.1rem;
+  display: block;
+  margin-bottom: 1.5em;
+}
+
+/* Settings view heading spacing */
+#settings-view h2 {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+#settings-view h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
 }
 
 /* Melody player */

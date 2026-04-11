@@ -133,8 +133,11 @@ async function restoreSettings() {
   document.getElementById("preserve_anunasika").checked = currentPreserveAnunasika;
   document.getElementById("preserve_compound_hyphens").checked = currentPreserveCompoundHyphens;
   document.getElementById("preserve_punctuation").checked = currentPreservePunctuation;
+  document.getElementById("splitter_model_settings").value = items[SK.splitterModel];
+  updateSettingsExamples();
+  updateCompoundHyphensVisibility();
 
-  const fontSize = items[SK.fontSize] || "small";
+  const fontSize = items[SK.fontSize] || "medium";
   document.getElementById("font_size_select").value = fontSize;
   applyFontSize(fontSize);
 
@@ -417,12 +420,62 @@ function toggleSettings() {
 }
 
 // --- Settings panel change handlers ---
-function bindSettingsCheckbox(id, getter, setter) {
+function bindSettingsCheckbox(id, getter, setter, onChangeCb) {
   var el = document.getElementById(id);
   if (!el) return;
   el.addEventListener("change", function() {
     setter(getter(el));
+    if (onChangeCb) onChangeCb();
     saveSettings();
+  });
+}
+
+function updateSettingsExamples() {
+  var virOn = document.getElementById("avoid_virama").checked;
+  document.getElementById("virama_example_on").style.display = virOn ? "" : "none";
+  document.getElementById("virama_example_off").style.display = virOn ? "none" : "";
+
+  var virNIOn = document.getElementById("avoid_virama_non_indic").checked;
+  document.getElementById("virama_non_indic_example_on").style.display = virNIOn ? "" : "none";
+  document.getElementById("virama_non_indic_example_off").style.display = virNIOn ? "none" : "";
+
+  var anuOn = document.getElementById("preserve_anunasika").checked;
+  document.getElementById("anunasika_example_on").style.display = anuOn ? "" : "none";
+  document.getElementById("anunasika_example_off").style.display = anuOn ? "none" : "";
+
+  var hypOn = document.getElementById("preserve_compound_hyphens").checked;
+  document.getElementById("hyphens_example_on").style.display = hypOn ? "" : "none";
+  document.getElementById("hyphens_example_off").style.display = hypOn ? "none" : "";
+}
+
+function updateCompoundHyphensVisibility() {
+  var model = document.getElementById("splitter_model_settings").value;
+  var row = document.getElementById("preserve_compound_hyphens_row");
+  row.style.display = model === "dharmamitra_2024_sept" ? "" : "none";
+}
+
+function resetExtraSettings() {
+  currentAvoidVirama = DEFAULTS[SK.avoidViramaIndic];
+  currentAvoidViramanonIndic = DEFAULTS[SK.avoidViramaNonIndic];
+  currentPreserveAnunasika = DEFAULTS[SK.preserveAnunasika];
+  currentPreserveCompoundHyphens = DEFAULTS[SK.preserveCompoundHyphens];
+  currentPreservePunctuation = DEFAULTS[SK.preservePunctuation];
+  document.getElementById("avoid_virama").checked = currentAvoidVirama;
+  document.getElementById("avoid_virama_non_indic").checked = currentAvoidViramanonIndic;
+  document.getElementById("preserve_anunasika").checked = currentPreserveAnunasika;
+  document.getElementById("preserve_compound_hyphens").checked = currentPreserveCompoundHyphens;
+  document.getElementById("preserve_punctuation").checked = currentPreservePunctuation;
+  var defaultModel = DEFAULTS[SK.splitterModel];
+  document.getElementById("splitter_model_settings").value = defaultModel;
+  document.getElementById("splitter_model_sidebar").value = defaultModel;
+  updateSettingsExamples();
+  updateCompoundHyphensVisibility();
+  saveSettings();
+}
+
+function resetAllSettings() {
+  browser.storage.sync.clear().then(function() {
+    location.reload();
   });
 }
 
@@ -519,11 +572,18 @@ document.addEventListener("DOMContentLoaded", async function() {
   restoreTexts();
 
   // Settings panel checkbox bindings
-  bindSettingsCheckbox("avoid_virama", function(el) { return el.checked; }, function(v) { currentAvoidVirama = v; });
-  bindSettingsCheckbox("avoid_virama_non_indic", function(el) { return el.checked; }, function(v) { currentAvoidViramanonIndic = v; });
-  bindSettingsCheckbox("preserve_anunasika", function(el) { return el.checked; }, function(v) { currentPreserveAnunasika = v; });
-  bindSettingsCheckbox("preserve_compound_hyphens", function(el) { return el.checked; }, function(v) { currentPreserveCompoundHyphens = v; });
+  bindSettingsCheckbox("avoid_virama", function(el) { return el.checked; }, function(v) { currentAvoidVirama = v; }, updateSettingsExamples);
+  bindSettingsCheckbox("avoid_virama_non_indic", function(el) { return el.checked; }, function(v) { currentAvoidViramanonIndic = v; }, updateSettingsExamples);
+  bindSettingsCheckbox("preserve_anunasika", function(el) { return el.checked; }, function(v) { currentPreserveAnunasika = v; }, updateSettingsExamples);
+  bindSettingsCheckbox("preserve_compound_hyphens", function(el) { return el.checked; }, function(v) { currentPreserveCompoundHyphens = v; }, updateSettingsExamples);
   bindSettingsCheckbox("preserve_punctuation", function(el) { return el.checked; }, function(v) { currentPreservePunctuation = v; });
+
+  document.getElementById("splitter_model_settings").addEventListener("change", function() {
+    var model = this.value;
+    document.getElementById("splitter_model_sidebar").value = model;
+    updateCompoundHyphensVisibility();
+    saveSettings();
+  });
 
   document.getElementById("font_size_select").addEventListener("change", function() {
     var size = this.value;
@@ -531,10 +591,9 @@ document.addEventListener("DOMContentLoaded", async function() {
     browser.storage.sync.set({ [SK.fontSize]: size });
   });
 
+  document.getElementById("reset_extra_button").addEventListener("click", resetExtraSettings);
+  document.getElementById("reset_all_button").addEventListener("click", resetAllSettings);
+
   // Text persistence on edit
   document.getElementById("text_input").addEventListener("input", saveTexts);
-
-  // Example link — update label to show next index
-  var link = document.getElementById("example-link");
-  link.textContent = "ex1";
 });
