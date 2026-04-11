@@ -13434,6 +13434,50 @@
     // ['\\[(16|15), (16|15), (16|15), (16|15)\\]', [16, 16, 16, 16], 'mātrāsamaka'], // more rules...
   ];
 
+  const meter_melodies = {
+    'anuṣṭup': ['Madhura Godbole', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh', 'Diwakar Acarya'],
+    'aparavaktra': ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+    'aśvadhāṭī': ['Shatavadhani Ganesh'],
+    'āryā': ['Madhura Godbole', 'Shatavadhani Ganesh', 'Sadananda Das', 'Diwakar Acarya'],
+    'indravajrā': ['Sadananda Das', 'Diwakar Acarya'],
+    'indravaṃśa': ['Shatavadhani Ganesh'],
+    'udgatā': ['Shatavadhani Ganesh'],
+    'upagītiḥ': ['Madhura Godbole'],
+    'upajātiḥ': ['Madhura Godbole', 'Sadananda Das', 'Diwakar Acarya', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+    'aupacchandasika': ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+    'kokilaka': ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+    'gīti': ['H.V. Nagaraja Rao'],
+    'cārucāmara': ['Shatavadhani Ganesh'],
+    'toṭaka': ['Shatavadhani Ganesh'],
+    'drutavilambitam': ['Madhura Godbole', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+    'pañcacāmara': ['Sadananda Das', 'Shatavadhani Ganesh'],
+    'puṣpitāgrā': ['Shatavadhani Ganesh'],
+    'pṛthvī': ['Sadananda Das', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+    'pramuditavadanā': ['H.V. Nagaraja Rao'],
+    'pramitākṣara': ['H.V. Nagaraja Rao'],
+    'praharṣiṇī': ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+    'bhujaṅgaprayāta': ['Shatavadhani Ganesh'],
+    'mañjubhāṣiṇī': ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+    'mattamayūra': ['H.V. Nagaraja Rao'],
+    'mandākrāntā': ['H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+    'mallikāmālā': ['Shatavadhani Ganesh'],
+    // 'mātrāsamaka': ['Sadananda Das'],
+    'mālinī': ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+    'rathoddhatā': ['Shatavadhani Ganesh'],
+    'vaṃśastha': ['Shatavadhani Ganesh'],
+    'vasantatilakā': ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+    'viyoginī': ['Shatavadhani Ganesh'],
+    'śārdūlavikrīḍita': ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+    'śālinī': ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+    'śikhariṇī': ['Madhura Godbole', 'Sadananda Das', 'H.V. Nagaraja Rao', 'Diwakar Acarya', 'Shatavadhani Ganesh'],
+    'śivatāṇḍava': ['Shatavadhani Ganesh'],
+    'śravaṇābharaṇa': ['Sadananda Das'],
+    'sragdharā': ['H.V. Nagaraja Rao', 'Shatavadhani Ganesh'],
+    'sragviṇī': ['Sadananda Das', 'Shatavadhani Ganesh'],
+    'svāgatā': ['Shatavadhani Ganesh'],
+    'hariṇī': ['Shatavadhani Ganesh']
+  };
+
   // Scanner class and Verse object for Sanskrit metrical analysis
 
   // Load config variables
@@ -15046,5 +15090,6 @@
   exports.Splitter = Splitter;
   exports.Transliterator = Transliterator;
   exports.Verse = Verse;
+  exports.meter_melodies = meter_melodies;
 
 }));

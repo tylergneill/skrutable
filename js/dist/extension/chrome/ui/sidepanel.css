@@ -52,6 +52,18 @@ body {
 }
 
 /* Melody player */
+.melody-player {
+  display: none;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.25rem 0 0.75rem;
+  flex-wrap: wrap;
+}
+
+.melody-player.visible {
+  display: flex;
+}
+
 .melody-player audio {
   max-width: 100%;
   width: 100%;

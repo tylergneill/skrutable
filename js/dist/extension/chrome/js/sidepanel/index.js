@@ -336,8 +336,7 @@ async function doIdentifyMeter() {
     set_action("identify meter");
 
     currentMeterLabel = verse.meterLabel || "";
-    // Fetch melody options from the server
-    fetchMelodyOptions(currentMeterLabel);
+    updateMelodyPlayer(currentMeterLabel);
   } catch(e) {
     document.getElementById("text_output").value = "Error: " + e.message;
   } finally {
@@ -372,20 +371,19 @@ async function doSplit() {
 }
 
 // --- Melody player ---
-async function fetchMelodyOptions(meterLabel) {
+function updateMelodyPlayer(meterLabel) {
   hideMelodyPlayer();
   if (!meterLabel) return;
-  try {
-    var resp = await fetch("https://www.skrutable.info/api/melody-options?meter=" + encodeURIComponent(meterLabel));
-    if (!resp.ok) return;
-    var data = await resp.json();
-    currentMelodyOptions = data.melody_options || [];
-    if (currentMelodyOptions.length > 0) {
-      rebuildMelodyDropdown(currentMelodyOptions);
-      showMelodyPlayer();
-      updateMelody();
-    }
-  } catch(_) { /* server not reachable — melody player stays hidden */ }
+  // Extract bare meter name: first word, strip trailing 'm' (accusative ending on samavṛtta names)
+  var bareName = meterLabel.split(' ')[0].replace(/m$/, '');
+  var options = Skrutable.meter_melodies[bareName] || [];
+  if (options.length > 0) {
+    currentMeterLabel = bareName;
+    currentMelodyOptions = options;
+    rebuildMelodyDropdown(currentMelodyOptions);
+    showMelodyPlayer();
+    updateMelody();
+  }
 }
 
 function rebuildMelodyDropdown(options) {
@@ -399,12 +397,22 @@ function rebuildMelodyDropdown(options) {
   });
 }
 
+// JS meter labels that differ from the server's HK-transliterated filenames
+var MELODY_FILENAME_OVERRIDES = {
+  'anuṣṭup':       'anuSTubh',
+  'drutavilambitam': 'drutavilambita',
+  'upagītiḥ':      'upagIti',
+  'upajātiḥ':      'upajAti',
+};
+
 function updateMelody() {
   var sel = document.getElementById("melody_option");
   var audio = document.getElementById("audio");
   if (!sel.value || !currentMeterLabel) return;
+  var meterHK = MELODY_FILENAME_OVERRIDES[currentMeterLabel] ||
+    new Skrutable.Transliterator('IAST', 'HK').transliterate(currentMeterLabel);
   var name = sel.value.replace(/ /g, "-").replace(/\./g, "");
-  audio.src = MELODY_BASE + currentMeterLabel + "-" + name + ".mp3";
+  audio.src = MELODY_BASE + meterHK + "-" + name + ".mp3";
 }
 
 function showMelodyPlayer() {
