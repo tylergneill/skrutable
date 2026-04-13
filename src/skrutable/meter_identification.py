@@ -130,11 +130,16 @@ class VerseTester(object):
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			return 1
 		elif pAdas_ab.perfect() and pAdas_cd.imperfect():
-			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab.perfect_id_label}, 3,4: {pAdas_cd.imperfect_id_label})"
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab.perfect_id_label}; 3,4: {pAdas_cd.imperfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			return 1
 
-		# currently cannot do both halves imperfect
+		# both halves imperfect
+
+		elif pAdas_ab.imperfect() and pAdas_cd.imperfect():
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab.imperfect_id_label}; 3,4: {pAdas_cd.imperfect_id_label})"
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves imperfect)"]
+			return 1
 
 		# also test whether just a single perfect half
 
@@ -143,8 +148,10 @@ class VerseTester(object):
 			Vrs.meter_label = f"anuṣṭubh (ardham eva: {pAdas_ab.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, half, single half perfect)"]
 			return 1
-
-		# currently cannot do just a single imperfect half
+		elif pAdas_ab.imperfect():
+			Vrs.meter_label = f"anuṣṭubh (ardham eva: {pAdas_ab.imperfect_id_label})"
+			Vrs.identification_score = meter_scores["anuṣṭubh, half, single half imperfect)"]
+			return 1
 
 		return 0
 
