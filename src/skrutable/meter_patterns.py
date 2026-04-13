@@ -47,6 +47,20 @@ anuzwuB_pAda = {
 	}
 }
 
+anuzwuB_pAda_asamIcIna = {
+	'odd' : {
+		'^.ll.{5}$' :  ('asamīcīnā, na prathamāt snau', [1, 2]),
+		'^.{4}ggg.$' : ('asamīcīnā, ma-vipulāyāḥ paścād raḥ syāt',  [1, 2, 3]),
+		'^.{4}gll.$' : ('asamīcīnā, bha-vipulāyāḥ paścād raḥ syāt', [1, 2, 3]),
+		'^.{3}llll.$' : ('asamīcīnā, na-vipulāyāḥ paścād guruḥ syāt', [3]),
+		'^.{3}lglg.$' : ('asamīcīnā, na-vipulāyāḥ paścād guruḥ syāt', [3]),
+	},
+	'even' : {
+		'^.ll.{5}$' :  ('asamīcīnā, na prathamāt snau', [1, 2]),
+		'^.glg.{4}$' : ('asamīcīnā, [na] dvitīyacaturthayo raḥ', [1, 2, 3]),
+	},
+}
+
 """
 	samavṛtta
 
