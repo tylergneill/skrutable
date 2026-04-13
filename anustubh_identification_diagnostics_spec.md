@@ -61,13 +61,13 @@ class HalfVerseResult:
 
 #### Even pāda failures (checked sequentially after the combined regex fails)
 
-| `failure_reason` | Rule | Implicated positions (0-indexed, even pāda) |
-|---|---|---|
-| `'hahn_2'` | syllables 2–3 both light | `[1, 2]` |
-| `'hahn_3'` | syllables 2–4 are ra-gaṇa (glg) | `[1, 2, 3]` |
-| `'hahn_4'` | syllables 5–7 not ja-gaṇa (lgl) | `[4, 5, 6]` |
-| `'hypermetric'` | even pāda has > 8 syllables | all positions |
-| `'hypometric'` | even pāda has < 8 syllables | all positions |
+| `failure_reason` | Rule                                      | Implicated positions (0-indexed, even pāda) |
+|---|-------------------------------------------|---|
+| `'hahn_2'` | any pāda's syllables 2–3 both light  | `[1, 2]` |
+| `'hahn_3'` | even pāda syllables 2–4 are ra-gaṇa (glg) | `[1, 2, 3]` |
+| `'hahn_4'` | even pāda syllables 5–7 not ja-gaṇa (lgl) | `[4, 5, 6]` |
+| `'hypermetric'` | even pāda has > 8 syllables               | all positions |
+| `'hypometric'` | even pāda has < 8 syllables               | all positions |
 
 Rules 2, 3, 4 are checked in order; the first firing wins. Count is checked first before any sub-rule.
 
