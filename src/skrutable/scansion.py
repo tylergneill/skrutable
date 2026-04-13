@@ -34,6 +34,7 @@ class Verse(object):
 		self.gaRa_abbreviations = None	# string, may contain newlines
 		self.meter_label = None			# string
 		self.identification_score = 0 	# int
+		self.diagnostic = None			# Diagnostic or dict of Diagnostics, set by meter_identification
 
 	def summarize(self,
 		show_weights=True, show_morae=True, show_gaRas=True, # part_A
