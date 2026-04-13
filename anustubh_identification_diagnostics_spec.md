@@ -44,55 +44,54 @@ From Hahn (2014):
 
 ## What the backend should return instead
 
-Rather than `None`, a failed half should return a `HalfVerseResult` dataclass describing *which rule failed* and *which syllable positions are implicated*. The front end needs this to highlight safely — false-positive highlights are worse than no highlights.
+Every half-verse test returns a `Diagnostic` dataclass describing the result — perfect or imperfect. The front end needs this to highlight safely — false-positive highlights are worse than no highlights.
 
-### `HalfVerseResult` dataclass
+### `Diagnostic` dataclass
 
 ```python
 @dataclass
-class HalfVerseResult:
-    label: Optional[str]           # 'pathyā', 'ma-vipulā', etc., or None if imperfect
-    failure_reason: Optional[str]  # see taxonomy below; None if perfect
-    problem_syllables: dict        # {'odd': [ints], 'even': [ints]}, 0-indexed positions
-                                   # both lists empty if perfect
+class Diagnostic:
+    perfect_id_label: Optional[str]    # 'pathyā', 'ma-vipulā', etc.; None if imperfect
+    imperfect_id_label: Optional[str]  # human-readable Piṅgala-style label; None if perfect
+    failure_code: Optional[str]        # short internal code (see taxonomy); None if perfect
+    problem_syllables: dict            # {'odd': [ints], 'even': [ints]}, 0-indexed positions
+
+    def perfect(self) -> bool: ...
+    def imperfect(self) -> bool: ...
 ```
 
-### Failure reason taxonomy
+### Failure code taxonomy
 
-#### Even pāda failures (checked sequentially after the combined regex fails)
+#### Even pāda failures
 
-| `failure_reason` | Rule                                      | Implicated positions (0-indexed, even pāda) |
-|---|-------------------------------------------|---|
-| `'hahn_2'` | any pāda's syllables 2–3 both light  | `[1, 2]` |
-| `'hahn_3'` | even pāda syllables 2–4 are ra-gaṇa (glg) | `[1, 2, 3]` |
-| `'hahn_4'` | even pāda syllables 5–7 not ja-gaṇa (lgl) | `[4, 5, 6]` |
-| `'hypermetric'` | even pāda has > 8 syllables               | all positions |
-| `'hypometric'` | even pāda has < 8 syllables               | all positions |
-
-Rules 2, 3, 4 are checked in order; the first firing wins. Count is checked first before any sub-rule.
-
-#### Odd pāda failures (checked after even pāda passes and pattern loop exhausts)
-
-The odd pāda loop tests each known pattern in full. If all fail, we then check whether any known characteristic tail (positions 4–7) is present but its conditioning (positions 1–3) is not:
-
-| `failure_reason` | Characteristic tail at 4–7 | Conditioning violated | Implicated positions (odd pāda) |
+| `failure_code` | Rule | `imperfect_id_label` | Implicated positions (even pāda) |
 |---|---|---|---|
-| `'na_vipula'` | `lll.` | `(?!.ll)` at 1–2 | `[1, 2]` |
-| `'ra_vipula'` | `glg.` | `(?!.ll)` at 1–2 | `[1, 2]` |
-| `'ma_vipula'` | `ggg.` | position 1 not `g` | `[1]` |
-| `'bha_vipula'` | `gll.` | position 1 not `g` | `[1]` |
-| `'hahn_2'` | any / none | syllables 2–3 both light (no tail matched) | `[1, 2]` |
-| `'hypermetric'` | — | odd pāda has > 8 syllables | all positions |
-| `'hypometric'` | — | odd pāda has < 8 syllables | all positions |
-| `'odd_unrecognized'` | none matched | no specific rule identified | `[0..7]` |
+| `'hahn_general_2'` | syllables 2–3 both light | `'asamīcīnā, na prathamāt snau'` | `[1, 2]` |
+| `'hahn_general_3'` | syllables 2–4 are ra-gaṇa (glg) | `'asamīcīnā, [na] dvitīyacaturthayo raḥ'` | `[1, 2, 3]` |
+| `'hahn_general_4'` | syllables 5–7 not ja-gaṇa (lgl) | `'[caturthāt] pathyā yujo j'` | `[4, 5, 6]` |
 
-Characteristic tail checks are done first; `hahn_2` on the odd pāda is the fallback when no tail matches but rule 2 is clearly violated; `odd_unrecognized` is the final catch-all.
+Rules checked in order; first firing wins.
+
+#### Odd pāda failures
+
+| `failure_code` | `imperfect_id_label` | Implicated positions (odd pāda) |
+|---|---|---|
+| `'hahn_general_2'` | `'asamīcīnā, na prathamāt snau'` | `[1, 2]` |
+| `'hahn_vipulA_3'` | `'asamīcīnā, ma-vipulāyāḥ paścād raḥ syāt'` | `[1, 2, 3]` |
+| `'hahn_vipulA_2'` | `'asamīcīnā, bha-vipulāyāḥ paścād raḥ syāt'` | `[1, 2, 3]` |
+| `'hahn_vipulA_1'` | `'asamīcīnā, na-vipulāyāḥ paścād guruḥ syāt'` | `[3]` |
+| `'hahn_vipulA_4'` | `'asamīcīnā, ra-vipulāyāḥ paścād guruḥ syāt'` | `[3]` |
+| `'hahn_paTyA'` | `'[vipulāyām asatyām] ya[gaṇaḥ] [ayujo] caturthāt [syāt]'` | `[0..7]` |
+
+hahn_general_2 is checked first; vipulā conditioning checks follow; hahn_paTyA is the final catch-all.
 
 ### Storage on `Verse`
 
-The diagnostic result is stored as `Vrs.failure_diagnostic` (a `HalfVerseResult`, or `None` if no asamīcīna half). This is a non-breaking addition — existing code that doesn't read the attribute is unaffected.
+`Vrs.diagnostic` is set on every anuṣṭubh identification:
+- Single `Diagnostic` for ardham eva cases
+- `{'ab': Diagnostic, 'cd': Diagnostic}` for full four-pāda cases
 
-`failure_diagnostic` is only set when asamīcīna is produced (one half fails, one succeeds). It is not set for perfect verses, for verses not identified as anuṣṭubh, or for the both-halves-failing case (which currently returns 0).
+`Vrs.diagnostic` is `None` for non-anuṣṭubh identifications. This is a non-breaking addition.
 
 ## Extended identification goal
 
