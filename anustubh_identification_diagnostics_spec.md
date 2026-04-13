@@ -111,6 +111,18 @@ New score entries will be needed in the scoring system for these cases. The exis
 
 `Vrs.failure_diagnostic` in the both-halves-imperfect case should store diagnostics for both halves, e.g. `{'ab': HalfVerseResult, 'cd': HalfVerseResult}`. In the single-half case a single `HalfVerseResult` suffices.
 
+## Implementation notes (from design session)
+
+- `wiggle_identify` always normalizes input to 4 pādas before `attempt_identification` is called. There is no separate 2-pāda input path. The ardham eva path inside `test_as_anuzwuB` concatenates pādas 1+2 and 3+4 into 16-char strings and re-runs `test_as_anuzwuB_half`. The "ardham eva: asamīcīna" case is simply: that concatenated test also returns `None`. No special input handling is needed.
+
+- The "both halves imperfect" identification must be gated on syllable counts being plausibly anuṣṭubh. Proposed gate: at least 2 of 4 pādas exactly 8 syllables, and all pādas within ±2 (6–10 syllables). This mirrors the samavṛtta approach of using plurality (pādasamatva count ≥ 2) rather than requiring all pādas to match.
+
+- Imperfect identification (both halves imperfect, ardham eva imperfect) must score low enough that correct samavṛtta or jāti beats it. Score 5 proposed for both new cases.
+
+- Hypo/hypermetric pāda detection (pādas of 6, 7, 9, or 10 syllables that are "close" to valid anuṣṭubh) requires fuzzy/edit-distance matching. This is genuinely hard — no existing Sanskrit library handles it cleanly. It is deferred and should be implemented as a late-cascade check (after samavṛtta and jāti have already had their chance) to avoid slowing down the common case.
+
+- The imperfect identification introduced here (without diagnostics) is a prerequisite for the `HalfVerseResult` diagnostic work. Do not implement `HalfVerseResult` until the identification logic is stable.
+
 ## Priority and sequencing note
 
 This backend enhancement is a prerequisite for safe syllable-level highlighting of anuṣṭubh errors in the new batch correction mode front end. The samavṛtta case is simpler (positional diff against expected pattern is already feasible from existing data) and does not block front-end work. The anuṣṭubh diagnostic work described here should be completed first before implementing anuṣṭubh highlighting in the UI.

@@ -3,6 +3,14 @@ from skrutable import meter_patterns
 from skrutable.config import load_config_dict_from_json_file
 import re
 from copy import copy
+from dataclasses import dataclass, field
+from typing import Optional
+
+@dataclass
+class HalfVerseResult:
+	successful_id_label: Optional[str] = None   # 'pathyā', 'ma-vipulā', etc., or None if imperfect
+	failure_reason: Optional[str] = None         # see spec taxonomy; None if perfect
+	problem_syllables: dict = field(default_factory=lambda: {'odd': [], 'even': []})
 
 # load config variables
 config = load_config_dict_from_json_file()
@@ -57,22 +65,22 @@ class VerseTester(object):
 		Tries to match to known odd-even 'anuṣṭubh' foot pairings:
 				pathya
 				vipulā (4.5 subtypes: na, ra, ma, bha, and variant bha).
-		Returns string result if match found, None otherwise.
+		Returns HalfVerseResult with successful_id_label set if match found, None otherwise.
 
 		"""
 		# check even pāda
 		regex = re.compile(meter_patterns.anuzwuB_pAda['even'])
 		if not re.match(regex, even_pAda_weights):
-			return None
+			return HalfVerseResult()
 
 		# check odd pāda (both 'paTyA' and 'vipulA')
 		for weights_pattern in meter_patterns.anuzwuB_pAda['odd'].keys():
 			regex = re.compile(weights_pattern)
 			if re.match(regex, odd_pAda_weights):
-				return meter_patterns.anuzwuB_pAda['odd'][weights_pattern]
+				return HalfVerseResult(successful_id_label=meter_patterns.anuzwuB_pAda['odd'][weights_pattern])
 
 		else:
-			return None
+			return HalfVerseResult()
 
 	def test_as_anuzwuB(self, Vrs):
 	# >> def test_as_zloka(self, Vrs):
@@ -98,19 +106,19 @@ class VerseTester(object):
 
 		# both halves perfect
 
-		if pAdas_ab != None and pAdas_cd != None:
-			Vrs.meter_label = "anuṣṭubh (1,2: " + pAdas_ab + ", 3,4: " + pAdas_cd + ")"
+		if pAdas_ab.successful_id_label != None and pAdas_cd.successful_id_label != None:
+			Vrs.meter_label = "anuṣṭubh (1,2: " + pAdas_ab.successful_id_label + ", 3,4: " + pAdas_cd.successful_id_label + ")"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves perfect)"]
 			return 1
 
 		# one half imperfect
 
-		elif pAdas_ab == None and pAdas_cd != None:
-			Vrs.meter_label = "anuṣṭubh (1,2: asamīcīna, 3,4: " + pAdas_cd + ")"
+		elif pAdas_ab.successful_id_label == None and pAdas_cd.successful_id_label != None:
+			Vrs.meter_label = "anuṣṭubh (1,2: asamīcīna, 3,4: " + pAdas_cd.successful_id_label + ")"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			return 1
-		elif pAdas_ab != None and pAdas_cd == None:
-			Vrs.meter_label = "anuṣṭubh (1,2: " + pAdas_ab + ", 3,4: asamīcīna)"
+		elif pAdas_ab.successful_id_label != None and pAdas_cd.successful_id_label == None:
+			Vrs.meter_label = "anuṣṭubh (1,2: " + pAdas_ab.successful_id_label + ", 3,4: asamīcīna)"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			return 1
 
@@ -119,8 +127,8 @@ class VerseTester(object):
 		# also test whether just a single perfect half
 
 		pAdas_ab = self.test_as_anuzwuB_half(w_p[0]+w_p[1], w_p[2]+w_p[3])
-		if pAdas_ab != None:
-			Vrs.meter_label = "anuṣṭubh (ardham eva: " + pAdas_ab + ")"
+		if pAdas_ab.successful_id_label != None:
+			Vrs.meter_label = "anuṣṭubh (ardham eva: " + pAdas_ab.successful_id_label + ")"
 			Vrs.identification_score = meter_scores["anuṣṭubh, half, single half perfect)"]
 			return 1
 
