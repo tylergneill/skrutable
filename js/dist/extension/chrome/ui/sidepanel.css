@@ -67,6 +67,24 @@ body {
   display: none;
 }
 
+/* Version label */
+.brand-version {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: normal;
+  color: var(--sidebar-accent);
+  vertical-align: middle;
+  margin-left: 0.4rem;
+}
+
+.sidebar-version {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--sidebar-accent);
+  text-align: center;
+  padding: 0.25rem 0 0.1rem;
+}
+
 /* Sidebar brand and mobile header brand — not links in the extension */
 .sidebar-brand,
 .sidebar-brand h1,

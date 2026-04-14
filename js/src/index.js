@@ -84,4 +84,5 @@ import { Scanner, Verse } from './scansion.js';
 import { MeterIdentifier } from './meter_identification.js';
 import { Splitter } from './splitting.js';
 import { meter_melodies } from './meter_patterns.js';
-export { Transliterator, Scanner, Verse, MeterIdentifier, Splitter, meter_melodies };
+import { version } from '../package.json';
+export { Transliterator, Scanner, Verse, MeterIdentifier, Splitter, meter_melodies, version };

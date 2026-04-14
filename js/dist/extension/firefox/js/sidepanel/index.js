@@ -523,6 +523,15 @@ document.addEventListener("DOMContentLoaded", async function() {
 
   initBurger();
 
+  // Version label
+  var ver = (typeof Skrutable !== 'undefined' && Skrutable.version) ? 'v' + Skrutable.version : '';
+  ['header-version', 'header-settings-version'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = ver;
+  });
+  var sidebarVer = document.getElementById('sidebar-version');
+  if (sidebarVer) sidebarVer.textContent = ver;
+
   // Dark mode
   var isDarkInit = localStorage.getItem("theme") === "dark";
   applyTheme(isDarkInit);
