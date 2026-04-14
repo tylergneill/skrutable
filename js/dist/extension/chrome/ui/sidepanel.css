@@ -51,6 +51,22 @@ body {
   line-height: 2;
 }
 
+/* -js suffix link — matches h1 font, accent color */
+.brand-js {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: inherit;
+  color: var(--sidebar-accent);
+  text-decoration: none;
+}
+.brand-js:hover {
+  color: var(--sidebar-text);
+  text-decoration: none;
+}
+.brand-js::after {
+  display: none;
+}
+
 /* Sidebar brand and mobile header brand — not links in the extension */
 .sidebar-brand,
 .sidebar-brand h1,
