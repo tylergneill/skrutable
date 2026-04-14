@@ -13,6 +13,8 @@
 	"anuṣṭubh, full, both halves perfect)" : 9,
 	"anuṣṭubh, full, one half perfect, one imperfect)" : 7,
 	"anuṣṭubh, full, both halves imperfect)": 5,
+	"anuṣṭubh, full, one half perfect, one length error)": 6,
+	"anuṣṭubh, full, one half imperfect, one length error)": 4,
 	"anuṣṭubh, half, single half perfect)" : 9,
 	"anuṣṭubh, half, single half imperfect)": 5,
 	"samavṛtta, perfect" : 9,
