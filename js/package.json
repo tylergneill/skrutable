@@ -1,7 +1,7 @@
 {
   "name": "skrutable-js",
   "version": "2.1.2",
-  "description": "JavaScript toolkit for Sanskrit text transliteration, scansion, and meter identification",
+  "description": "JavaScript toolkit for Sanskrit text transliteration, scansion, meter identification, and word splitting",
   "main": "src/index.js",
   "type": "module",
   "exports": {
@@ -9,9 +9,9 @@
   },
   "files": [
     "src/",
-    "dist/",
+    "dist/skrutable.bundle.js",
     "README.md",
-    "LICENSE"
+    "LICENSE.md"
   ],
   "scripts": {
     "test": "jest",
@@ -29,7 +29,10 @@
     "identification",
     "devanagari",
     "iast",
-    "prosody"
+    "prosody",
+    "sandhi",
+    "compound",
+    "splitting"
   ],
   "author": "Antariksh Bothale",
   "contributors": [

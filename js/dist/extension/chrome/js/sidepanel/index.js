@@ -308,11 +308,13 @@ async function doIdentifyMeter() {
   try {
     var s = getSidebarSettings();
     var fromScheme = s.from_scheme === "Auto" ? null : s.from_scheme;
+    var keepMid = s.resplit_option.endsWith('_keep_mid');
+    var resplitOption = keepMid ? s.resplit_option.replace('_keep_mid', '') : s.resplit_option;
     var MI = new Skrutable.MeterIdentifier();
     var verse = MI.identify_meter(
       document.getElementById("text_input").value,
-      s.resplit_option,
-      false,
+      resplitOption,
+      keepMid,
       fromScheme
     );
     var result = verse.summarize(s.weights, s.morae, s.gaRas, s.alignment, true);
