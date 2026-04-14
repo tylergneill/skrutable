@@ -10,7 +10,10 @@ npm run build        # Build dist/skrutable.bundle.js via Rollup
 npm run dev          # Build in watch mode
 npm test             # Run all tests with Jest
 npm run test:watch   # Run tests in watch mode
+make all             # Build library + both browser extensions
 ```
+
+For extension build details (dev vs. release, CDN placeholder, browser-specific preprocessor), npm publishing workflow, and store submission, see the Development section in README.md. After any change to `extension/` source, always rebuild both extensions with `make all` or the individual `make build-extension-*` targets.
 
 To run a single test file:
 ```bash
