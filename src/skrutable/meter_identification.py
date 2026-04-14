@@ -28,6 +28,9 @@ class Diagnostic:
 	def imperfect(self):
 		return self.imperfect_id_label is not None
 
+	def length_error(self):
+		return self.failure_code in ('hypermetric', 'hypometric')
+
 
 class VerseTester(object):
 	"""
@@ -77,6 +80,14 @@ class VerseTester(object):
 		Returns Diagnostic with perfect_id_label set if match found, None otherwise.
 
 		"""
+		# check lengths first
+		if len(even_pAda_weights) != 8:
+			code = 'hypermetric' if len(even_pAda_weights) > 8 else 'hypometric'
+			return Diagnostic(failure_code=code, problem_syllables={'odd': [], 'even': list(range(len(even_pAda_weights)))})
+		if len(odd_pAda_weights) != 8:
+			code = 'hypermetric' if len(odd_pAda_weights) > 8 else 'hypometric'
+			return Diagnostic(failure_code=code, problem_syllables={'odd': list(range(len(odd_pAda_weights))), 'even': []})
+
 		# check even pāda
 		if not re.match(meter_patterns.anuzwuB_pAda['even'], even_pAda_weights):
 			for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['even'].items():
@@ -151,7 +162,38 @@ class VerseTester(object):
 				Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 				return pAdas_ab_result
 
+		# one half perfect, one length error
+
+		elif pAdas_ab_result.length_error() and pAdas_cd_result.perfect():
+			code = pAdas_ab_result.failure_code
+			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {code}; 3,4: {pAdas_cd_result.perfect_id_label})"
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_cd_result
+		elif pAdas_ab_result.perfect() and pAdas_cd_result.length_error():
+			code = pAdas_cd_result.failure_code
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: ?? {code})"
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_ab_result
+
+		# one half imperfect, one length error
+
+		elif pAdas_ab_result.length_error() and pAdas_cd_result.imperfect():
+			code = pAdas_ab_result.failure_code
+			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {code}; 3,4: {pAdas_cd_result.imperfect_id_label})"
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_cd_result
+		elif pAdas_ab_result.imperfect() and pAdas_cd_result.length_error():
+			code = pAdas_cd_result.failure_code
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.imperfect_id_label}; 3,4: ?? {code})"
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_ab_result
+
 		# also test whether just a single perfect or imperfect half
+		# (length_error alone cannot progress)
 
 		ardham_eva_result = self.test_as_anuzwuB_half(w_p[0]+w_p[1], w_p[2]+w_p[3])
 		if ardham_eva_result.perfect():
