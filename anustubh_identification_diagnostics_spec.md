@@ -1,80 +1,68 @@
 # anuṣṭubh Identification & Diagnostics — Backend Enhancement Spec
 
+## Status
+
+**Implemented and tested** (branch `improve-imperfect-anustubh-detection`):
+- `Diagnostic` dataclass with `perfect()`, `imperfect()`, `length_error()` predicates
+- Full failure-code taxonomy wired in `test_as_anuzwuB_half`
+- All imperfect/length_error combinations handled in `test_as_anuzwuB`
+- `Vrs.diagnostic` attached to every anuṣṭubh identification
+- 39 passing tests including 4 new length_error cases
+
+**Not yet implemented** (blocking merge/deploy):
+- Detection of a hypo/hypermetric half as anuṣṭubh from scratch (see below)
+
+---
+
 ## Background
 
-`MeterIdentifier.test_as_anuzwuB_half()` in `meter_identification.py` tests an odd+even pāda pair and returns either a label string (pathyā, ma-vipulā, etc.) or `None`. When it returns `None`, the caller labels the half-verse "asamīcīna" — but passes no information about *why* the half failed.
+`test_as_anuzwuB_half()` tests an odd+even pāda pair and returns a `Diagnostic` dataclass. `test_as_anuzwuB()` combines two half-results into a full identification with label and score. Results are stored on `Vrs.diagnostic` for use by the front end (syllable-level highlighting).
 
-The front end currently receives only the string `"asamīcīna"`. It cannot know whether to highlight syllables, and if so, which ones. This spec describes what the backend should return so the front end can display targeted, accurate highlighting.
+---
 
-## Current code path (simplified)
-
-```python
-# meter_identification.py
-def test_as_anuzwuB_half(self, odd_pAda_weights, even_pAda_weights):
-    # check even pāda
-    if not re.match(meter_patterns.anuzwuB_pAda['even'], even_pAda_weights):
-        return None                          # ← silent failure
-    # check odd pāda
-    for pattern, label in meter_patterns.anuzwuB_pAda['odd'].items():
-        if re.match(pattern, odd_pAda_weights):
-            return label                     # ← success: pathyā / vipulā name
-    return None                              # ← silent failure
-```
-
-When `None` is returned, `test_as_anuzwuB` labels the half "asamīcīna" with no further detail.
-
-## When asamīcīna is produced
-
-asamīcīna is only labeled when **one half of a full four-pāda verse fails while the other half succeeds**. The succeeding half provides the context that licenses calling the failing half anuṣṭubh-but-imperfect rather than simply not anuṣṭubh. Specifically:
-
-- Lines 108–115 of `test_as_anuzwuB`: one of `pAdas_ab` / `pAdas_cd` is `None`, the other is not.
-- The ardham eva path (line 121) only fires when the *concatenated* pādas pass as a single perfect half — an imperfect lone half gets `return 0` (not identified as anuṣṭubh at all).
-- Both halves failing → `return 0` (comment at line 117: "currently cannot do both halves imperfect").
-
-This means: **the even pāda is always checked first within `test_as_anuzwuB_half`, and if it fails, odd-pāda analysis never runs.** A failure is always attributed to whichever pāda actually failed within a half that was contextually confirmed as anuṣṭubh by its partner half.
-
-## Hahn's four general rules (applying to both pathyā and vipulā)
-
-From Hahn (2014):
-
-1. Syllables 1 and 8 are *anceps* — any value accepted, not a failure mode.
-2. Syllables 2–3 must not both be light — applies to **all four** pādas.
-3. Syllables 2–4 must not be ra-gaṇa (glg) — applies to **even** pādas only.
-4. Syllables 5–7 must be ja-gaṇa (lgl) — applies to **even** pādas only.
-
-## What the backend should return instead
-
-Every half-verse test returns a `Diagnostic` dataclass describing the result — perfect or imperfect. The front end needs this to highlight safely — false-positive highlights are worse than no highlights.
-
-### `Diagnostic` dataclass
+## `Diagnostic` dataclass
 
 ```python
 @dataclass
 class Diagnostic:
-    perfect_id_label: Optional[str]    # 'pathyā', 'ma-vipulā', etc.; None if imperfect
-    imperfect_id_label: Optional[str]  # human-readable Piṅgala-style label; None if perfect
-    failure_code: Optional[str]        # short internal code (see taxonomy); None if perfect
-    problem_syllables: dict            # {'odd': [ints], 'even': [ints]}, 0-indexed positions
+    perfect_id_label: Optional[str] = None     # 'pathyā', 'ma-vipulā', etc.; None if not perfect
+    imperfect_id_label: Optional[str] = None   # Piṅgala-style label; None if not imperfect
+    failure_code: Optional[str] = None          # short internal code; None if perfect
+    problem_syllables: dict = field(default_factory=lambda: {'odd': [], 'even': []})
 
-    def perfect(self) -> bool: ...
-    def imperfect(self) -> bool: ...
+    def perfect(self): return self.perfect_id_label is not None
+    def imperfect(self): return self.imperfect_id_label is not None
+    def length_error(self): return self.failure_code in ('hypermetric', 'hypometric')
 ```
 
-### Failure code taxonomy
+`perfect()`, `imperfect()`, and `length_error()` are mutually exclusive.
 
-#### Even pāda failures
+---
 
-| `failure_code` | Rule | `imperfect_id_label` | Implicated positions (even pāda) |
+## Failure code taxonomy
+
+### Length errors (checked first, before any regex)
+
+Both pādas are length-checked before any regex runs. If either is not exactly 8 syllables:
+
+| `failure_code` | Condition | `problem_syllables` |
+|---|---|---|
+| `'hypermetric'` | pāda has > 8 syllables | all positions in that pāda |
+| `'hypometric'` | pāda has < 8 syllables | all positions in that pāda |
+
+Even pāda is checked first; if it passes, odd pāda is checked. A `length_error()` Diagnostic has no `imperfect_id_label` — it is not `imperfect()`.
+
+### Even pāda rule failures
+
+| `failure_code` | Rule | `imperfect_id_label` | Positions |
 |---|---|---|---|
 | `'hahn_general_2'` | syllables 2–3 both light | `'asamīcīnā, na prathamāt snau'` | `[1, 2]` |
 | `'hahn_general_3'` | syllables 2–4 are ra-gaṇa (glg) | `'asamīcīnā, [na] dvitīyacaturthayo raḥ'` | `[1, 2, 3]` |
 | `'hahn_general_4'` | syllables 5–7 not ja-gaṇa (lgl) | `'[caturthāt] pathyā yujo j'` | `[4, 5, 6]` |
 
-Rules checked in order; first firing wins.
+### Odd pāda rule failures
 
-#### Odd pāda failures
-
-| `failure_code` | `imperfect_id_label` | Implicated positions (odd pāda) |
+| `failure_code` | `imperfect_id_label` | Positions |
 |---|---|---|
 | `'hahn_general_2'` | `'asamīcīnā, na prathamāt snau'` | `[1, 2]` |
 | `'hahn_vipulA_3'` | `'asamīcīnā, ma-vipulāyāḥ paścād raḥ syāt'` | `[1, 2, 3]` |
@@ -83,52 +71,69 @@ Rules checked in order; first firing wins.
 | `'hahn_vipulA_4'` | `'asamīcīnā, ra-vipulāyāḥ paścād guruḥ syāt'` | `[3]` |
 | `'hahn_paTyA'` | `'[vipulāyām asatyām] ya[gaṇaḥ] [ayujo] caturthāt [syāt]'` | `[0..7]` |
 
-hahn_general_2 is checked first; vipulā conditioning checks follow; hahn_paTyA is the final catch-all.
+---
 
-### Storage on `Verse`
+## Identification branches in `test_as_anuzwuB`
+
+| ab result | cd result | score | label pattern |
+|---|---|---|---|
+| perfect | perfect | 9 | `anuṣṭubh (1,2: <perfect>; 3,4: <perfect>)` |
+| imperfect | perfect | 7 | `anuṣṭubh (1,2: <imperfect>; 3,4: <perfect>)` |
+| perfect | imperfect | 7 | `anuṣṭubh (1,2: <perfect>; 3,4: <imperfect>)` |
+| length_error | perfect | 6 | `anuṣṭubh (1,2: ?? <code>; 3,4: <perfect>)` |
+| perfect | length_error | 6 | `anuṣṭubh (1,2: <perfect>; 3,4: ?? <code>)` |
+| imperfect | imperfect | 5 | `anuṣṭubh (1,2: <imperfect>; 3,4: <imperfect>)` ¹ |
+| length_error | imperfect | 4 | `anuṣṭubh (1,2: ?? <code>; 3,4: <imperfect>)` |
+| imperfect | length_error | 4 | `anuṣṭubh (1,2: <imperfect>; 3,4: ?? <code>)` |
+| length_error | length_error | — | suppressed (return None) |
+| ardham eva perfect | — | 9 | `anuṣṭubh (ardham eva: <perfect>)` |
+| ardham eva imperfect | — | 5 | `anuṣṭubh (ardham eva: <imperfect>)` |
+| ardham eva length_error | — | — | suppressed (return None) |
+
+¹ Gated: at least 2 of 4 pādas exactly 8 syllables, all within 6–10. Prevents false positives from ardham eva duplicated-pāda inputs.
+
+---
+
+## Storage on `Verse`
 
 `Vrs.diagnostic` is set on every anuṣṭubh identification:
 - Single `Diagnostic` for ardham eva cases
 - `{'ab': Diagnostic, 'cd': Diagnostic}` for full four-pāda cases
 
-`Vrs.diagnostic` is `None` for non-anuṣṭubh identifications. This is a non-breaking addition.
+`Vrs.diagnostic` is `None` for non-anuṣṭubh identifications.
 
-## Extended identification goal
+---
 
-Currently `test_as_anuzwuB` only labels a half as asamīcīna when the *other* half of the same verse succeeds. This is not a principled exclusion — it is an incremental implementation that stopped short. The comments at lines 117 and 127 ("currently cannot do both halves imperfect", "currently cannot do just a single imperfect half") are TODOs, not design decisions.
+## Next: hypo/hypermetric half detection
 
-There is no theoretical reason why a lone imperfect half, or a verse where both halves are imperfect, cannot be identified as anuṣṭubh-with-asamīcīna. The even pāda check and odd pāda pattern loop are sufficient to produce diagnostics regardless of what the other half does. The "context" of a passing partner half was simply the conservative path taken to avoid false positives.
+### The problem
 
-### New goal
+Currently a half verse with a wrong-length pāda is identified as `length_error` only when the *other* half is already perfect or imperfect — i.e., it borrows context from its partner. A verse where *both* halves have wrong-length pādas, or a lone two-pāda input where the single half has wrong length, gets suppressed entirely (`return None`).
 
-Extend `test_as_anuzwuB` to handle:
+This means genuinely anuṣṭubh-like verses with one extra or missing syllable somewhere are not identified as anuṣṭubh at all, which is the wrong outcome.
 
-1. **Both halves imperfect, full verse**: label as `"anuṣṭubh (1,2: asamīcīna, 3,4: asamīcīna)"`, lower identification score. Store diagnostics for both halves.
-2. **Lone imperfect half (ardham eva)**: if the ardham eva path is reached and the single half fails, label as `"anuṣṭubh (ardham eva: asamīcīna)"` rather than returning 0. Store diagnostics.
+### Why it's hard
 
-New score entries will be needed in the scoring system for these cases. The existing entries (`anuṣṭubh, full, both halves perfect)`, `anuṣṭubh, full, one half perfect, one imperfect)`, `anuṣṭubh, half, single half perfect)`) are the reference for calibrating the new ones.
+The current approach matches 8-character weight strings against fixed regexes. A 9-syllable pāda has 9 characters — no existing regex matches it. Correct identification requires knowing *which* syllable is extra (or missing) and whether the remainder is anuṣṭubh-valid. This is a fuzzy/edit-distance problem.
 
-`Vrs.failure_diagnostic` in the both-halves-imperfect case should store diagnostics for both halves, e.g. `{'ab': HalfVerseResult, 'cd': HalfVerseResult}`. In the single-half case a single `HalfVerseResult` suffices.
+The ambuda/vidyut-chanda system fails here for the same structural reason: it's also a fixed-pattern matcher with no edit-distance capability.
 
-## Implementation notes (from design session)
+### Proposed approach (deferred)
 
-- `wiggle_identify` always normalizes input to 4 pādas before `attempt_identification` is called. There is no separate 2-pāda input path. The ardham eva path inside `test_as_anuzwuB` concatenates pādas 1+2 and 3+4 into 16-char strings and re-runs `test_as_anuzwuB_half`. The "ardham eva: asamīcīna" case is simply: that concatenated test also returns `None`. No special input handling is needed.
+Implement as a **late-cascade check** inside `test_as_anuzwuB`, after all exact-match branches have been tried and returned None. For each wrong-length pāda (6–10 syllables), try deleting or inserting one syllable at each position and test the resulting 8-character string against the normal even/odd patterns. If any deletion/insertion produces a valid or imperfect match, record that as a length_error with the implicated position identified.
 
-- The "both halves imperfect" identification must be gated on syllable counts being plausibly anuṣṭubh. Proposed gate: at least 2 of 4 pādas exactly 8 syllables, and all pādas within ±2 (6–10 syllables). This mirrors the samavṛtta approach of using plurality (pādasamatva count ≥ 2) rather than requiring all pādas to match.
+This must be gated tightly to avoid false positives:
+- Only attempt when syllable count is 6–10 (no wilder lengths)
+- Only fire after samavṛtta and jāti have already had their chance
+- Score must be low enough (≤ 4) that any exact samavṛtta or jāti match beats it
 
-- Imperfect identification (both halves imperfect, ardham eva imperfect) must score low enough that correct samavṛtta or jāti beats it. Score 5 proposed for both new cases.
+This is the primary remaining blocker before merging this branch.
 
-- Hypo/hypermetric pāda detection (pādas of 6, 7, 9, or 10 syllables that are "close" to valid anuṣṭubh) requires fuzzy/edit-distance matching. This is genuinely hard — no existing Sanskrit library handles it cleanly. It is deferred and should be implemented as a late-cascade check (after samavṛtta and jāti have already had their chance) to avoid slowing down the common case.
-
-- The imperfect identification introduced here (without diagnostics) is a prerequisite for the `HalfVerseResult` diagnostic work. Do not implement `HalfVerseResult` until the identification logic is stable.
-
-## Priority and sequencing note
-
-This backend enhancement is a prerequisite for safe syllable-level highlighting of anuṣṭubh errors in the new batch correction mode front end. The samavṛtta case is simpler (positional diff against expected pattern is already feasible from existing data) and does not block front-end work. The anuṣṭubh diagnostic work described here should be completed first before implementing anuṣṭubh highlighting in the UI.
+---
 
 ## References
 
-- `skrutable/src/skrutable/meter_patterns.py` lines 24–48: anuṣṭubh rules and regex patterns
-- `skrutable/src/skrutable/meter_identification.py` lines 54–129: `test_as_anuzwuB_half` and `test_as_anuzwuB`
+- `src/skrutable/meter_patterns.py` lines 24–48: anuṣṭubh rules and regex patterns
+- `src/skrutable/meter_identification.py`: `Diagnostic` dataclass, `test_as_anuzwuB_half`, `test_as_anuzwuB`
 - Sources cited in `meter_patterns.py`: Apte (1890), Hahn (2014), Murthy (2003)
 - `skrutable_front_end/batch_correction_mode_spec.md`: front-end highlighting strategy
