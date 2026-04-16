@@ -1,10 +1,9 @@
-# dist/extension/chrome/ and dist/extension/firefox/ are committed so that
-# the extension can be loaded unpacked or zipped for store submission without
-# requiring a build step. Run the appropriate target below after any changes.
+# dist/extension/ is gitignored. Run 'make all' to build locally for testing,
+# or 'make release-extension-*' to build release builds before store submission.
 
 .PHONY: build build-extension-chrome build-extension-firefox \
         release-extension-chrome release-extension-firefox \
-        all clean
+        all clean-bundle clean-extensions
 
 # Build the skrutable JS library bundle (dist/skrutable.bundle.js)
 build:
@@ -29,5 +28,9 @@ release-extension-firefox:
 # Build library + both extensions for local development
 all: build build-extension-chrome build-extension-firefox
 
-clean:
-	rm -rf dist/
+# Remove the built library bundle.
+clean-bundle:
+	rm -f dist/skrutable.bundle.js
+
+clean-extensions:
+	rm -rf dist/extension/

@@ -150,7 +150,7 @@ npm test             # run all tests (Jest + Babel)
 make all             # build library + both extensions
 ```
 
-After any change to `src/`, run `npm run build` (or `make all`) before testing the extension — the extension dev builds copy the local `dist/skrutable.bundle.js` into the extension dist.
+After any change to `src/`, use `make all` rather than `npm run build` directly — it builds the library bundle and then copies it into both extension dev builds in one step.
 
 ### Browser extension
 
@@ -175,7 +175,7 @@ make release-extension-chrome
 make release-extension-firefox
 ```
 
-The built `dist/extension/` directories are committed to the repo so the extension can be loaded unpacked or zipped for store submission without requiring a build step.
+`dist/extension/` is gitignored. Run `make all` to build locally for load-unpacked testing, or `make release-extension-chrome` / `make release-extension-firefox` to produce release builds for store submission.
 
 ### Publishing the npm package
 

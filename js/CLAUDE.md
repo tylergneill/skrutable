@@ -13,7 +13,7 @@ npm run test:watch   # Run tests in watch mode
 make all             # Build library + both browser extensions
 ```
 
-For extension build details (dev vs. release, CDN placeholder, browser-specific preprocessor), npm publishing workflow, and store submission, see the Development section in README.md. After any change to `extension/` source, always rebuild both extensions with `make all` or the individual `make build-extension-*` targets.
+For extension build details (dev vs. release, CDN placeholder, browser-specific preprocessor), npm publishing workflow, and store submission, see the Development section in README.md. `dist/extension/` is gitignored — run `make all` to build locally for testing, or `make release-extension-*` before store submission.
 
 To run a single test file:
 ```bash
