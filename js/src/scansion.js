@@ -379,6 +379,7 @@ export class Scanner {
 
     // set up Transliterator and schemes
     const T = new Transliterator(); // default settings
+    T.contents = cntnts;
     if (fromScheme !== null) {
       fromScheme = fromScheme.toUpperCase();
       T.schemeIn = fromScheme;

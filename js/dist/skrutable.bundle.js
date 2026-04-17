@@ -12888,13 +12888,13 @@
 
   // Configuration settings for skrutable-js
   const config = {
-    "default_scheme_in": "IAST",
+    "default_scheme_in": "auto",
     "default_scheme_out": "IAST",
     "avoid_virama_indic_scripts": true,
     "avoid_virama_non_indic_scripts": false,
     "scansion_syllable_separator": " ",
     "additional_pAda_separators": ["\t", ";", ",", " / ", " | ", " । "],
-    "default_resplit_option": "resplit_max",
+    "default_resplit_option": "resplit_lite",
     "default_resplit_keep_midpoint": false,
     "meter_scores": {
       "max score": 9,
@@ -13849,6 +13849,7 @@
 
       // set up Transliterator and schemes
       const T = new Transliterator(); // default settings
+      T.contents = cntnts;
       if (fromScheme !== null) {
         fromScheme = fromScheme.toUpperCase();
         T.schemeIn = fromScheme;

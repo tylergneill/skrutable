@@ -1,12 +1,12 @@
 // Configuration settings for skrutable-js
 export const config = {
-  "default_scheme_in": "IAST",
+  "default_scheme_in": "auto",
   "default_scheme_out": "IAST",
   "avoid_virama_indic_scripts": true,
   "avoid_virama_non_indic_scripts": false,
   "scansion_syllable_separator": " ",
   "additional_pAda_separators": ["\t", ";", ",", " / ", " | ", " । "],
-  "default_resplit_option": "resplit_max",
+  "default_resplit_option": "resplit_lite",
   "default_resplit_keep_midpoint": false,
   "disable_non_trizwuB_upajAti": true,
   "meter_scores": {
