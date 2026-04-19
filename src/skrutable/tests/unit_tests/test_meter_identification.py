@@ -540,13 +540,12 @@ def test_vaMSasTa_imperfect_not_upajAti():
 	assert truncated_output == expected_output
 
 def test_identify_meter_jAti_resplit_lite():
-	# this verse is correctly identified as āryā by resplit_max (see test below);
-	# resplit_lite does not find a valid 4-pāda split satisfying āryā gaṇa rules
 	MI = MeterIdentifier()
 	input_string = """स्वः स्वर्गः सुरसद्म त्रिदशावासस्त्रिविष्टपं त्रिदिवम्
 द्यौर्गौरमर्त्यभुवनं नाकः स्यादूर्ध्वलोकश्च"""
 	object_result = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_lite')
-	assert object_result.identification_score < meter_scores["jāti, perfect"]
+	assert object_result.meter_label[:4] == 'āryā'
+	assert object_result.identification_score == meter_scores["jāti, perfect"]
 
 def test_identify_meter_jAti_resplit_max_keep_midpoint():
 	MI = MeterIdentifier()

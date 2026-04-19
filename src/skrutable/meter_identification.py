@@ -109,6 +109,7 @@ class VerseTester(object):
 		self.resplit_keep_midpoint = default_resplit_keep_midpoint # bool
 		self.identification_attempt_count = 0
 		self._anuzwuB_half_cache = {}  # cleared per wiggle_identify run
+		self._jAti_cache = {}           # cleared per wiggle_identify run
 
 	def combine_results(self, Vrs, new_label, new_score):
 		old_label = Vrs.meter_label or ''
@@ -683,46 +684,62 @@ class VerseTester(object):
 	def test_as_jAti(self, Vrs):
 		"""
 		Determines whether verse is of jāti (mātrāvṛtta) type.
-		Validates both morae totals per pāda AND mātrā-gaṇa structure per ardha.
+		Operates at the ardha (half-verse) level: concatenates pādas 1+2 and 3+4,
+		gates on ardha morae totals, then validates mātrā-gaṇa structure.
 		Returns 1 if identified, 0 if not.
 		"""
 
 		w_p = Vrs.syllable_weights.split('\n')
-		try: w_p[3]
-		except IndexError: return 0
+		if len(w_p) < 2 or not w_p[0] or not w_p[1]:
+			return 0
 
-		morae_by_pAda = Vrs.morae_per_line
-		morae_by_pAda_string = str(morae_by_pAda)
+		# concatenate into two ardhas regardless of number of pādas
+		if len(w_p) >= 4:
+			ardha1_w = w_p[0] + w_p[1]
+			ardha2_w = w_p[2] + w_p[3]
+		else:
+			ardha1_w = w_p[0]
+			ardha2_w = w_p[1]
 
-		for flex_pattern, std_pattern, jAti_name, g6_ardha1, g6_ardha2 in meter_patterns.jAtis_by_morae:
+		cache_key = (ardha1_w, ardha2_w)
+		if cache_key in self._jAti_cache:
+			cached = self._jAti_cache[cache_key]
+			if cached:
+				Vrs.meter_label, Vrs.identification_score, Vrs.diagnostic = cached
+				return 1
+			return 0
 
-			if not re.match(flex_pattern, morae_by_pAda_string):
+		def ardha_morae(w): return w.count('l') + w.count('g') * 2
+		m1 = ardha_morae(ardha1_w)
+		m2 = ardha_morae(ardha2_w)
+
+		for std_ardha, jAti_name, g6_ardha1, g6_ardha2, quarter_label in meter_patterns.jAtis_by_ardha_morae:
+
+			# ardha-level morae gate with anceps allowance on final syllable of each ardha
+			ok1 = m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l')
+			ok2 = m2 == std_ardha[1] or (m2 == std_ardha[1] - 1 and ardha2_w[-1] == 'l')
+			if not ok1 or not ok2:
 				continue
 
-			# validate per-pāda morae (anceps allowance on final syllable)
-			for i in range(4):
-				if (
-					morae_by_pAda[i] == std_pattern[i] or
-					morae_by_pAda[i] == std_pattern[i] - 1 and w_p[i][-1] == 'l'
-				):
-					continue
-				else:
-					break
-			else:
-				# morae valid — now validate mātrā-gaṇa structure
-				g8_morae = 4 if jAti_name == 'āryāgīti' else 2
-				ardha1_ganas = _decompose_into_mAtragaNas(w_p[0] + w_p[1], g6_ardha1, g8_morae)
-				ardha2_ganas = _decompose_into_mAtragaNas(w_p[2] + w_p[3], g6_ardha2, g8_morae)
+			g8_morae = 4 if jAti_name == 'āryāgīti' else 2
+			ardha1_ganas = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae)
+			ardha2_ganas = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae)
 
-				if not _validate_jAti_gaNas(ardha1_ganas, g6_ardha1) or \
-				   not _validate_jAti_gaNas(ardha2_ganas, g6_ardha2):
-					continue
+			if not _validate_jAti_gaNas(ardha1_ganas, g6_ardha1) or \
+			   not _validate_jAti_gaNas(ardha2_ganas, g6_ardha2):
+				continue
 
-				Vrs.meter_label = jAti_name + " (%s)" % str(std_pattern)[1:-1]
-				Vrs.identification_score = meter_scores["jāti, perfect"]
-				Vrs.diagnostic = Diagnostic(perfect_id_label=Vrs.meter_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
-				return 1
+			label = jAti_name + " (%s)" % quarter_label
+			score = meter_scores["jāti, perfect"]
+			diagnostic = Diagnostic(perfect_id_label=label, problem_syllables={1: [], 2: [], 3: [], 4: []})
 
+			self._jAti_cache[cache_key] = (label, score, diagnostic)
+			Vrs.meter_label = label
+			Vrs.identification_score = score
+			Vrs.diagnostic = diagnostic
+			return 1
+
+		self._jAti_cache[cache_key] = None
 		return 0
 
 	def attempt_identification(self, Vrs):

@@ -356,21 +356,22 @@ vizamavftta_by_4_tuple = {
 
 
 """
-	Lists of jātis by total mātrās in each pāda.
-	Structure: regex of flexible pattern, fixed pattern as list, name, gana_6_ardha1, gana_6_ardha2.
+	Lists of jātis by ardha (half-verse) morae totals.
+	Structure: std_ardha_morae, name, gana_6_ardha1, gana_6_ardha2.
+	std_ardha_morae: [ardha1_std, ardha2_std]; anceps (±1) checked in test_as_jAti.
 	gana_6_ardha1/2: expected mora count for gaṇa 6 of each ardha (1=la, 4=ja/kha).
 	āryāgīti also has gaṇa 8 = 4 morae (not 2) in both ardhas; all others have gaṇa 8 = 2.
 """
-jAtis_by_morae = [
-#  flex_pattern                                      std_pattern        name         g6_a1  g6_a2
-['\[(12|11), (18|17), (12|11), (15|14)\]', [12, 18, 12, 15], 'āryā',     4,     1],
+jAtis_by_ardha_morae = [
+#  std_ardha_morae  name         g6_a1  g6_a2  conventional_quarter_label
+[[30, 27], 'āryā',     4, 1, '12, 18, 12, 15'],
 # see Andrew Ollett's work (e.g., @ prakrit.info) for extra rules on Prakrit gāhā...
-['\[(12|11), (18|17), (12|11), (18|17)\]', [12, 18, 12, 18], 'gīti',     4,     4],
-['\[(12|11), (15|14), (12|11), (15|14)\]', [12, 15, 12, 15], 'upagīti',  1,     1],
-['\[(12|11), (15|14), (12|11), (18|17)\]', [12, 15, 12, 18], 'udgīti',   1,     4],
-['\[(12|11), (20|19), (12|11), (20|19)\]', [12, 20, 12, 20], 'āryāgīti', 4,     4],
-# ['\[(14|13), (16|15), (14|13), (16|15)\]', [12, 18, 12, 18], 'vaitālīya'], # more rules...
-# ['\[(16|15), (16|15), (16|15), (16|15)\]', [16, 16, 16, 16], 'mātrāsamaka'], # more rules...
+[[30, 30], 'gīti',     4, 4, '12, 18, 12, 18'],
+[[27, 27], 'upagīti',  1, 1, '12, 15, 12, 15'],
+[[27, 30], 'udgīti',   1, 4, '12, 15, 12, 18'],
+[[32, 32], 'āryāgīti', 4, 4, '12, 20, 12, 20'],
+# [[28, 30], 'vaitālīya'],  # more rules...
+# [[32, 32], 'mātrāsamaka'], # more rules...
 ]
 
 # Named mātrā-gaṇas relevant to āryā-family rule checking
