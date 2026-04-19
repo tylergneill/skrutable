@@ -287,23 +287,61 @@ class VerseTester(object):
 			meter_label += ' [%d: %s]' % ( len(w_to_id), g_to_id )
 
 		score = meter_scores["samavṛtta, perfect"]
+		imperfect_note = None
 
 		if self.pAdasamatva_count == 3:
-			meter_label += " (? 3 eva pādāḥ yuktāḥ)"
+			imperfect_note = "? 3 eva pādāḥ yuktāḥ"
+			meter_label += " (%s)" % imperfect_note
 			score = meter_scores["samavṛtta, imperfect (3)"]
 		elif self.pAdasamatva_count == 2:
-			meter_label += " (? 2 eva pādāḥ yuktāḥ)"
+			imperfect_note = "? 2 eva pādāḥ yuktāḥ"
+			meter_label += " (%s)" % imperfect_note
 			score = meter_scores["samavṛtta, imperfect (2)"]
 		elif self.pAdasamatva_count == 0:
-			meter_label += " (1 eva pādaḥ)"
+			imperfect_note = "1 eva pādaḥ"
+			meter_label += " (%s)" % imperfect_note
 			score = meter_scores["samavṛtta, quarter, perfect"]
 
 		# experimental penalty, can later incorporate into config meter_scores
-		if meter_label == "ajñātasamavṛtta":
+		if "ajñātasamavṛtta" in meter_label:
 			score -= 2
 
+		# build diagnostic
+		problem_syllables = {}
+		canonical = w_to_id  # includes final anceps
+		for pada_num, w in enumerate(wbp[:4], start=1):
+			if w == canonical:
+				problem_syllables[pada_num] = []
+			elif len(w) != len(canonical):
+				problem_syllables[pada_num] = list(range(len(w)))
+			else:
+				# compare position-by-position; final anceps always matches
+				problem_syllables[pada_num] = [
+					j for j in range(len(w) - 1) if w[j] != canonical[j]
+				]
+
+		# collect any hyper/hypometric notes for imperfect_id_label
+		length_notes = []
+		for pada_num, w in enumerate(wbp[:4], start=1):
+			if len(w) > len(canonical):
+				length_notes.append("pāda %d hypermetric" % pada_num)
+			elif len(w) < len(canonical):
+				length_notes.append("pāda %d hypometric" % pada_num)
+
+		if imperfect_note is None:
+			base_label = meter_label
+			diagnostic = Diagnostic(perfect_id_label=base_label, problem_syllables=problem_syllables)
+		else:
+			full_imperfect = imperfect_note
+			if length_notes:
+				full_imperfect += "; " + "; ".join(length_notes)
+			diagnostic = Diagnostic(imperfect_id_label=full_imperfect, problem_syllables=problem_syllables)
+
 		# may tie with pre-existing result (e.g., upajāti)
+		old_score = Vrs.identification_score
 		self.combine_results(Vrs, new_label=meter_label, new_score=score)
+		if score >= old_score:
+			Vrs.diagnostic = diagnostic
 
 
 
@@ -340,19 +378,25 @@ class VerseTester(object):
 			Vrs.identification_score = meter_scores["ardhasamavṛtta, perfect, unknown"]
 
 		Vrs.meter_label = meter_label
+		Vrs.diagnostic = Diagnostic(perfect_id_label=meter_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
 
 
 	def evaluate_upajAti(self, Vrs):
 		# sufficient length similarity already assured, now just evaluate
 
 		wbp = Vrs.syllable_weights.split('\n') # weights by pāda
-		wbp_lens = [ len(line) for line in wbp ]
+		wbp_lens_orig = [ len(line) for line in wbp ]
+		wbp_lens = list(wbp_lens_orig)
 		gs_to_id = Vrs.gaRa_abbreviations.split('\n')
 
 		# special exception for triṣṭubh-jagatī mix
 		# see Karashima 2016 "The Triṣṭubh-Jagatī Verses in the Saddharmapuṇḍarīka"
 		unique_sorted_lens = list(set(wbp_lens))
 		unique_sorted_lens.sort()
+
+		# track which original pada indices (0-based) are excluded
+		excluded_indices = []
+
 		if unique_sorted_lens != [11, 12]:
 
 			# if imperfect, exclude all info for lines of non-majority lengths
@@ -365,6 +409,7 @@ class VerseTester(object):
 			for i, weights in enumerate(wbp):
 				if len(weights) != most_freq_pAda_len:
 					to_exclude.append(i)
+			excluded_indices = list(to_exclude)
 			for i in reversed(to_exclude): # delete in descending index order, avoid index errors
 				del wbp[i]
 				del wbp_lens[i]
@@ -438,7 +483,7 @@ class VerseTester(object):
 		else:
 			score = meter_scores["none found"]
 
-
+		imperfect_note = None
 		overall_meter_label = "upajāti %s: %s" % (
 			family,
 			combined_meter_labels
@@ -448,9 +493,39 @@ class VerseTester(object):
 				len(wbp_lens) != 4 and
 				unique_sorted_lens != [11, 12]
 			): # not perfect and also not triṣṭubh-jagatī-saṃkara
-			overall_meter_label += " (? %d eva pādāḥ yuktāḥ)" % len(wbp_lens)
+			imperfect_note = "? %d eva pādāḥ yuktāḥ" % len(wbp_lens)
+			overall_meter_label += " (%s)" % imperfect_note
 
+		# build diagnostic: problem_syllables keyed 1–4
+		# included pādas: no positional errors (upajāti pādas are heterogeneous by design)
+		# excluded pādas: hyper/hypometric
+		most_freq_len = wbp_lens[0] if wbp_lens else None
+		problem_syllables = {}
+		length_notes = []
+		for pada_num in range(1, 5):
+			orig_len = wbp_lens_orig[pada_num - 1] if pada_num - 1 < len(wbp_lens_orig) else None
+			if pada_num - 1 in excluded_indices:
+				problem_syllables[pada_num] = list(range(orig_len)) if orig_len is not None else []
+				if orig_len is not None and most_freq_len is not None:
+					if orig_len > most_freq_len:
+						length_notes.append("pāda %d hypermetric" % pada_num)
+					else:
+						length_notes.append("pāda %d hypometric" % pada_num)
+			else:
+				problem_syllables[pada_num] = []
+
+		if imperfect_note is None:
+			diagnostic = Diagnostic(perfect_id_label=overall_meter_label, problem_syllables=problem_syllables)
+		else:
+			full_imperfect = imperfect_note
+			if length_notes:
+				full_imperfect += "; " + "; ".join(length_notes)
+			diagnostic = Diagnostic(imperfect_id_label=full_imperfect, problem_syllables=problem_syllables)
+
+		old_score = Vrs.identification_score
 		self.combine_results(Vrs, overall_meter_label, score)
+		if score >= old_score:
+			Vrs.diagnostic = diagnostic
 
 
 	def is_vizamavftta(self, Vrs):
@@ -462,6 +537,7 @@ class VerseTester(object):
 			if (gs_to_id[0],gs_to_id[1],gs_to_id[2],gs_to_id[3]) == (a, b, c, d):
 				Vrs.identification_score = meter_scores["viṣamavṛtta, perfect"]
 				Vrs.meter_label = meter_patterns.vizamavftta_by_4_tuple[(a, b, c, d)]
+				Vrs.diagnostic = Diagnostic(perfect_id_label=Vrs.meter_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
 				return True
 
 		else:
@@ -593,6 +669,7 @@ class VerseTester(object):
 				else:  # if all four pAdas proven valid, i.e., if no breaks
 					Vrs.meter_label = jAti_name + " (%s)" % str(std_pattern)[1:-1]
 					Vrs.identification_score = meter_scores["jāti, perfect"]
+					Vrs.diagnostic = Diagnostic(perfect_id_label=Vrs.meter_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
 
 					# should be combining results in case of previous match
 

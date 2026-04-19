@@ -579,6 +579,74 @@ sutādānānmitraṃ bhavatu sa hi no nandana iti ॥"""
 	expected_output = "śikhariṇī"
 	assert truncated_output == expected_output
 
+def test_samavftta_perfect_diagnostic():
+	S = Scanner()
+	input_string = """sampūrṇakumbho na karoti śabdam
+ardho ghaṭo ghoṣamupaiti nūnam
+vidvānkulīno na karoti garvaṃ
+jalpanti mūḍhāstu guṇairvihīnāḥ"""
+	V = S.scan(input_string, from_scheme='IAST')
+	VT = VerseTester()
+	VT.count_pAdasamatva(V)
+	VT.evaluate_samavftta(V)
+	d = V.diagnostic
+	assert d.perfect()
+	assert "indravajrā" in d.perfect_id_label
+	assert d.problem_syllables == {1: [], 2: [], 3: [], 4: []}
+
+def test_samavftta_imperfect_3_diagnostic():
+	S = Scanner()
+	# "kumbha" instead of "kumbho": pāda 1 differs at position 4
+	input_string = """sampūrṇakumbha na karoti śabdam
+ardho ghaṭo ghoṣamupaiti nūnam
+vidvānkulīno na karoti garvaṃ
+jalpanti mūḍhāstu guṇairvihīnāḥ"""
+	V = S.scan(input_string, from_scheme='IAST')
+	VT = VerseTester()
+	VT.count_pAdasamatva(V)
+	VT.evaluate_samavftta(V)
+	d = V.diagnostic
+	assert d.imperfect()
+	assert "3 eva pādāḥ yuktāḥ" in d.imperfect_id_label
+	assert d.problem_syllables[1] == [4]
+	assert d.problem_syllables[2] == []
+	assert d.problem_syllables[3] == []
+	assert d.problem_syllables[4] == []
+
+def test_upajAti_perfect_diagnostic():
+	S = Scanner()
+	input_string = """kolAhale kAkakulasya jAte
+virAjate kokilakUjitaM kim
+parasparaM saMvadatAM KalAnAM
+mOnaM viDeyaM satataM suDIBiH"""
+	V = S.scan(input_string, from_scheme='SLP')
+	VT = VerseTester()
+	VT.evaluate_upajAti(V)
+	d = V.diagnostic
+	assert d.perfect()
+	assert "upajāti" in d.perfect_id_label
+	assert d.problem_syllables == {1: [], 2: [], 3: [], 4: []}
+
+def test_upajAti_imperfect_hypometric_diagnostic():
+	S = Scanner()
+	# "kolAha" instead of "kolAhale": pāda 1 is hypometric, excluded
+	input_string = """kolAha kAkakulasya jAte
+virAjate kokilakUjitaM kim
+parasparaM saMvadatAM KalAnAM
+mOnaM viDeyaM satataM suDIBiH"""
+	V = S.scan(input_string, from_scheme='SLP')
+	VT = VerseTester()
+	VT.count_pAdasamatva(V)
+	VT.evaluate_upajAti(V)
+	if not disable_non_trizwuB_upajAti:
+		d = V.diagnostic
+		assert d.imperfect()
+		assert "hypometric" in d.imperfect_id_label
+		assert d.problem_syllables[1] == list(range(10))  # 10-syllable pāda excluded
+		assert d.problem_syllables[2] == []
+		assert d.problem_syllables[3] == []
+		assert d.problem_syllables[4] == []
+
 def test_identify_meter_vizamavftta_perfect():
 	MI = MeterIdentifier()
 	input_string = """bibharāṃbabhūvur apavṛtta
