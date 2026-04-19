@@ -3,6 +3,8 @@ from skrutable import meter_patterns
 from skrutable.config import load_config_dict_from_json_file
 import re
 from copy import copy
+from dataclasses import dataclass, field
+from typing import Optional
 
 # load config variables
 config = load_config_dict_from_json_file()
@@ -11,6 +13,24 @@ default_resplit_option = config["default_resplit_option"]  # e.g. "none"
 default_resplit_keep_midpoint = config["default_resplit_keep_midpoint"]  # e.g. True
 disable_non_trizwuB_upajAti = config["disable_non_trizwuB_upajAti"]  # e.g. True
 meter_scores = config["meter_scores"]  # dict
+
+
+@dataclass
+class Diagnostic:
+	perfect_id_label: Optional[str] = None      # 'pathyā', 'ma-vipulā', etc.; None if imperfect
+	imperfect_id_label: Optional[str] = None    # 'asamīcīnā ma-vipulā', etc.; None if perfect or unidentified
+	failure_code: Optional[str] = None           # short internal code, e.g. 'hahn_general_2'; None if perfect
+	problem_syllables: dict = field(default_factory=lambda: {'odd': [], 'even': []})
+
+	def perfect(self):
+		return self.perfect_id_label is not None
+
+	def imperfect(self):
+		return self.imperfect_id_label is not None
+
+	def length_error(self):
+		return self.failure_code in ('hypermetric', 'hypometric')
+
 
 class VerseTester(object):
 	"""
@@ -55,24 +75,42 @@ class VerseTester(object):
 		"""
 		Accepts two strings of syllable weights (e.g. 'llglgllg').
 		Tries to match to known odd-even 'anuṣṭubh' foot pairings:
-				pathya
+				pathyā
 				vipulā (4.5 subtypes: na, ra, ma, bha, and variant bha).
-		Returns string result if match found, None otherwise.
+		Returns Diagnostic with perfect_id_label set if match found, None otherwise.
 
 		"""
+
+		# check lengths first; length_error only reported when exactly one pāda is off
+		even_len_ok = len(even_pAda_weights) == 8
+		odd_len_ok = len(odd_pAda_weights) == 8
+		if not even_len_ok and not odd_len_ok:
+			return None  # both wrong: bad split, not credible
+		if not even_len_ok:
+			code = 'hypermetric' if len(even_pAda_weights) > 8 else 'hypometric'
+			return Diagnostic(failure_code=code, problem_syllables={'odd': [], 'even': list(range(len(even_pAda_weights)))})
+		if not odd_len_ok:
+			code = 'hypermetric' if len(odd_pAda_weights) > 8 else 'hypometric'
+			return Diagnostic(failure_code=code, problem_syllables={'odd': list(range(len(odd_pAda_weights))), 'even': []})
+
 		# check even pāda
-		regex = re.compile(meter_patterns.anuzwuB_pAda['even'])
-		if not re.match(regex, even_pAda_weights):
-			return None
+		if not re.match(meter_patterns.anuzwuB_pAda['even'], even_pAda_weights):
+			for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['even'].items():
+				if re.match(weights_pattern, even_pAda_weights):
+					return Diagnostic(imperfect_id_label=label, failure_code=code, problem_syllables={'odd': [], 'even': problem_syls})
+			return Diagnostic(imperfect_id_label='asamīcīnā, [caturthāt] pathyā yujo j', failure_code='hahn_general_4', problem_syllables={'odd': [], 'even': [4, 5, 6]})
 
 		# check odd pāda (both 'paTyA' and 'vipulA')
-		for weights_pattern in meter_patterns.anuzwuB_pAda['odd'].keys():
-			regex = re.compile(weights_pattern)
-			if re.match(regex, odd_pAda_weights):
-				return meter_patterns.anuzwuB_pAda['odd'][weights_pattern]
+		for weights_pattern, label in meter_patterns.anuzwuB_pAda['odd'].items():
+			if re.match(weights_pattern, odd_pAda_weights):
+				return Diagnostic(perfect_id_label=label)
 
-		else:
-			return None
+		# check for broken conditioning on odd pāda
+		for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['odd'].items():
+			if re.match(weights_pattern, odd_pAda_weights):
+				return Diagnostic(imperfect_id_label=label, failure_code=code, problem_syllables={'odd': problem_syls, 'even': []})
+
+		return Diagnostic(imperfect_id_label='asamīcīnā, [vipulāyām asatyām] ya[gaṇaḥ] [ayujo] caturthāt [syāt]', failure_code='hahn_paTyA', problem_syllables={'odd': [4, 5, 6], 'even': []})
 
 	def test_as_anuzwuB(self, Vrs):
 	# >> def test_as_zloka(self, Vrs):
@@ -81,52 +119,99 @@ class VerseTester(object):
 		Determines whether first four lines of Verse's syllable_weights is anuṣṭubh.
 		Internally sets Verse parameters if identified as such.
 		Tests halves ab and cd independently, reports if either half found to be valid.
-		Returns 1 if anuṣṭubh, or 0 if not.
+		Returns Diagnostic if anuṣṭubh, or None if not.
 		"""
 
 		w_p = Vrs.syllable_weights.split('\n')  # weights by pāda
 
 		# make sure full four pādas
 		try: w_p[3]
-		except IndexError: return 0
+		except IndexError: return None
 
 		# test each half
-		pAdas_ab = self.test_as_anuzwuB_half(w_p[0], w_p[1])
-		pAdas_cd = self.test_as_anuzwuB_half(w_p[2], w_p[3])
+		pAdas_ab_result = self.test_as_anuzwuB_half(w_p[0], w_p[1])
+		pAdas_cd_result = self.test_as_anuzwuB_half(w_p[2], w_p[3])
 
-		# report results
+		if pAdas_ab_result is None and pAdas_cd_result is None:
+			ardham_eva_result = self.test_as_anuzwuB_half(w_p[0] + w_p[1], w_p[2] + w_p[3])
+			if ardham_eva_result is None:
+				return None
+			if ardham_eva_result.perfect():
+				Vrs.meter_label = f"anuṣṭubh (ardham eva: {ardham_eva_result.perfect_id_label})"
+				Vrs.identification_score = meter_scores["anuṣṭubh, half, single half perfect)"]
+				Vrs.diagnostic = ardham_eva_result
+				return ardham_eva_result
+			elif ardham_eva_result.imperfect():
+				Vrs.meter_label = f"anuṣṭubh (ardham eva: {ardham_eva_result.imperfect_id_label})"
+				Vrs.identification_score = meter_scores["anuṣṭubh, half, single half imperfect)"]
+				Vrs.diagnostic = ardham_eva_result
+				return ardham_eva_result
+			else:
+				return None
+
+		if pAdas_ab_result is None or pAdas_cd_result is None:
+			return None
 
 		# both halves perfect
 
-		if pAdas_ab != None and pAdas_cd != None:
-			Vrs.meter_label = "anuṣṭubh (1,2: " + pAdas_ab + ", 3,4: " + pAdas_cd + ")"
+		if pAdas_ab_result.perfect() and pAdas_cd_result.perfect():
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {pAdas_cd_result.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves perfect)"]
-			return 1
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_ab_result
 
 		# one half imperfect
 
-		elif pAdas_ab == None and pAdas_cd != None:
-			Vrs.meter_label = "anuṣṭubh (1,2: asamīcīna, 3,4: " + pAdas_cd + ")"
+		elif pAdas_ab_result.imperfect() and pAdas_cd_result.perfect():
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.imperfect_id_label}; 3,4: {pAdas_cd_result.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
-			return 1
-		elif pAdas_ab != None and pAdas_cd == None:
-			Vrs.meter_label = "anuṣṭubh (1,2: " + pAdas_ab + ", 3,4: asamīcīna)"
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_ab_result
+		elif pAdas_ab_result.perfect() and pAdas_cd_result.imperfect():
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {pAdas_cd_result.imperfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
-			return 1
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_cd_result
 
-		# currently cannot do both halves imperfect
+		# both halves imperfect
 
-		# also test whether just a single perfect half
+		elif pAdas_ab_result.imperfect() and pAdas_cd_result.imperfect():
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.imperfect_id_label}; 3,4: {pAdas_cd_result.imperfect_id_label})"
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves imperfect)"]
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_ab_result
 
-		pAdas_ab = self.test_as_anuzwuB_half(w_p[0]+w_p[1], w_p[2]+w_p[3])
-		if pAdas_ab != None:
-			Vrs.meter_label = "anuṣṭubh (ardham eva: " + pAdas_ab + ")"
-			Vrs.identification_score = meter_scores["anuṣṭubh, half, single half perfect)"]
-			return 1
+		# one half perfect, one length error
 
-		# currently cannot do just a single imperfect half
+		elif pAdas_ab_result.length_error() and pAdas_cd_result.perfect():
+			code = pAdas_ab_result.failure_code
+			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {code}; 3,4: {pAdas_cd_result.perfect_id_label})"
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_cd_result
+		elif pAdas_ab_result.perfect() and pAdas_cd_result.length_error():
+			code = pAdas_cd_result.failure_code
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: ?? {code})"
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_ab_result
 
-		return 0
+		# one half imperfect, one length error
+
+		elif pAdas_ab_result.length_error() and pAdas_cd_result.imperfect():
+			code = pAdas_ab_result.failure_code
+			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {code}; 3,4: {pAdas_cd_result.imperfect_id_label})"
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_cd_result
+		elif pAdas_ab_result.imperfect() and pAdas_cd_result.length_error():
+			code = pAdas_cd_result.failure_code
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.imperfect_id_label}; 3,4: ?? {code})"
+			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
+			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
+			return pAdas_ab_result
+
+		return None
 
 	def count_pAdasamatva(self, Vrs):
 		"""
@@ -540,8 +625,8 @@ class VerseTester(object):
 
 		# anuzwuB
 
-		success_anuzwuB = self.test_as_anuzwuB(Vrs) # 1 if successful, 0 if not
-		if success_anuzwuB and Vrs.identification_score == meter_scores["max score"]:
+		anuzwuB_diagnostic = self.test_as_anuzwuB(Vrs) # Diagnostic if successful, None if not
+		if anuzwuB_diagnostic and Vrs.identification_score == meter_scores["max score"]:
 			return 1
 
 		# samavftta, upajAti, vizamavftta, ardhasamavftta
@@ -557,7 +642,7 @@ class VerseTester(object):
 
 		success_jAti = self.test_as_jAti(Vrs)
 
-		if success_anuzwuB or success_samavftta_etc or success_jAti:
+		if anuzwuB_diagnostic or success_samavftta_etc or success_jAti:
 			return 1
 		else:
 			return 0

@@ -47,6 +47,20 @@ anuzwuB_pAda = {
 	}
 }
 
+anuzwuB_pAda_asamIcIna = {
+	'odd' : {
+		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',              [1, 2],    'hahn_general_2'),  # syllables 2–3 both light
+		'^.{4}ggg.$' :  ('asamīcīnā, ma-vipulāyāḥ paścād raḥ syāt',  [1, 2, 3], 'hahn_vipulA_3'),   # ma-vipulā conditioning violated
+		'^.{4}gll.$' :  ('asamīcīnā, bha-vipulāyāḥ paścād raḥ syāt', [1, 2, 3], 'hahn_vipulA_2'),   # bha-vipulā conditioning violated
+		'^.{3}llll.$' : ('asamīcīnā, na-vipulāyāḥ paścād guruḥ syāt', [3],       'hahn_vipulA_1'),   # na-vipulā conditioning violated
+		'^.{3}lglg.$' : ('asamīcīnā, ra-vipulāyāḥ paścād guruḥ syāt', [3],       'hahn_vipulA_4'),   # ra-vipulā conditioning violated
+	},
+	'even' : {
+		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',         [1, 2],    'hahn_general_2'),  # syllables 2–3 both light
+		'^.glg.{4}$' :  ('asamīcīnā, [na] dvitīyacaturthayo raḥ', [1, 2, 3], 'hahn_general_3'),  # ra-gaṇa at syllables 2–4
+	},
+}
+
 """
 	samavṛtta
 
