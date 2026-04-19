@@ -32,6 +32,65 @@ class Diagnostic:
 		return self.failure_code in ('hypermetric', 'hypometric')
 
 
+def _decompose_into_mAtragaNas(weights_str, gana_6_morae, gana_8_morae):
+	"""
+	Decomposes an ardha (half-verse) weight string into mātrā-gaṇas.
+	Returns list of l/g substrings, one per gaṇa position (8 total).
+	gana_6_morae: 1 for upagīti-style 6th gaṇa (la), 4 for ja/kha.
+	gana_8_morae: 2 for standard final long, 4 for āryāgīti.
+	"""
+	ganas = []
+	i = 0
+	n = len(weights_str)
+
+	while i < n:
+		pos = len(ganas) + 1  # 1-indexed
+
+		if pos == 8:
+			ganas.append(weights_str[i:])
+			break
+
+		target = gana_6_morae if pos == 6 else 4
+		seg = ''
+		seg_morae = 0
+		while i < n and seg_morae < target:
+			s = weights_str[i]
+			m = 1 if s == 'l' else 2
+			if seg_morae + m > target:
+				break
+			seg += s
+			seg_morae += m
+			i += 1
+		ganas.append(seg)
+
+	return ganas
+
+
+def _validate_jAti_gaNas(ganas, gana_6_morae):
+	"""
+	Validates mātrā-gaṇa structure per Hahn's general rules for the āryā family:
+	  1. Odd positions (1,3,5,7) must not be ja (lgl).
+	  2. Position 6 must be ja/kha (gana_6_morae==4) or la (gana_6_morae==1).
+	Returns True if valid, False if not.
+	"""
+	if len(ganas) != 8:
+		return False
+
+	names = meter_patterns.mAtragaNa_names
+
+	for pos in [1, 3, 5, 7]:  # 1-indexed odd positions
+		if names.get(ganas[pos - 1]) == 'ja':
+			return False
+
+	g6 = names.get(ganas[5], 'other')
+	if gana_6_morae == 4 and g6 not in ('ja', 'kha'):
+		return False
+	if gana_6_morae == 1 and g6 != 'la':
+		return False
+
+	return True
+
+
 class VerseTester(object):
 	"""
 	Internal agent-style object.
@@ -623,63 +682,48 @@ class VerseTester(object):
 
 	def test_as_jAti(self, Vrs):
 		"""
-		Accepts as arguments two lists, one of strings, the other of numbers.
-		First argument details light/heavy (l/g) patterns, second reports total morae.
-		Determines whether verse (first four lines) is of 'jāti' type.
-		Returns string detailing results if identified as such, or None if not.
+		Determines whether verse is of jāti (mātrāvṛtta) type.
+		Validates both morae totals per pāda AND mātrā-gaṇa structure per ardha.
+		Returns 1 if identified, 0 if not.
 		"""
 
 		w_p = Vrs.syllable_weights.split('\n')
-		# make sure full four pādas
 		try: w_p[3]
 		except IndexError: return 0
 
 		morae_by_pAda = Vrs.morae_per_line
-
-		# Note: self.morae_by_pAda is a list of numbers,
-		# here manipulate as such but also as a single string
 		morae_by_pAda_string = str(morae_by_pAda)
 
-		"""
-			Test whether morae match patterns, with allowance on last syllable:
-				final light syllable of a jāti quarter CAN be counted as heavy,
-				but ONLY if necessary to fill out the meter
-				and NOT otherwise.
-		"""
-		for flex_pattern, std_pattern, jAti_name in meter_patterns.jAtis_by_morae:
+		for flex_pattern, std_pattern, jAti_name, g6_ardha1, g6_ardha2 in meter_patterns.jAtis_by_morae:
 
-			regex = re.compile(flex_pattern)
-			if re.match(regex, morae_by_pAda_string):
+			if not re.match(flex_pattern, morae_by_pAda_string):
+				continue
 
-				# for each of four pAdas
-				for i in range(4):
+			# validate per-pāda morae (anceps allowance on final syllable)
+			for i in range(4):
+				if (
+					morae_by_pAda[i] == std_pattern[i] or
+					morae_by_pAda[i] == std_pattern[i] - 1 and w_p[i][-1] == 'l'
+				):
+					continue
+				else:
+					break
+			else:
+				# morae valid — now validate mātrā-gaṇa structure
+				g8_morae = 4 if jAti_name == 'āryāgīti' else 2
+				ardha1_ganas = _decompose_into_mAtragaNas(w_p[0] + w_p[1], g6_ardha1, g8_morae)
+				ardha2_ganas = _decompose_into_mAtragaNas(w_p[2] + w_p[3], g6_ardha2, g8_morae)
 
-					if (
-							morae_by_pAda[i] == std_pattern[i] or
+				if not _validate_jAti_gaNas(ardha1_ganas, g6_ardha1) or \
+				   not _validate_jAti_gaNas(ardha2_ganas, g6_ardha2):
+					continue
 
-							# final syllable is light but needs to be heavy
-							morae_by_pAda[i] == std_pattern[i] - 1 and
-							w_p[i][-1] == 'l'
+				Vrs.meter_label = jAti_name + " (%s)" % str(std_pattern)[1:-1]
+				Vrs.identification_score = meter_scores["jāti, perfect"]
+				Vrs.diagnostic = Diagnostic(perfect_id_label=Vrs.meter_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
+				return 1
 
-					):
-						continue
-					else:
-						break
-
-				else:  # if all four pAdas proven valid, i.e., if no breaks
-					Vrs.meter_label = jAti_name + " (%s)" % str(std_pattern)[1:-1]
-					Vrs.identification_score = meter_scores["jāti, perfect"]
-					Vrs.diagnostic = Diagnostic(perfect_id_label=Vrs.meter_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
-
-					# should be combining results in case of previous match
-
-					return 1
-
-
-				# soon: implement imperfect jāti, score == meter_scores["jāti, imperfect"]
-
-		else:  # if all patterns tested and nothing returned
-			return 0
+		return 0
 
 	def attempt_identification(self, Vrs):
 		"""
