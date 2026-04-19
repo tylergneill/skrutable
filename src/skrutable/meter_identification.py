@@ -49,6 +49,7 @@ class VerseTester(object):
 		self.resplit_option = default_resplit_option # string
 		self.resplit_keep_midpoint = default_resplit_keep_midpoint # bool
 		self.identification_attempt_count = 0
+		self._anuzwuB_half_cache = {}  # cleared per wiggle_identify run
 
 	def combine_results(self, Vrs, new_label, new_score):
 		old_label = Vrs.meter_label or ''
@@ -81,36 +82,49 @@ class VerseTester(object):
 
 		"""
 
+		cache_key = (odd_pAda_weights, even_pAda_weights)
+		if cache_key in self._anuzwuB_half_cache:
+			return self._anuzwuB_half_cache[cache_key]
+
 		# check lengths first; length_error only reported when exactly one pāda is off
 		even_len_ok = len(even_pAda_weights) == 8
 		odd_len_ok = len(odd_pAda_weights) == 8
 		if not even_len_ok and not odd_len_ok:
-			return None  # both wrong: bad split, not credible
-		if not even_len_ok:
+			result = None  # both wrong: bad split, not credible
+		elif not even_len_ok:
 			code = 'hypermetric' if len(even_pAda_weights) > 8 else 'hypometric'
-			return Diagnostic(failure_code=code, problem_syllables={'odd': [], 'even': list(range(len(even_pAda_weights)))})
-		if not odd_len_ok:
+			result = Diagnostic(failure_code=code, problem_syllables={'odd': [], 'even': list(range(len(even_pAda_weights)))})
+		elif not odd_len_ok:
 			code = 'hypermetric' if len(odd_pAda_weights) > 8 else 'hypometric'
-			return Diagnostic(failure_code=code, problem_syllables={'odd': list(range(len(odd_pAda_weights))), 'even': []})
+			result = Diagnostic(failure_code=code, problem_syllables={'odd': list(range(len(odd_pAda_weights))), 'even': []})
+		else:
+			# check even pāda
+			if not re.match(meter_patterns.anuzwuB_pAda['even'], even_pAda_weights):
+				result = None
+				for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['even'].items():
+					if re.match(weights_pattern, even_pAda_weights):
+						result = Diagnostic(imperfect_id_label=label, failure_code=code, problem_syllables={'odd': [], 'even': problem_syls})
+						break
+				if result is None:
+					result = Diagnostic(imperfect_id_label='asamīcīnā, [caturthāt] pathyā yujo j', failure_code='hahn_general_4', problem_syllables={'odd': [], 'even': [4, 5, 6]})
+			else:
+				# check odd pāda (both 'paTyA' and 'vipulA')
+				result = None
+				for weights_pattern, label in meter_patterns.anuzwuB_pAda['odd'].items():
+					if re.match(weights_pattern, odd_pAda_weights):
+						result = Diagnostic(perfect_id_label=label)
+						break
+				if result is None:
+					# check for broken conditioning on odd pāda
+					for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['odd'].items():
+						if re.match(weights_pattern, odd_pAda_weights):
+							result = Diagnostic(imperfect_id_label=label, failure_code=code, problem_syllables={'odd': problem_syls, 'even': []})
+							break
+				if result is None:
+					result = Diagnostic(imperfect_id_label='asamīcīnā, [vipulāyām asatyām] ya[gaṇaḥ] [ayujo] caturthāt [syāt]', failure_code='hahn_paTyA', problem_syllables={'odd': [4, 5, 6], 'even': []})
 
-		# check even pāda
-		if not re.match(meter_patterns.anuzwuB_pAda['even'], even_pAda_weights):
-			for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['even'].items():
-				if re.match(weights_pattern, even_pAda_weights):
-					return Diagnostic(imperfect_id_label=label, failure_code=code, problem_syllables={'odd': [], 'even': problem_syls})
-			return Diagnostic(imperfect_id_label='asamīcīnā, [caturthāt] pathyā yujo j', failure_code='hahn_general_4', problem_syllables={'odd': [], 'even': [4, 5, 6]})
-
-		# check odd pāda (both 'paTyA' and 'vipulA')
-		for weights_pattern, label in meter_patterns.anuzwuB_pAda['odd'].items():
-			if re.match(weights_pattern, odd_pAda_weights):
-				return Diagnostic(perfect_id_label=label)
-
-		# check for broken conditioning on odd pāda
-		for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['odd'].items():
-			if re.match(weights_pattern, odd_pAda_weights):
-				return Diagnostic(imperfect_id_label=label, failure_code=code, problem_syllables={'odd': problem_syls, 'even': []})
-
-		return Diagnostic(imperfect_id_label='asamīcīnā, [vipulāyām asatyām] ya[gaṇaḥ] [ayujo] caturthāt [syāt]', failure_code='hahn_paTyA', problem_syllables={'odd': [4, 5, 6], 'even': []})
+		self._anuzwuB_half_cache[cache_key] = result
+		return result
 
 	def test_as_anuzwuB(self, Vrs):
 	# >> def test_as_zloka(self, Vrs):
@@ -698,6 +712,7 @@ class MeterIdentifier(object):
 							pAda_brs, quarter_len):
 		"""Returns a list for MeterIdentifier.Verses_found"""
 
+		VrsTster._anuzwuB_half_cache = {}
 		pos_iterators = {}
 		for k in ['ab', 'bc', 'cd']:
 			if  (
