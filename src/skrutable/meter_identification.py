@@ -66,29 +66,55 @@ def _decompose_into_mAtragaNas(weights_str, gana_6_morae, gana_8_morae):
 	return ganas
 
 
-def _validate_jAti_gaNas(ganas, gana_6_morae):
+_jati_name_slugs = {
+	'āryā':     'arya',
+	'gīti':     'giti',
+	'upagīti':  'upagiti',
+	'udgīti':   'udgiti',
+	'āryāgīti': 'aryagiti',
+}
+
+def _validate_jAti_gaNas(ganas, gana_6_morae, jati_name='', ardha_num=0):
 	"""
-	Validates mātrā-gaṇa structure per Hahn's general rules for the āryā family:
-	  1. Odd positions (1,3,5,7) must not be ja (lgl).
-	  2. Position 6 must be ja/kha (gana_6_morae==4) or la (gana_6_morae==1).
-	Returns True if valid, False if not.
+	Validates mātrā-gaṇa structure per Hahn's rules for the āryā family:
+	  1. (general) Odd positions (1,3,5,7) must not be ja (lgl).
+	  2. (meter-specific) Position 6 must be ja/kha (gana_6_morae==4) or la (gana_6_morae==1).
+
+	Returns None if valid.
+	Returns (failure_code, bad_syllable_indices) on failure, where bad_syllable_indices
+	is a list of 0-indexed syllable offsets within the ardha weight string.
 	"""
 	if len(ganas) != 8:
-		return False
+		return ('hahn_jati_wrong_gana_count', [])
 
 	names = meter_patterns.mAtragaNa_names
+	slug = _jati_name_slugs.get(jati_name, jati_name)
+	prefix = f'hahn_{slug}_ardha{ardha_num}' if slug else 'hahn_jati'
 
-	for pos in [1, 3, 5, 7]:  # 1-indexed odd positions
+	# build cumulative syllable offsets so we can report syllable positions
+	offsets = []
+	cur = 0
+	for g in ganas:
+		offsets.append(cur)
+		cur += len(g)
+
+	for pos in [1, 3, 5, 7]:  # 1-indexed odd positions — rule applies to all jāti meters
 		if names.get(ganas[pos - 1]) == 'ja':
-			return False
+			start = offsets[pos - 1]
+			bad_syls = list(range(start, start + len(ganas[pos - 1])))
+			return (f'{prefix}_general_1_gana{pos}', bad_syls)
 
 	g6 = names.get(ganas[5], 'other')
 	if gana_6_morae == 4 and g6 not in ('ja', 'kha'):
-		return False
+		start = offsets[5]
+		bad_syls = list(range(start, start + len(ganas[5])))
+		return (f'{prefix}_2_gana6_not_ja_kha', bad_syls)
 	if gana_6_morae == 1 and g6 != 'la':
-		return False
+		start = offsets[5]
+		bad_syls = list(range(start, start + len(ganas[5])))
+		return (f'{prefix}_2_gana6_not_la', bad_syls)
 
-	return True
+	return None
 
 
 def _fix_conjunct_pada_boundaries(syllable_list, break_positions):
@@ -746,9 +772,52 @@ class VerseTester(object):
 			ardha1_ganas = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae)
 			ardha2_ganas = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae)
 
-			if not _validate_jAti_gaNas(ardha1_ganas, g6_ardha1) or \
-			   not _validate_jAti_gaNas(ardha2_ganas, g6_ardha2):
-				continue
+			err1 = _validate_jAti_gaNas(ardha1_ganas, g6_ardha1, jAti_name, 1)
+			err2 = _validate_jAti_gaNas(ardha2_ganas, g6_ardha2, jAti_name, 2)
+
+			if err1 or err2:
+				# Ardha morae match but gaṇa rules broken — imperfect identification.
+				# Map the bad syllable offsets (within the ardha weight string) back to
+				# pāda-level syllable indices for problem_syllables.
+				pada1_len = len(w_p[0]) if len(w_p) >= 4 else 0
+				def ardha_syls_to_padas(bad_offsets, pada_a, pada_b, pada_a_len):
+					"""Split flat ardha syllable offsets into two pāda index lists."""
+					a_syls = [i for i in bad_offsets if i < pada_a_len]
+					b_syls = [i - pada_a_len for i in bad_offsets if i >= pada_a_len]
+					return {pada_a: a_syls, pada_b: b_syls}
+
+				prob = {1: [], 2: [], 3: [], 4: []}
+				if err1:
+					code, bad = err1
+					prob.update(ardha_syls_to_padas(bad, 1, 2, pada1_len))
+				if err2:
+					code2, bad2 = err2
+					pada3_len = len(w_p[2]) if len(w_p) >= 4 else 0
+					prob.update(ardha_syls_to_padas(bad2, 3, 4, pada3_len))
+
+				_gana_ordinals = {'1': 'prathama', '3': 'tṛtīya', '5': 'pañcama', '7': 'saptama'}
+				def _gana_error_label(code):
+					if code == 'hahn_jati_wrong_gana_count':
+						return 'asamīcīnaṃ, gaṇasaṃkhyā na aṣṭau'
+					if 'general_1_gana' in code:
+						n = code[-1]
+						return f'asamīcīnaṃ, jaḥ {_gana_ordinals.get(n, n)}gaṇe'
+					if code.endswith('_2_gana6_not_ja_kha'):
+						return 'asamīcīnaṃ, ṣaṣṭhagaṇo na jaḥ/khaḥ'
+					if code.endswith('_2_gana6_not_la'):
+						return 'asamīcīnaṃ, ṣaṣṭhagaṇo na laḥ'
+					return code
+				failure_code = (err1 or err2)[0]
+				imperfect_label = _gana_error_label(failure_code)
+				jati_label = jAti_name + " (%s)" % quarter_label
+				Vrs.meter_label = jati_label + f" ({imperfect_label})"
+				Vrs.identification_score = meter_scores["jāti, imperfect"]
+				Vrs.diagnostic = Diagnostic(
+					imperfect_id_label=imperfect_label,
+					failure_code=failure_code,
+					problem_syllables=prob,
+				)
+				return 1
 
 			jati_label = jAti_name + " (%s)" % quarter_label
 			def quarters_ok(actual, expected, weights):
