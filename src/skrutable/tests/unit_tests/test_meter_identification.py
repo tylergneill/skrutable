@@ -499,7 +499,7 @@ def test_anuzwuB_hypermetric_ab_imperfect_cd():
 	MI = MeterIdentifier()
 	input_string = "ikṣvākuvaśaprabhavo rāmo nāma janaiḥ śrutataḥ / niyatamā mahāvīryo dyutimān dhṛtimān vaśī //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: ?? hypermetric; 3,4: asamīcīnā, na prathamāt snau)"
+	expected_output = "anuṣṭubh (1,2: ?? even: hypermetric; 3,4: odd: asamīcīnā, na prathamāt snau)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 4
 
@@ -507,7 +507,7 @@ def test_anuzwuB_hypermetric_ab_perfect_cd():
 	MI = MeterIdentifier()
 	input_string = "śrutvā tūśasano vākyaṃ sa āśramāvasatho janaḥ / niṣkrānto viṣayāt tasya sthānaṃ cakre 'tha bāhyataḥ //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: ?? hypermetric; 3,4: pathyā)"
+	expected_output = "anuṣṭubh (1,2: ?? even: hypermetric; 3,4: pathyā)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 6
 
@@ -515,7 +515,7 @@ def test_anuzwuB_perfect_ab_hypermetric_cd():
 	MI = MeterIdentifier()
 	input_string = "pinākāstraṃ ca dayitaṃ śuṣkārdre aśanī tathā / daṇḍāstram atha paiśācaṃ krauñcam astraṃ tathāiva ca //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: na-vipulā; 3,4: ?? hypermetric)"
+	expected_output = "anuṣṭubh (1,2: na-vipulā; 3,4: ?? even: hypermetric)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 6
 
@@ -523,7 +523,7 @@ def test_anuzwuB_hypometric_ab_hypermetric_cd():
 	MI = MeterIdentifier()
 	input_string = "pinākāstra ca dayitaṃ śuṣkārdre aśanī tathā / daṇḍāstram atha paiśācaṃ krauñcam astraṃ tathāiva ca //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: asamīcīnā, na-vipulāyāḥ paścād guruḥ syāt; 3,4: ?? hypermetric)"
+	expected_output = "anuṣṭubh (1,2: odd: asamīcīnā, na-vipulāyāḥ paścād guruḥ syāt; 3,4: ?? even: hypermetric)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 4
 
@@ -582,7 +582,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	d = V.diagnostic
 	assert d.perfect()
 	assert "indravajrā" in d.perfect_id_label
-	assert d.problem_syllables == {1: [], 2: [], 3: [], 4: []}
+	assert d.problem_syllables is None
 
 def test_samavftta_imperfect_3_diagnostic():
 	S = Scanner()
@@ -597,11 +597,11 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	VT.evaluate_samavftta(V)
 	d = V.diagnostic
 	assert d.imperfect()
-	assert "3 eva pādāḥ yuktāḥ" in d.imperfect_id_label
+	assert d.imperfect_id_label[1] == 'pādasamatva violation'
 	assert d.problem_syllables[1] == [4]
-	assert d.problem_syllables[2] == []
-	assert d.problem_syllables[3] == []
-	assert d.problem_syllables[4] == []
+	assert 2 not in d.problem_syllables
+	assert 3 not in d.problem_syllables
+	assert 4 not in d.problem_syllables
 
 def test_upajAti_perfect_diagnostic():
 	S = Scanner()
@@ -615,7 +615,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	d = V.diagnostic
 	assert d.perfect()
 	assert "upajāti" in d.perfect_id_label
-	assert d.problem_syllables == {1: [], 2: [], 3: [], 4: []}
+	assert d.problem_syllables is None
 
 def test_upajAti_imperfect_hypometric_diagnostic():
 	S = Scanner()
@@ -631,11 +631,12 @@ mOnaM viDeyaM satataM suDIBiH"""
 	if not disable_non_trizwuB_upajAti:
 		d = V.diagnostic
 		assert d.imperfect()
-		assert "hypometric" in d.imperfect_id_label
+		assert d.imperfect_id_label[1] == 'hypometric'
+		assert d.failure_code[1] == 'hypometric'
 		assert d.problem_syllables[1] == list(range(10))  # 10-syllable pāda excluded
-		assert d.problem_syllables[2] == []
-		assert d.problem_syllables[3] == []
-		assert d.problem_syllables[4] == []
+		assert 2 not in d.problem_syllables
+		assert 3 not in d.problem_syllables
+		assert 4 not in d.problem_syllables
 
 def test_identify_meter_vizamavftta_perfect():
 	MI = MeterIdentifier()

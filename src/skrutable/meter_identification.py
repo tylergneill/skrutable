@@ -3,7 +3,7 @@ from skrutable import meter_patterns
 from skrutable.config import load_config_dict_from_json_file
 import re
 from copy import copy
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 # load config variables
@@ -17,10 +17,10 @@ meter_scores = config["meter_scores"]  # dict
 
 @dataclass
 class Diagnostic:
-	perfect_id_label: Optional[str] = None      # 'pathyā', 'ma-vipulā', etc.; None if imperfect
-	imperfect_id_label: Optional[str] = None    # 'asamīcīnā ma-vipulā', etc.; None if perfect or unidentified
-	failure_code: Optional[str] = None           # short internal code, e.g. 'hahn_general_2'; None if perfect
-	problem_syllables: dict = field(default_factory=lambda: {'odd': [], 'even': []})
+	perfect_id_label: Optional[str] = None      # 'pathyā', 'indravajrā', etc.; None if imperfect
+	imperfect_id_label: Optional[dict] = None   # keyed by pada (1–4 or 'odd'/'even'); None if perfect
+	failure_code: Optional[dict] = None          # keyed by pada (1–4 or 'odd'/'even'); None if perfect
+	problem_syllables: Optional[dict] = None     # keyed by pada (1–4 or 'odd'/'even'); None if perfect
 
 	def perfect(self):
 		return self.perfect_id_label is not None
@@ -29,7 +29,10 @@ class Diagnostic:
 		return self.imperfect_id_label is not None
 
 	def length_error(self):
-		return self.failure_code in ('hypermetric', 'hypometric')
+		return (
+			self.failure_code is not None and
+			any(v in ('hypermetric', 'hypometric') for v in self.failure_code.values())
+		)
 
 
 def _decompose_into_mAtragaNas(weights_str, gana_6_morae, gana_8_morae):
@@ -209,20 +212,34 @@ class VerseTester(object):
 			result = None  # both wrong: bad split, not credible
 		elif not even_len_ok:
 			code = 'hypermetric' if len(even_pAda_weights) > 8 else 'hypometric'
-			result = Diagnostic(failure_code=code, problem_syllables={'odd': [], 'even': list(range(len(even_pAda_weights)))})
+			result = Diagnostic(
+				failure_code={'even': code},
+				problem_syllables={'even': list(range(len(even_pAda_weights)))},
+			)
 		elif not odd_len_ok:
 			code = 'hypermetric' if len(odd_pAda_weights) > 8 else 'hypometric'
-			result = Diagnostic(failure_code=code, problem_syllables={'odd': list(range(len(odd_pAda_weights))), 'even': []})
+			result = Diagnostic(
+				failure_code={'odd': code},
+				problem_syllables={'odd': list(range(len(odd_pAda_weights)))},
+			)
 		else:
 			# check even pāda
 			if not re.match(meter_patterns.anuzwuB_pAda['even'], even_pAda_weights):
 				result = None
 				for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['even'].items():
 					if re.match(weights_pattern, even_pAda_weights):
-						result = Diagnostic(imperfect_id_label=label, failure_code=code, problem_syllables={'odd': [], 'even': problem_syls})
+						result = Diagnostic(
+							imperfect_id_label={'even': label},
+							failure_code={'even': code},
+							problem_syllables={'even': problem_syls},
+						)
 						break
 				if result is None:
-					result = Diagnostic(imperfect_id_label='asamīcīnā, [caturthāt] pathyā yujo j', failure_code='hahn_general_4', problem_syllables={'odd': [], 'even': [4, 5, 6]})
+					result = Diagnostic(
+						imperfect_id_label={'even': 'asamīcīnā, [caturthāt] pathyā yujo j'},
+						failure_code={'even': 'hahn_general_4'},
+						problem_syllables={'even': [4, 5, 6]},
+					)
 			else:
 				# check odd pāda (both 'paTyA' and 'vipulA')
 				result = None
@@ -234,10 +251,18 @@ class VerseTester(object):
 					# check for broken conditioning on odd pāda
 					for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['odd'].items():
 						if re.match(weights_pattern, odd_pAda_weights):
-							result = Diagnostic(imperfect_id_label=label, failure_code=code, problem_syllables={'odd': problem_syls, 'even': []})
+							result = Diagnostic(
+								imperfect_id_label={'odd': label},
+								failure_code={'odd': code},
+								problem_syllables={'odd': problem_syls},
+							)
 							break
 				if result is None:
-					result = Diagnostic(imperfect_id_label='asamīcīnā, [vipulāyām asatyām] ya[gaṇaḥ] [ayujo] caturthāt [syāt]', failure_code='hahn_paTyA', problem_syllables={'odd': [4, 5, 6], 'even': []})
+					result = Diagnostic(
+						imperfect_id_label={'odd': 'asamīcīnā, [vipulāyām asatyām] ya[gaṇaḥ] [ayujo] caturthāt [syāt]'},
+						failure_code={'odd': 'hahn_paTyA'},
+						problem_syllables={'odd': [4, 5, 6]},
+					)
 
 		self._anuzwuB_half_cache[cache_key] = result
 		return result
@@ -272,7 +297,8 @@ class VerseTester(object):
 				Vrs.diagnostic = ardham_eva_result
 				return ardham_eva_result
 			elif ardham_eva_result.imperfect():
-				Vrs.meter_label = f"anuṣṭubh (ardham eva: {ardham_eva_result.imperfect_id_label})"
+				label_str = '; '.join(f"{k}: {v}" for k, v in ardham_eva_result.imperfect_id_label.items())
+				Vrs.meter_label = f"anuṣṭubh (ardham eva: {label_str})"
 				Vrs.identification_score = meter_scores["anuṣṭubh, half, single half imperfect)"]
 				Vrs.diagnostic = ardham_eva_result
 				return ardham_eva_result
@@ -293,12 +319,14 @@ class VerseTester(object):
 		# one half imperfect
 
 		elif pAdas_ab_result.imperfect() and pAdas_cd_result.perfect():
-			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.imperfect_id_label}; 3,4: {pAdas_cd_result.perfect_id_label})"
+			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_id_label.items())
+			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {pAdas_cd_result.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
 		elif pAdas_ab_result.perfect() and pAdas_cd_result.imperfect():
-			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {pAdas_cd_result.imperfect_id_label})"
+			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_id_label.items())
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_cd_result
@@ -306,7 +334,9 @@ class VerseTester(object):
 		# both halves imperfect
 
 		elif pAdas_ab_result.imperfect() and pAdas_cd_result.imperfect():
-			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.imperfect_id_label}; 3,4: {pAdas_cd_result.imperfect_id_label})"
+			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_id_label.items())
+			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_id_label.items())
+			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves imperfect)"]
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
@@ -314,14 +344,14 @@ class VerseTester(object):
 		# one half perfect, one length error
 
 		elif pAdas_ab_result.length_error() and pAdas_cd_result.perfect():
-			code = pAdas_ab_result.failure_code
-			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {code}; 3,4: {pAdas_cd_result.perfect_id_label})"
+			ab_code_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.failure_code.items())
+			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {ab_code_str}; 3,4: {pAdas_cd_result.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_cd_result
 		elif pAdas_ab_result.perfect() and pAdas_cd_result.length_error():
-			code = pAdas_cd_result.failure_code
-			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: ?? {code})"
+			cd_code_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.failure_code.items())
+			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: ?? {cd_code_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
@@ -329,14 +359,16 @@ class VerseTester(object):
 		# one half imperfect, one length error
 
 		elif pAdas_ab_result.length_error() and pAdas_cd_result.imperfect():
-			code = pAdas_ab_result.failure_code
-			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {code}; 3,4: {pAdas_cd_result.imperfect_id_label})"
+			ab_code_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.failure_code.items())
+			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_id_label.items())
+			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {ab_code_str}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_cd_result
 		elif pAdas_ab_result.imperfect() and pAdas_cd_result.length_error():
-			code = pAdas_cd_result.failure_code
-			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.imperfect_id_label}; 3,4: ?? {code})"
+			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_id_label.items())
+			cd_code_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.failure_code.items())
+			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: ?? {cd_code_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
@@ -424,34 +456,51 @@ class VerseTester(object):
 
 		# build diagnostic
 		problem_syllables = {}
+		per_pada_failure_codes = {}
+		per_pada_imperfect = {}
 		canonical = w_to_id  # includes final anceps
 		for pada_num, w in enumerate(wbp[:4], start=1):
 			if w == canonical:
-				problem_syllables[pada_num] = []
-			elif len(w) != len(canonical):
+				pass  # no entry → perfect for this pada
+			elif len(w) > len(canonical):
 				problem_syllables[pada_num] = list(range(len(w)))
+				per_pada_failure_codes[pada_num] = 'hypermetric'
+				per_pada_imperfect[pada_num] = 'hypermetric'
+			elif len(w) < len(canonical):
+				problem_syllables[pada_num] = list(range(len(w)))
+				per_pada_failure_codes[pada_num] = 'hypometric'
+				per_pada_imperfect[pada_num] = 'hypometric'
 			else:
 				# compare position-by-position; final anceps always matches
-				problem_syllables[pada_num] = [
-					j for j in range(len(w) - 1) if w[j] != canonical[j]
-				]
+				bad = [j for j in range(len(w) - 1) if w[j] != canonical[j]]
+				if bad:
+					problem_syllables[pada_num] = bad
+					per_pada_imperfect[pada_num] = 'pādasamatva violation'
 
-		# collect any hyper/hypometric notes for imperfect_id_label
-		length_notes = []
-		for pada_num, w in enumerate(wbp[:4], start=1):
-			if len(w) > len(canonical):
-				length_notes.append("pāda %d hypermetric" % pada_num)
-			elif len(w) < len(canonical):
-				length_notes.append("pāda %d hypometric" % pada_num)
+		has_any_error = bool(problem_syllables) or bool(per_pada_failure_codes)
 
-		if imperfect_note is None:
-			base_label = meter_label
-			diagnostic = Diagnostic(perfect_id_label=base_label, problem_syllables=problem_syllables)
+		if imperfect_note is None and not has_any_error:
+			diagnostic = Diagnostic(perfect_id_label=meter_label)
+		elif imperfect_note is None:
+			# perfect meter-count but some pādas have length or pattern errors
+			diagnostic = Diagnostic(
+				perfect_id_label=meter_label,
+				failure_code=per_pada_failure_codes or None,
+				imperfect_id_label=per_pada_imperfect or None,
+				problem_syllables=problem_syllables or None,
+			)
 		else:
-			full_imperfect = imperfect_note
+			# collect length notes for meter_label string (kept for human readability)
+			length_notes = [f"pāda {p} {v}" for p, v in per_pada_failure_codes.items()]
+			full_imperfect_str = imperfect_note
 			if length_notes:
-				full_imperfect += "; " + "; ".join(length_notes)
-			diagnostic = Diagnostic(imperfect_id_label=full_imperfect, problem_syllables=problem_syllables)
+				full_imperfect_str += "; " + "; ".join(length_notes)
+				meter_label = meter_label.replace(f"({imperfect_note})", f"({full_imperfect_str})")
+			diagnostic = Diagnostic(
+				imperfect_id_label=per_pada_imperfect if per_pada_imperfect else {0: imperfect_note},
+				failure_code=per_pada_failure_codes or None,
+				problem_syllables=problem_syllables or None,
+			)
 
 		# may tie with pre-existing result (e.g., upajāti)
 		old_score = Vrs.identification_score
@@ -494,7 +543,7 @@ class VerseTester(object):
 			Vrs.identification_score = meter_scores["ardhasamavṛtta, perfect, unknown"]
 
 		Vrs.meter_label = meter_label
-		Vrs.diagnostic = Diagnostic(perfect_id_label=meter_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
+		Vrs.diagnostic = Diagnostic(perfect_id_label=meter_label)
 
 
 	def evaluate_upajAti(self, Vrs):
@@ -612,31 +661,40 @@ class VerseTester(object):
 			imperfect_note = "? %d eva pādāḥ yuktāḥ" % len(wbp_lens)
 			overall_meter_label += " (%s)" % imperfect_note
 
-		# build diagnostic: problem_syllables keyed 1–4
-		# included pādas: no positional errors (upajāti pādas are heterogeneous by design)
-		# excluded pādas: hyper/hypometric
+		# build diagnostic: excluded pādas are hyper/hypometric
 		most_freq_len = wbp_lens[0] if wbp_lens else None
 		problem_syllables = {}
-		length_notes = []
+		per_pada_failure_codes = {}
+		per_pada_imperfect = {}
 		for pada_num in range(1, 5):
 			orig_len = wbp_lens_orig[pada_num - 1] if pada_num - 1 < len(wbp_lens_orig) else None
 			if pada_num - 1 in excluded_indices:
-				problem_syllables[pada_num] = list(range(orig_len)) if orig_len is not None else []
+				syls = list(range(orig_len)) if orig_len is not None else []
+				problem_syllables[pada_num] = syls
 				if orig_len is not None and most_freq_len is not None:
-					if orig_len > most_freq_len:
-						length_notes.append("pāda %d hypermetric" % pada_num)
-					else:
-						length_notes.append("pāda %d hypometric" % pada_num)
-			else:
-				problem_syllables[pada_num] = []
+					code = 'hypermetric' if orig_len > most_freq_len else 'hypometric'
+					per_pada_failure_codes[pada_num] = code
+					per_pada_imperfect[pada_num] = code
 
-		if imperfect_note is None:
-			diagnostic = Diagnostic(perfect_id_label=overall_meter_label, problem_syllables=problem_syllables)
+		if imperfect_note is None and not per_pada_failure_codes:
+			diagnostic = Diagnostic(perfect_id_label=overall_meter_label)
+		elif imperfect_note is None:
+			diagnostic = Diagnostic(
+				perfect_id_label=overall_meter_label,
+				failure_code=per_pada_failure_codes or None,
+				imperfect_id_label=per_pada_imperfect or None,
+				problem_syllables=problem_syllables or None,
+			)
 		else:
-			full_imperfect = imperfect_note
+			length_notes = [f"pāda {p} {v}" for p, v in per_pada_failure_codes.items()]
 			if length_notes:
-				full_imperfect += "; " + "; ".join(length_notes)
-			diagnostic = Diagnostic(imperfect_id_label=full_imperfect, problem_syllables=problem_syllables)
+				full_imperfect_str = imperfect_note + "; " + "; ".join(length_notes)
+				overall_meter_label = overall_meter_label.replace(f"({imperfect_note})", f"({full_imperfect_str})")
+			diagnostic = Diagnostic(
+				imperfect_id_label=per_pada_imperfect or None,
+				failure_code=per_pada_failure_codes or None,
+				problem_syllables=problem_syllables or None,
+			)
 
 		old_score = Vrs.identification_score
 		self.combine_results(Vrs, overall_meter_label, score)
@@ -653,7 +711,7 @@ class VerseTester(object):
 			if (gs_to_id[0],gs_to_id[1],gs_to_id[2],gs_to_id[3]) == (a, b, c, d):
 				Vrs.identification_score = meter_scores["viṣamavṛtta, perfect"]
 				Vrs.meter_label = meter_patterns.vizamavftta_by_4_tuple[(a, b, c, d)]
-				Vrs.diagnostic = Diagnostic(perfect_id_label=Vrs.meter_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
+				Vrs.diagnostic = Diagnostic(perfect_id_label=Vrs.meter_label)
 				return True
 
 		else:
@@ -832,16 +890,18 @@ class VerseTester(object):
 					if code.endswith('_2_gana6_not_la'):
 						return 'asamīcīnaṃ, ṣaṣṭhagaṇo na laḥ'
 					return code
-				failure_code = (err1 or err2)[0]
-				imperfect_label = _gana_error_label(failure_code)
+				raw_failure_code = (err1 or err2)[0]
+				imperfect_label = _gana_error_label(raw_failure_code)
 				jati_label = jAti_name + " (%s)" % quarter_label
 				Vrs.meter_label = jati_label + f" ({imperfect_label})"
 				Vrs.identification_score = meter_scores["jāti, imperfect"]
 				Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
+				ardha_num = 1 if (err1 and not err2) or ('ardha1' in raw_failure_code) else 2
+				affected_padas = [1, 2] if ardha_num == 1 else [3, 4]
 				Vrs.diagnostic = Diagnostic(
-					imperfect_id_label=imperfect_label,
-					failure_code=failure_code,
-					problem_syllables=prob,
+					imperfect_id_label={p: imperfect_label for p in affected_padas},
+					failure_code={p: raw_failure_code for p in affected_padas},
+					problem_syllables=prob or None,
 				)
 				return 1
 
@@ -856,13 +916,23 @@ class VerseTester(object):
 				)
 			if quarters_ok(Vrs.morae_per_line, quarter_morae, w_p):
 				score = meter_scores["jāti, perfect"]
-				diagnostic = Diagnostic(perfect_id_label=jati_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
+				diagnostic = Diagnostic(perfect_id_label=jati_label)
 				Vrs.meter_label = jati_label
 			else:
-				imperfect_label = "incorrect quarter split"
 				score = meter_scores["jāti, imperfect"]
-				diagnostic = Diagnostic(imperfect_id_label=imperfect_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
-				Vrs.meter_label = jati_label + f" ({imperfect_label})"
+				per_pada_imperfect = {}
+				per_pada_failure_codes = {}
+				for i, (actual, expected) in enumerate(zip(Vrs.morae_per_line, quarter_morae), start=1):
+					anceps_ok = (actual == expected - 1 and i - 1 < len(w_p) and w_p[i-1] and w_p[i-1][-1] == 'l')
+					if actual != expected and not anceps_ok:
+						code = 'hypermetric' if actual > expected else 'hypometric'
+						per_pada_imperfect[i] = f"incorrect quarter split ({code})"
+						per_pada_failure_codes[i] = code
+				diagnostic = Diagnostic(
+					imperfect_id_label=per_pada_imperfect or None,
+					failure_code=per_pada_failure_codes or None,
+				)
+				Vrs.meter_label = jati_label + " (incorrect quarter split)"
 
 			Vrs.identification_score = score
 			Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
