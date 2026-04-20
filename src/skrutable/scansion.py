@@ -267,11 +267,12 @@ class Scanner(object):
 					or
 
 					# heavy by position:
-					# consonant closes syllable or is second letter of next syllable
+					# consonant closes syllable or next syllable begins with a cluster
 					syllable[-1] in (phonemes.SLP_consonants_for_scansion)
 					or
 					n <= (len(syllables)-2)
 					and len(syllables[n+1]) > 1
+					and syllables[n+1][0] in (phonemes.SLP_consonants_for_scansion)
 					and syllables[n+1][1] in (phonemes.SLP_consonants_for_scansion)
 
 					):
