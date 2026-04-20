@@ -32,6 +32,7 @@ class Verse(object):
 		self.syllable_weights = None	# string, may contain newlines
 		self.morae_per_line = None 		# list of integers
 		self.gaRa_abbreviations = None	# string, may contain newlines
+		self.mAtragaNa_abbreviations = None	# string, may contain newlines; set for jāti meters
 		self.meter_label = None			# string
 		self.identification_score = 0 	# int
 		self.diagnostic = None			# Diagnostic or dict of Diagnostics, set by meter_identification
@@ -70,7 +71,10 @@ class Verse(object):
 				if show_morae:
 					line += ' %10s' % '{m: %s}' % str(self.morae_per_line[i])
 				if show_gaRas:
-					line += ' %11s' % '[%d: %s]' % (len(weights), self.gaRa_abbreviations.split('\n')[i])
+					if self.mAtragaNa_abbreviations:
+						line += ' %s' % '[%s]' % self.mAtragaNa_abbreviations.split('\n')[i]
+					else:
+						line += ' %11s' % '[%d: %s]' % (len(weights), self.gaRa_abbreviations.split('\n')[i])
 				if show_weights or show_morae or show_gaRas:
 					line += '\n'
 				part_A += line

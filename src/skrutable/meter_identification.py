@@ -104,14 +104,15 @@ def _validate_jAti_gaNas(ganas, gana_6_morae, jati_name='', ardha_num=0):
 			bad_syls = list(range(start, start + len(ganas[pos - 1])))
 			return (f'{prefix}_general_1_gana{pos}', bad_syls)
 
-	g6 = names.get(ganas[5], 'other')
-	if gana_6_morae == 4 and g6 not in ('ja', 'kha'):
+	g6_name = names.get(ganas[5], 'other')
+	g6_raw = ganas[5]
+	if gana_6_morae == 4 and g6_name not in ('ja', 'kha'):
 		start = offsets[5]
-		bad_syls = list(range(start, start + len(ganas[5])))
+		bad_syls = list(range(start, start + len(g6_raw)))
 		return (f'{prefix}_2_gana6_not_ja_kha', bad_syls)
-	if gana_6_morae == 1 and g6 != 'la':
+	if gana_6_morae == 1 and g6_raw != 'l':
 		start = offsets[5]
-		bad_syls = list(range(start, start + len(ganas[5])))
+		bad_syls = list(range(start, start + len(g6_raw)))
 		return (f'{prefix}_2_gana6_not_la', bad_syls)
 
 	return None
@@ -775,6 +776,30 @@ class VerseTester(object):
 			err1 = _validate_jAti_gaNas(ardha1_ganas, g6_ardha1, jAti_name, 1)
 			err2 = _validate_jAti_gaNas(ardha2_ganas, g6_ardha2, jAti_name, 2)
 
+			# Build mAtragaNa_abbreviations: per-pāda space-separated gaṇa names.
+			# Gaṇas spanning the pāda boundary stay with the pāda where they start.
+			names = meter_patterns.mAtragaNa_names
+			def ganas_to_abbrevs(ganas):
+				return ' '.join(names.get(g, g) for g in ganas)
+			def split_ardha_ganas_to_padas(ganas, pada_a_syl_count):
+				"""Split 8 ardha gaṇas into two pāda abbreviation strings by syllable count."""
+				cur = 0
+				split = 0
+				for i, g in enumerate(ganas):
+					if cur >= pada_a_syl_count:
+						split = i
+						break
+					cur += len(g)
+				else:
+					split = len(ganas)
+				return ganas_to_abbrevs(ganas[:split]), ganas_to_abbrevs(ganas[split:])
+			if len(w_p) >= 4:
+				p1a, p1b = split_ardha_ganas_to_padas(ardha1_ganas, len(w_p[0]))
+				p2a, p2b = split_ardha_ganas_to_padas(ardha2_ganas, len(w_p[2]))
+				mAtragaNa_abbrevs = '\n'.join([p1a, p1b, p2a, p2b])
+			else:
+				mAtragaNa_abbrevs = '\n'.join([ganas_to_abbrevs(ardha1_ganas), ganas_to_abbrevs(ardha2_ganas)])
+
 			if err1 or err2:
 				# Ardha morae match but gaṇa rules broken — imperfect identification.
 				# Map the bad syllable offsets (within the ardha weight string) back to
@@ -812,6 +837,7 @@ class VerseTester(object):
 				jati_label = jAti_name + " (%s)" % quarter_label
 				Vrs.meter_label = jati_label + f" ({imperfect_label})"
 				Vrs.identification_score = meter_scores["jāti, imperfect"]
+				Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
 				Vrs.diagnostic = Diagnostic(
 					imperfect_id_label=imperfect_label,
 					failure_code=failure_code,
@@ -839,6 +865,7 @@ class VerseTester(object):
 				Vrs.meter_label = jati_label + f" ({imperfect_label})"
 
 			Vrs.identification_score = score
+			Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
 			Vrs.diagnostic = diagnostic
 			return 1
 

@@ -376,10 +376,12 @@ jAtis_by_ardha_morae = [
 
 # Named mātrā-gaṇas relevant to āryā-family rule checking
 mAtragaNa_names = {
-	'lgl':  'ja',   # v – v  (3 syllables, 4 morae) — the key gana to detect/exclude
+	'lgl':  'ja',   # v – v  (3 syllables, 4 morae)
 	'llll': 'kha',  # v v v v (4 syllables, 4 morae)
-	'l':    'la',   # v (1 mora — āryā 6th gaṇa of 2nd ardha)
-	'g':    'ga',   # – (2 morae — standard 8th gaṇa)
+	'gll':  'bha',  # – v v (3 syllables, 4 morae)
+	'llg':  'sa',   # v v – (3 syllables, 4 morae)
+	'l':    'l',    # v (1 mora — āryā 6th gaṇa of 2nd ardha)
+	'g':    'g',    # – (2 morae — standard 8th gaṇa)
 }
 
 meter_melodies = {
