@@ -363,13 +363,13 @@ vizamavftta_by_4_tuple = {
 	āryāgīti also has gaṇa 8 = 4 morae (not 2) in both ardhas; all others have gaṇa 8 = 2.
 """
 jAtis_by_ardha_morae = [
-#  std_ardha_morae  name         g6_a1  g6_a2  conventional_quarter_label
-[[30, 27], 'āryā',     4, 1, '12, 18, 12, 15'],
+#  std_ardha_morae  name         g6_a1  g6_a2  conventional_quarter_label    quarter_morae
+[[30, 27], 'āryā',     4, 1, '12, 18, 12, 15', [12, 18, 12, 15]],
 # see Andrew Ollett's work (e.g., @ prakrit.info) for extra rules on Prakrit gāhā...
-[[30, 30], 'gīti',     4, 4, '12, 18, 12, 18'],
-[[27, 27], 'upagīti',  1, 1, '12, 15, 12, 15'],
-[[27, 30], 'udgīti',   1, 4, '12, 15, 12, 18'],
-[[32, 32], 'āryāgīti', 4, 4, '12, 20, 12, 20'],
+[[30, 30], 'gīti',     4, 4, '12, 18, 12, 18', [12, 18, 12, 18]],
+[[27, 27], 'upagīti',  1, 1, '12, 15, 12, 15', [12, 15, 12, 15]],
+[[27, 30], 'udgīti',   1, 4, '12, 15, 12, 18', [12, 15, 12, 18]],
+[[32, 32], 'āryāgīti', 4, 4, '12, 20, 12, 20', [12, 20, 12, 20]],
 # [[28, 30], 'vaitālīya'],  # more rules...
 # [[32, 32], 'mātrāsamaka'], # more rules...
 ]

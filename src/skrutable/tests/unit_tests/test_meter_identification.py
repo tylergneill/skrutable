@@ -336,7 +336,7 @@ sA jayati sarasvatI devI"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = meter_scores["jāti, perfect"]
+	expected_output = meter_scores["max score"]
 	assert output == expected_output
 
 def test_identify_meter_jAti():
@@ -350,7 +350,7 @@ sA jayati sarasvatI devI"""
 	other_output = object_result.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = meter_scores["jāti, perfect"]
+	expected_output = meter_scores["max score"]
 	assert output == expected_output
 
 def test_evaluate_ardhasamavftta():
@@ -541,24 +541,19 @@ def test_vaMSasTa_imperfect_not_upajAti():
 
 def test_identify_meter_jAti_resplit_lite():
 	MI = MeterIdentifier()
-	input_string = """स्वः स्वर्गः सुरसद्म त्रिदशावासस्त्रिविष्टपं त्रिदिवम्
-द्यौर्गौरमर्त्यभुवनं नाकः स्यादूर्ध्वलोकश्च"""
-	object_result = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_lite')
+	input_string = """attā taha ramaṇijjaṃ aṃhaṃ gāmassa maṇḍaṇīhūaṃ
+luatilavāḍisaricchaṃ sisireṇakaaṃ bhisiṇisaṇḍaṃ"""
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite')
 	assert object_result.meter_label[:4] == 'āryā'
-	assert object_result.identification_score == meter_scores["jāti, perfect"]
+	assert object_result.identification_score == meter_scores["max score"]
 
 def test_identify_meter_jAti_resplit_max_keep_midpoint():
 	MI = MeterIdentifier()
-	input_string = """स्वः स्वर्गः सुरसद्म त्रिदशावासस्त्रिविष्टपं त्रिदिवम्
-द्यौर्गौरमर्त्यभुवनं नाकः स्यादूर्ध्वलोकश्च"""
-	# print()
-	object_result = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_max', resplit_keep_midpoint=True)
-	output = object_result.summarize()
-	truncated_output = object_result.meter_label[:4]
-	curr_func = inspect.stack()[0][3]
-	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = "āryā"
-	assert truncated_output == expected_output
+	input_string = """attā taha ramaṇijjaṃ aṃhaṃ gāmassa maṇḍaṇīhūaṃ
+luatilavāḍisaricchaṃ sisireṇakaaṃ bhisiṇisaṇḍaṃ"""
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_max', resplit_keep_midpoint=True)
+	assert object_result.meter_label[:4] == 'āryā'
+	assert object_result.identification_score == meter_scores["max score"]
 
 def test_identify_meter_samavftta_imperfect_resplit_lite_keep_mid():
 	MI = MeterIdentifier()

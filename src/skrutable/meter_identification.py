@@ -91,6 +91,36 @@ def _validate_jAti_gaNas(ganas, gana_6_morae):
 	return True
 
 
+def _fix_conjunct_pada_boundaries(syllable_list, break_positions):
+	"""
+	After resplitting, a pāda may start with a syllable whose onset contains
+	multiple consonants (e.g. 'cCa' from saccha). These consonants phonologically
+	close the final syllable of the previous pāda, making it heavy by position.
+	This function moves all but the last onset consonant of such syllables back
+	to the end of the previous syllable, so scan_syllable_weights assigns the
+	correct weight.
+
+	break_positions: list of syllable indices where pāda breaks occur (ab and cd
+	only — bc is the natural line break and not affected by resplitting).
+	syllable_list is modified in place.
+	"""
+	from skrutable.phonemes import SLP_vowels
+	vowel_set = set(SLP_vowels)
+
+	for br in break_positions:
+		if br <= 0 or br >= len(syllable_list):
+			continue
+		syl = syllable_list[br]
+		# find index of first vowel in syllable
+		vowel_idx = next((i for i, c in enumerate(syl) if c in vowel_set), None)
+		if vowel_idx is None or vowel_idx < 2:
+			continue  # no vowel found, or only 0-1 onset consonants — nothing to move
+		# move all but the last onset consonant to the previous syllable
+		surplus = syl[:vowel_idx - 1]
+		syllable_list[br - 1] = syllable_list[br - 1] + surplus
+		syllable_list[br] = syl[vowel_idx - 1:]
+
+
 class VerseTester(object):
 	"""
 	Internal agent-style object.
@@ -109,7 +139,6 @@ class VerseTester(object):
 		self.resplit_keep_midpoint = default_resplit_keep_midpoint # bool
 		self.identification_attempt_count = 0
 		self._anuzwuB_half_cache = {}  # cleared per wiggle_identify run
-		self._jAti_cache = {}           # cleared per wiggle_identify run
 
 	def combine_results(self, Vrs, new_label, new_score):
 		old_label = Vrs.meter_label or ''
@@ -701,19 +730,11 @@ class VerseTester(object):
 			ardha1_w = w_p[0]
 			ardha2_w = w_p[1]
 
-		cache_key = (ardha1_w, ardha2_w)
-		if cache_key in self._jAti_cache:
-			cached = self._jAti_cache[cache_key]
-			if cached:
-				Vrs.meter_label, Vrs.identification_score, Vrs.diagnostic = cached
-				return 1
-			return 0
-
 		def ardha_morae(w): return w.count('l') + w.count('g') * 2
 		m1 = ardha_morae(ardha1_w)
 		m2 = ardha_morae(ardha2_w)
 
-		for std_ardha, jAti_name, g6_ardha1, g6_ardha2, quarter_label in meter_patterns.jAtis_by_ardha_morae:
+		for std_ardha, jAti_name, g6_ardha1, g6_ardha2, quarter_label, quarter_morae in meter_patterns.jAtis_by_ardha_morae:
 
 			# ardha-level morae gate with anceps allowance on final syllable of each ardha
 			ok1 = m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l')
@@ -729,17 +750,29 @@ class VerseTester(object):
 			   not _validate_jAti_gaNas(ardha2_ganas, g6_ardha2):
 				continue
 
-			label = jAti_name + " (%s)" % quarter_label
-			score = meter_scores["jāti, perfect"]
-			diagnostic = Diagnostic(perfect_id_label=label, problem_syllables={1: [], 2: [], 3: [], 4: []})
+			jati_label = jAti_name + " (%s)" % quarter_label
+			def quarters_ok(actual, expected, weights):
+				if len(actual) < 4 or len(weights) < 4:
+					return False
+				return all(
+					actual[i] == expected[i] or
+					(actual[i] == expected[i] - 1 and weights[i] and weights[i][-1] == 'l')
+					for i in range(4)
+				)
+			if quarters_ok(Vrs.morae_per_line, quarter_morae, w_p):
+				score = meter_scores["jāti, perfect"]
+				diagnostic = Diagnostic(perfect_id_label=jati_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
+				Vrs.meter_label = jati_label
+			else:
+				imperfect_label = "incorrect quarter split"
+				score = meter_scores["jāti, imperfect"]
+				diagnostic = Diagnostic(imperfect_id_label=imperfect_label, problem_syllables={1: [], 2: [], 3: [], 4: []})
+				Vrs.meter_label = jati_label + f" ({imperfect_label})"
 
-			self._jAti_cache[cache_key] = (label, score, diagnostic)
-			Vrs.meter_label = label
 			Vrs.identification_score = score
 			Vrs.diagnostic = diagnostic
 			return 1
 
-		self._jAti_cache[cache_key] = None
 		return 0
 
 	def attempt_identification(self, Vrs):
@@ -838,6 +871,8 @@ class MeterIdentifier(object):
 		"""
 		Input does not have newlines
 		"""
+		syllable_list = list(syllable_list)  # don't mutate caller's list
+		_fix_conjunct_pada_boundaries(syllable_list, [ab_pAda_br, cd_pAda_br])
 		sss = scansion_syllable_separator
 		return (sss.join(syllable_list[:ab_pAda_br]) + '\n'
 				+ sss.join(syllable_list[ab_pAda_br:bc_pAda_br]) + '\n'
