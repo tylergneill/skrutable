@@ -55,12 +55,12 @@ GUJARATI
 
 VH     					WX
 a aa i ii u uu			a A i I u U
-.r .R .l .L e ai o au	q Q L   e E o O
-k K g G "n				k K g G f
-c C j J ~n				c C j J F
-.t .T .d .D .n			t T d D N
-t T d D n				w W x X n
-p P b B m				p P b B m
+.r .rr .l .ll e ai o au	q Q l   e E o O
+k kh g gh "n			k K g G f
+c ch j jh ~n			c C j J F
+.t .th .d .dh .n		t T d D N
+t th d dh n				w W x X n
+p pb b bh m				p P b B m
 y r l v					y r l v
 "s .s s h .m .h .a		S R s M H Z
 
@@ -833,24 +833,33 @@ SLP_GUJARATI = [
 
 SLP_VH = [
 # Transliteration 1: all simple mappings
+('~','/'),
 ('A','aa'),
 ('I','ii'),
 ('U','uu'),
 ('f','.r'),
-('F','.R'),
+('F','.rr'),
 ('x','.l'),
-('X','.L'),
+('X','.ll'),
 ('E','ai'),
 ('O','au'),
 ('M','.m'),
 ('H','.h'),
+('K','kh'),
+('G','gh'),
 ('N','"n'),
+('C','ch'),
+('J','jh'),
 ('Y','~n'),
 ('w','.t'),
-('W','.T'),
+('W','.th'),
 ('q','.d'),
-('Q','.D'),
+('Q','.dh'),
 ('R','.n'),
+('T','th'),
+('D','dh'),
+('P','ph'),
+('B','bh'),
 ('S','"s'),
 ('z','.s'),
 ("'",'.a'),
