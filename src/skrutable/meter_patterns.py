@@ -49,15 +49,15 @@ anuzwuB_pAda = {
 
 anuzwuB_pAda_asamIcIna = {
 	'odd' : {
-		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',              [1, 2],    'hahn_general_2'),  # syllables 2–3 both light
-		'^.{4}ggg.$' :  ('asamīcīnā, ma-vipulāyāḥ paścād raḥ syāt',  [1, 2, 3], 'hahn_vipulA_3'),   # ma-vipulā conditioning violated
-		'^.{4}gll.$' :  ('asamīcīnā, bha-vipulāyāḥ paścād raḥ syāt', [1, 2, 3], 'hahn_vipulA_2'),   # bha-vipulā conditioning violated
-		'^.{3}llll.$' : ('asamīcīnā, na-vipulāyāḥ paścād guruḥ syāt', [3],       'hahn_vipulA_1'),   # na-vipulā conditioning violated
-		'^.{3}lglg.$' : ('asamīcīnā, ra-vipulāyāḥ paścād guruḥ syāt', [3],       'hahn_vipulA_4'),   # ra-vipulā conditioning violated
+		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',               [1, 2],    'Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn anuṣṭubh general rule 2)'),
+		'^.{4}ggg.$' :  ('asamīcīnā, ma-vipulāyāḥ pūrvaṃ raḥ syāt',   [1, 2, 3], 'ma-vipulā requires immediately preceding ra-gaṇa (Hahn anuṣṭubh vipulā rule 3)'),
+		'^.{4}gll.$' :  ('asamīcīnā, bha-vipulāyāḥ pūrvaṃ raḥ syāt',  [1, 2, 3], 'bha-vipulā requires immediately preceding ra-gaṇa (Hahn anuṣṭubh vipulā rule 2)'),
+		'^.{3}llll.$' : ('asamīcīnā, na-vipulāyāḥ pūrvaṃ guruḥ syāt', [3],        'na-vipulā requires immediately preceding heavy syllable (Hahn anuṣṭubh vipulā rule 1)'),
+		'^.{3}lglg.$' : ('asamīcīnā, ra-vipulāyāḥ pūrvaṃ guruḥ syāt', [3],        'ra-vipulā requires immediately preceding heavy syllable (Hahn anuṣṭubh vipulā rule 4)'),
 	},
 	'even' : {
-		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',         [1, 2],    'hahn_general_2'),  # syllables 2–3 both light
-		'^.glg.{4}$' :  ('asamīcīnā, [na] dvitīyacaturthayo raḥ', [1, 2, 3], 'hahn_general_3'),  # ra-gaṇa at syllables 2–4
+		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',          [1, 2],    'Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn anuṣṭubh general rule 2)'),
+		'^.glg.{4}$' :  ('asamīcīnā, [na] dvitīyacaturthayo raḥ', [1, 2, 3], 'Syllables 5–7 in even pāda must be ja-gaṇa (Piṅgala; Hahn anuṣṭubh general rule 3)'),
 	},
 }
 

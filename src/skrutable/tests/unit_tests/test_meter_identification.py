@@ -499,7 +499,7 @@ def test_anuzwuB_hypermetric_ab_imperfect_cd():
 	MI = MeterIdentifier()
 	input_string = "ikṣvākuvaśaprabhavo rāmo nāma janaiḥ śrutataḥ / niyatamā mahāvīryo dyutimān dhṛtimān vaśī //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: ?? even: hypermetric; 3,4: odd: asamīcīnā, na prathamāt snau)"
+	expected_output = "anuṣṭubh (1,2: ?? even: adhikākṣarā; 3,4: odd: asamīcīnā, na prathamāt snau)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 4
 
@@ -507,7 +507,7 @@ def test_anuzwuB_hypermetric_ab_perfect_cd():
 	MI = MeterIdentifier()
 	input_string = "śrutvā tūśasano vākyaṃ sa āśramāvasatho janaḥ / niṣkrānto viṣayāt tasya sthānaṃ cakre 'tha bāhyataḥ //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: ?? even: hypermetric; 3,4: pathyā)"
+	expected_output = "anuṣṭubh (1,2: ?? even: adhikākṣarā; 3,4: pathyā)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 6
 
@@ -515,7 +515,7 @@ def test_anuzwuB_perfect_ab_hypermetric_cd():
 	MI = MeterIdentifier()
 	input_string = "pinākāstraṃ ca dayitaṃ śuṣkārdre aśanī tathā / daṇḍāstram atha paiśācaṃ krauñcam astraṃ tathāiva ca //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: na-vipulā; 3,4: ?? even: hypermetric)"
+	expected_output = "anuṣṭubh (1,2: na-vipulā; 3,4: ?? even: adhikākṣarā)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 6
 
@@ -523,7 +523,7 @@ def test_anuzwuB_hypometric_ab_hypermetric_cd():
 	MI = MeterIdentifier()
 	input_string = "pinākāstra ca dayitaṃ śuṣkārdre aśanī tathā / daṇḍāstram atha paiśācaṃ krauñcam astraṃ tathāiva ca //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: odd: asamīcīnā, na-vipulāyāḥ paścād guruḥ syāt; 3,4: ?? even: hypermetric)"
+	expected_output = "anuṣṭubh (1,2: odd: asamīcīnā, na-vipulāyāḥ pūrvaṃ guruḥ syāt; 3,4: ?? even: adhikākṣarā)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 4
 
@@ -597,7 +597,8 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	VT.evaluate_samavftta(V)
 	d = V.diagnostic
 	assert d.imperfect()
-	assert d.imperfect_id_label[1] == 'pādasamatva violation'
+	assert d.imperfect_label_english[1].startswith('does not match expected gaṇa pattern')
+	assert d.imperfect_label_sanskrit[1] == 'vikṛtavṛtta'
 	assert d.problem_syllables[1] == [4]
 	assert 2 not in d.problem_syllables
 	assert 3 not in d.problem_syllables
@@ -631,8 +632,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	if not disable_non_trizwuB_upajAti:
 		d = V.diagnostic
 		assert d.imperfect()
-		assert d.imperfect_id_label[1] == 'hypometric'
-		assert d.failure_code[1] == 'hypometric'
+		assert d.imperfect_label_english[1] == 'hypometric'
 		assert d.problem_syllables[1] == list(range(10))  # 10-syllable pāda excluded
 		assert 2 not in d.problem_syllables
 		assert 3 not in d.problem_syllables
