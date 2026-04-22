@@ -58,7 +58,7 @@ Sanskrit can be written in many ways. The schemes featured in `skrutable` are:
         <tr>
             <td>VH</td>
             <td>Velthuis</td>
-            <td>sa.msk.rta.m pa.Taama.h</td>
+            <td>sa.msk.rta.m pa.thaama.h</td>
         </tr>
         <tr>
             <td>WX</td>
