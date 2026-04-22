@@ -265,8 +265,13 @@ def _run_detection_test(cases, max_small_failures):
     small_failures = [f for f in failures if f['size'] <= 20]
     large_failures = [f for f in failures if f['size'] > 20]
     if large_failures or len(small_failures) > max_small_failures:
+        reasons = []
+        if large_failures:
+            reasons.append(f"{len(large_failures)} large-sample failure(s) (size > 20, zero allowed)")
+        if len(small_failures) > max_small_failures:
+            reasons.append(f"{len(small_failures)} small-sample failure(s) (size <= 20, max {max_small_failures} allowed)")
         lines = _build_summary(results, failures, high_correct, low_correct, t)
-        assert False, '\n'.join(lines)
+        assert False, "FAILED: " + "; ".join(reasons) + "\n" + '\n'.join(lines)
 
 
 # --- Get seed from environment or use default ---
