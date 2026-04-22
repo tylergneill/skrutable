@@ -60,7 +60,7 @@ k kh g gh "n			k K g G f
 c ch j jh ~n			c C j J F
 .t .th .d .dh .n		t T d D N
 t th d dh n				w W x X n
-p pb b bh m				p P b B m
+p ph b bh m				p P b B m
 y r l v					y r l v
 "s .s s h .m .h .a		S R s M H Z
 
