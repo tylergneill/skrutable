@@ -712,7 +712,7 @@ class MeterIdentifier(object):
 							pAda_brs, quarter_len):
 		"""Returns a list for MeterIdentifier.Verses_found"""
 
-		VrsTster._anuzwuB_half_cache = {}
+		self._anuzwuB_half_cache = {}
 		pos_iterators = {}
 		for k in ['ab', 'bc', 'cd']:
 			if  (
