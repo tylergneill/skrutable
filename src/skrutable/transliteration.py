@@ -42,7 +42,9 @@ class Transliterator():
 	def set_detected_scheme(self):
 		"""Internal method."""
 		SD = SchemeDetector()
-		self.scheme_in = SD.detect_scheme(self.contents)
+		detected = SD.detect_scheme(self.contents)
+		if detected is not None:
+			self.scheme_in = detected
 
 	def map_replace(self, from_scheme, to_scheme):
 		"""
