@@ -238,8 +238,8 @@ class VerseTester(object):
 						break
 				if result is None:
 					result = Diagnostic(
-						imperfect_label_sanskrit={'even': 'asamīcīnā, [caturthāt] pathyā yujo j'},
-						imperfect_label_english={'even': 'Syllables 5–7 in even pāda must be ja-gaṇa (Piṅgala; Hahn anuṣṭubh general rule 4)'},
+						imperfect_label_sanskrit={'even': 'asamīcīnā, [caturthāt ...] yujo j'},
+						imperfect_label_english={'even': 'Syllables 5–7 in even pāda must be ja-gaṇa (Piṅgala; Hahn 2014 anuṣṭubh general rule 4)'},
 						problem_syllables={'even': [4, 5, 6]},
 					)
 			else:
@@ -262,7 +262,7 @@ class VerseTester(object):
 				if result is None:
 					result = Diagnostic(
 						imperfect_label_sanskrit={'odd': 'asamīcīnā, [vipulāyām asatyām] ya[gaṇaḥ ayujaḥ] caturthāt [syāt]'},
-						imperfect_label_english={'odd': 'Syllables 5–7 in odd pāda must be ya-gaṇa when no vipulā applies (Piṅgala; Hahn anuṣṭubh pathyā)'},
+						imperfect_label_english={'odd': 'Syllables 5–7 in odd pāda must be ya-gaṇa when no vipulā applies (Piṅgala; Hahn 2014 anuṣṭubh pathyā)'},
 						problem_syllables={'odd': [4, 5, 6]},
 					)
 
@@ -892,13 +892,13 @@ class VerseTester(object):
 					return code
 				def _gana_error_english(code):
 					if code == 'hahn_jati_wrong_gana_count':
-						return 'Ardha does not contain exactly 8 mātrā-gaṇas (Hahn jāti)'
+						return 'Ardha does not contain exactly 8 mātrā-gaṇas (Hahn 2014 jāti)'
 					if 'general_1_gana' in code:
-						return 'No j-gaṇa permitted in odd gaṇa position (Hahn jāti general rule 1)'
+						return 'No j-gaṇa permitted in odd gaṇa position (Hahn 2014 jāti general rule 1)'
 					if code.endswith('_2_gana6_not_ja_kha'):
-						return 'The 6th gaṇa must be ja or kha in this meter (Hahn jāti special rule 2)'
+						return 'The 6th gaṇa must be ja or kha in this meter (Hahn 2014 jāti special rule 2)'
 					if code.endswith('_2_gana6_not_la'):
-						return 'The 6th gaṇa must be la in this meter (Hahn jāti special rule 2)'
+						return 'The 6th gaṇa must be la in this meter (Hahn 2014 jāti special rule 2)'
 					return code
 				raw_failure_code = (err1 or err2)[0]
 				imperfect_label_sa = _gana_error_sanskrit(raw_failure_code)

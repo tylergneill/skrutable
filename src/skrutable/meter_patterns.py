@@ -49,15 +49,15 @@ anuzwuB_pAda = {
 
 anuzwuB_pAda_asamIcIna = {
 	'odd' : {
-		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',               [1, 2],    'Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn anuṣṭubh general rule 2)'),
-		'^.{4}ggg.$' :  ('asamīcīnā, ma-vipulāyāḥ pūrvaṃ raḥ syāt',   [1, 2, 3], 'ma-vipulā requires immediately preceding ra-gaṇa (Hahn anuṣṭubh vipulā rule 3)'),
-		'^.{4}gll.$' :  ('asamīcīnā, bha-vipulāyāḥ pūrvaṃ raḥ syāt',  [1, 2, 3], 'bha-vipulā requires immediately preceding ra-gaṇa (Hahn anuṣṭubh vipulā rule 2)'),
-		'^.{3}llll.$' : ('asamīcīnā, na-vipulāyāḥ pūrvaṃ guruḥ syāt', [3],        'na-vipulā requires immediately preceding heavy syllable (Hahn anuṣṭubh vipulā rule 1)'),
-		'^.{3}lglg.$' : ('asamīcīnā, ra-vipulāyāḥ pūrvaṃ guruḥ syāt', [3],        'ra-vipulā requires immediately preceding heavy syllable (Hahn anuṣṭubh vipulā rule 4)'),
+		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',               [1, 2],    'Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn 2014 anuṣṭubh general rule 2)'),
+		'^.{4}ggg.$' :  ('asamīcīnā, ma-vipulāyāḥ pūrvaṃ raḥ syāt',   [1, 2, 3], 'ma-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 3)'),
+		'^.{4}gll.$' :  ('asamīcīnā, bha-vipulāyāḥ pūrvaṃ raḥ syāt',  [1, 2, 3], 'bha-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 2)'),
+		'^.{3}llll.$' : ('asamīcīnā, na-vipulāyāḥ pūrvaṃ guruḥ syāt', [3],        'na-vipulā must be preceded by heavy syllable (Hahn 2014 anuṣṭubh vipulā rule 1)'),
+		'^.{3}lglg.$' : ('asamīcīnā, ra-vipulāyāḥ pūrvaṃ guruḥ syāt', [3],        'ra-vipulā must be preceded by heavy syllable (Hahn 2014 anuṣṭubh vipulā rule 4)'),
 	},
 	'even' : {
-		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',          [1, 2],    'Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn anuṣṭubh general rule 2)'),
-		'^.glg.{4}$' :  ('asamīcīnā, [na] dvitīyacaturthayo raḥ', [1, 2, 3], 'Syllables 5–7 in even pāda must be ja-gaṇa (Piṅgala; Hahn anuṣṭubh general rule 3)'),
+		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',                        [1, 2],    'Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn 2014 anuṣṭubh general rule 2)'),
+		'^.glg.{4}$' :  ('asamīcīnā, [na ca prathamāt] dvitīyacaturthayo raḥ', [1, 2, 3], 'Syllables 2–3 in even pāda cannot be ra-gaṇa (Piṅgala; Hahn 2014 anuṣṭubh general rule 3)'),
 	},
 }
 
