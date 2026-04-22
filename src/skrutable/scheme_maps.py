@@ -433,7 +433,7 @@ VH_SLP = [
 ('aa','A'),
 ('ii','I'),
 ('uu','U'),
-('.rr','F'),
+('.rr','F'), # NB: would need lookahead for following vowel in order to distinguish e.g. maat.rruupe -> mātṛrūpe rather than mātṝūpe
 ('.r','f'),
 ('.ll','X'),
 ('.l','x'),
