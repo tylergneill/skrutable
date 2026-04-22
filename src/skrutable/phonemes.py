@@ -71,6 +71,8 @@ VH_chars = ( ['B','C','D','G','J','K','L','P','R','T'] + ['"','.','~']
 ITRANS_chars = ( ['C','D','E','I','L','N','O','R','S','T'] + ['.','^','~']
 + [c for c in Roman_lower if c not in ['f','q','v','x','z'] ] )
 
+WX_chars = list({tup[0] for tup in scheme_maps.WX_SLP})
+
 # build Indic sets from respective scheme maps, but exclude numbers
 
 virAmas = {
@@ -101,7 +103,8 @@ character_set = {
 'BENGALI': BENGALI_chars,
 'GUJARATI': GUJARATI_chars,
 'VH': VH_chars,
-'ITRANS': ITRANS_chars
+'ITRANS': ITRANS_chars,
+'WX': WX_chars
 }
 # add standard whitespace to all scansion character sets
 to_add = [' ', '\t', '\n']
