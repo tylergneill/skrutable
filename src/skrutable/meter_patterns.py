@@ -380,6 +380,10 @@ mAtragaNa_names = {
 	'llll': 'kha',  # v v v v (4 syllables, 4 morae)
 	'gll':  'bha',  # – v v (3 syllables, 4 morae)
 	'llg':  'sa',   # v v – (3 syllables, 4 morae)
+	'lll':  'na',   # v v v (3 syllables, 3 morae — āryāgīti 8th gaṇa)
+	'gg':   'gg',   # – – (2 syllables, 4 morae — āryāgīti 8th gaṇa)
+	'gl':   'gl',   # – v (2 syllables, 3 morae — āryāgīti 8th gaṇa)
+	'lg':   'lg',   # v – (2 syllables, 3 morae — āryāgīti 8th gaṇa)
 	'l':    'l',    # v (1 mora — āryā 6th gaṇa of 2nd ardha)
 	'g':    'g',    # – (2 morae — standard 8th gaṇa)
 }

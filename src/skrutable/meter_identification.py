@@ -79,9 +79,11 @@ _jati_name_slugs = {
 
 def _validate_jAti_gaNas(ganas, gana_6_morae, jati_name='', ardha_num=0):
 	"""
-	Validates mātrā-gaṇa structure per Hahn's rules for the āryā family:
+	Validates mātrā-gaṇa structure for the āryā family:
 	  1. (general) Odd positions (1,3,5,7) must not be ja (lgl).
 	  2. (meter-specific) Position 6 must be ja/kha (gana_6_morae==4) or la (gana_6_morae==1).
+	  3. (meter-specific) Position 8 must be a single anceps syllable (l or g) for all
+	     meters except āryāgīti, where it must be 4 morae and not kha (llll).
 
 	Returns None if valid.
 	Returns (failure_code, bad_syllable_indices) on failure, where bad_syllable_indices
@@ -92,7 +94,7 @@ def _validate_jAti_gaNas(ganas, gana_6_morae, jati_name='', ardha_num=0):
 
 	names = meter_patterns.mAtragaNa_names
 	slug = _jati_name_slugs.get(jati_name, jati_name)
-	prefix = f'hahn_{slug}_ardha{ardha_num}' if slug else 'hahn_jati'
+	prefix = f'neill_{slug}_ardha{ardha_num}' if slug else 'neill_jati'
 
 	# build cumulative syllable offsets so we can report syllable positions
 	offsets = []
@@ -117,6 +119,19 @@ def _validate_jAti_gaNas(ganas, gana_6_morae, jati_name='', ardha_num=0):
 		start = offsets[5]
 		bad_syls = list(range(start, start + len(g6_raw)))
 		return (f'{prefix}_2_gana6_not_la', bad_syls)
+
+	g8_raw = ganas[7]
+	g8_morae = g8_raw.count('l') + g8_raw.count('g') * 2
+	if jati_name == 'āryāgīti':
+		if g8_morae != 4 or names.get(g8_raw) == 'kha':
+			start = offsets[7]
+			bad_syls = list(range(start, start + len(g8_raw)))
+			return (f'{prefix}_3_gana8_not_valid_aryagiti', bad_syls)
+	else:
+		if g8_raw not in ('l', 'g'):
+			start = offsets[7]
+			bad_syls = list(range(start, start + len(g8_raw)))
+			return (f'{prefix}_3_gana8_not_anceps', bad_syls)
 
 	return None
 
@@ -881,7 +896,7 @@ class VerseTester(object):
 					prob.update(ardha_syls_to_padas(bad2, 3, 4, pada3_len))
 
 				def _gana_error_sanskrit(code):
-					if code == 'hahn_jati_wrong_gana_count':
+					if 'wrong_gana_count' in code:
 						return 'asamīcīnā, gaṇasaṃkhyā na aṣṭau'
 					if 'general_1_gana' in code:
 						return 'asamīcīnā, jaḥ ayuggaṇe'
@@ -889,16 +904,24 @@ class VerseTester(object):
 						return 'asamīcīnā, ṣaṣṭhagaṇo na jaḥ/khaḥ'
 					if code.endswith('_2_gana6_not_la'):
 						return 'asamīcīnā, ṣaṣṭhagaṇo na laḥ'
+					if code.endswith('_3_gana8_not_anceps'):
+						return 'asamīcīnā, aṣṭamagaṇo na ekākṣaraḥ'
+					if code.endswith('_3_gana8_not_valid_aryagiti'):
+						return 'asamīcīnā, aṣṭamagaṇo na caturmātro (akha)'
 					return code
 				def _gana_error_english(code):
-					if code == 'hahn_jati_wrong_gana_count':
-						return 'Ardha does not contain exactly 8 mātrā-gaṇas (Hahn 2014 jāti)'
+					if 'wrong_gana_count' in code:
+						return 'Ardha does not contain exactly 8 mātrā-gaṇas (Neill jāti)'
 					if 'general_1_gana' in code:
-						return 'No j-gaṇa permitted in odd gaṇa position (Hahn 2014 jāti general rule 1)'
+						return 'Odd gaṇa positions (1, 3, 5, 7) must never be ja-gaṇa (Neill jāti general rule)'
 					if code.endswith('_2_gana6_not_ja_kha'):
-						return 'The 6th gaṇa must be ja or kha in this meter (Hahn 2014 jāti special rule 2)'
+						return 'The 6th gaṇa must be ja or kha in this meter (Neill jāti special rule)'
 					if code.endswith('_2_gana6_not_la'):
-						return 'The 6th gaṇa must be la in this meter (Hahn 2014 jāti special rule 2)'
+						return 'The 6th gaṇa must be a single laghu in this meter (Neill jāti special rule)'
+					if code.endswith('_3_gana8_not_anceps'):
+						return 'The last gaṇa of both ardhas must be a single anceps syllable (Neill jāti general rule)'
+					if code.endswith('_3_gana8_not_valid_aryagiti'):
+						return 'The last gaṇa of both ardhas must be 4 moras long and not kha-gaṇa in āryāgīti (Neill jāti general rule)'
 					return code
 				raw_failure_code = (err1 or err2)[0]
 				imperfect_label_sa = _gana_error_sanskrit(raw_failure_code)
