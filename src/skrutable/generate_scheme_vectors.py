@@ -14,7 +14,7 @@ from collections import Counter
 
 from skrutable.transliteration import Transliterator
 
-CORPUS_PATH = os.path.join(os.path.dirname(__file__), 'mbh1-18u.txt')
+CORPUS_PATH = os.path.join(os.path.dirname(__file__), 'scheme_detection_mbh_corpus.txt')
 
 SCHEMES = ['IAST', 'SLP', 'HK', 'ITRANS', 'VH', 'WX', 'DEV', 'BENGALI', 'GUJARATI']
 
