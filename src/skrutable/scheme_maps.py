@@ -459,7 +459,6 @@ VH_SLP = [
 ('"s','S'),
 ('.s','z'),
 ("’", "'"),
-('/','~'),
 ]
 
 WX_SLP = [
@@ -841,7 +840,6 @@ SLP_GUJARATI = [
 
 SLP_VH = [
 # Transliteration 1: all simple mappings
-('~','/'),
 ('A','aa'),
 ('I','ii'),
 ('U','uu'),
