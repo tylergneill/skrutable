@@ -149,8 +149,9 @@ def _fix_conjunct_pada_boundaries(syllable_list, break_positions):
 	only — bc is the natural line break and not affected by resplitting).
 	syllable_list is modified in place.
 	"""
-	from skrutable.phonemes import SLP_vowels
+	from skrutable.phonemes import SLP_vowels, SLP_long_vowels, SLP_consonants
 	vowel_set = set(SLP_vowels)
+	already_heavy_finals = set(SLP_long_vowels) | set(SLP_consonants) | {'M', 'H'}
 
 	for br in break_positions:
 		if br <= 0 or br >= len(syllable_list):
@@ -160,6 +161,9 @@ def _fix_conjunct_pada_boundaries(syllable_list, break_positions):
 		vowel_idx = next((i for i, c in enumerate(syl) if c in vowel_set), None)
 		if vowel_idx is None or vowel_idx < 2:
 			continue  # no vowel found, or only 0-1 onset consonants — nothing to move
+		# skip if previous syllable is already heavy by nature
+		if syllable_list[br - 1] and syllable_list[br - 1][-1] in already_heavy_finals:
+			continue
 		# move all but the last onset consonant to the previous syllable
 		surplus = syl[:vowel_idx - 1]
 		syllable_list[br - 1] = syllable_list[br - 1] + surplus
