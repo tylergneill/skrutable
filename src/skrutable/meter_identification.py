@@ -931,16 +931,18 @@ class VerseTester(object):
 				imperfect_label_sa = _gana_error_sanskrit(raw_failure_code)
 				imperfect_label_en = _gana_error_english(raw_failure_code)
 				jati_label = jAti_name + " (%s)" % quarter_label
-				Vrs.meter_label = jati_label + f" ({imperfect_label_sa})"
-				Vrs.identification_score = meter_scores["jāti, imperfect"]
-				Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
-				ardha_num = 1 if (err1 and not err2) or ('ardha1' in raw_failure_code) else 2
-				affected_padas = [1, 2] if ardha_num == 1 else [3, 4]
-				Vrs.diagnostic = Diagnostic(
-					imperfect_label_sanskrit={p: imperfect_label_sa for p in affected_padas},
-					imperfect_label_english={p: imperfect_label_en for p in affected_padas},
-					problem_syllables=prob or None,
-				)
+				jati_score = meter_scores["jāti, imperfect"]
+				if jati_score >= Vrs.identification_score:
+					Vrs.meter_label = jati_label + f" ({imperfect_label_sa})"
+					Vrs.identification_score = jati_score
+					Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
+					ardha_num = 1 if (err1 and not err2) or ('ardha1' in raw_failure_code) else 2
+					affected_padas = [1, 2] if ardha_num == 1 else [3, 4]
+					Vrs.diagnostic = Diagnostic(
+						imperfect_label_sanskrit={p: imperfect_label_sa for p in affected_padas},
+						imperfect_label_english={p: imperfect_label_en for p in affected_padas},
+						problem_syllables=prob or None,
+					)
 				return 1
 
 			jati_label = jAti_name + " (%s)" % quarter_label
@@ -955,7 +957,7 @@ class VerseTester(object):
 			if quarters_ok(Vrs.morae_per_line, quarter_morae, w_p):
 				score = meter_scores["jāti, perfect"]
 				diagnostic = Diagnostic(perfect_id_label=jati_label)
-				Vrs.meter_label = jati_label
+				new_label = jati_label
 			else:
 				score = meter_scores["jāti, imperfect"]
 				per_pada_sanskrit = {}
@@ -970,11 +972,13 @@ class VerseTester(object):
 					imperfect_label_sanskrit=per_pada_sanskrit or None,
 					imperfect_label_english=per_pada_english or None,
 				)
-				Vrs.meter_label = jati_label + " (incorrect quarter split)"
+				new_label = jati_label + " (incorrect quarter split)"
 
-			Vrs.identification_score = score
-			Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
-			Vrs.diagnostic = diagnostic
+			if score >= Vrs.identification_score:
+				Vrs.meter_label = new_label
+				Vrs.identification_score = score
+				Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
+				Vrs.diagnostic = diagnostic
 			return 1
 
 		return 0
