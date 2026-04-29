@@ -15005,7 +15005,7 @@
     }
   }
 
-  var version = "2.1.4";
+  var version = "2.1.5";
 
   // Main entry point for the skrutable JavaScript library
   // Sanskrit text processing toolkit for transliteration, scansion, and meter identification
