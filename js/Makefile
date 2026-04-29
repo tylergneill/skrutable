@@ -3,7 +3,7 @@
 
 .PHONY: build build-extension-chrome build-extension-firefox \
         release-extension-chrome release-extension-firefox \
-        all clean-bundle clean-extensions
+        all clean-bundle clean-extensions clean
 
 # Build the skrutable JS library bundle (dist/skrutable.bundle.js)
 build:
@@ -34,3 +34,5 @@ clean-bundle:
 
 clean-extensions:
 	rm -rf dist/extension/
+
+clean: clean-bundle clean-extensions

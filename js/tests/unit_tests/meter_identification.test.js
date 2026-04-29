@@ -510,4 +510,16 @@ yadA kiYcitkiYcidbuDajana-sakASAdavagataM tadA mUrKo'smIti jvara iva mado me vya
         const expected_output = "śikhariṇī";
         expect(output).toBe(expected_output);
     });
+
+    test('test_resplit_keep_midpoint_pins_bc_break', () => {
+        // Artificially miscut anuṣṭup: the user-supplied newline falls after pāda 1 only,
+        // putting three pādas on line 2. keep_mid=true honours that bad bc break and
+        // fails to identify the meter; keep_mid=false ignores it and finds anuṣṭup.
+        const MI = new MeterIdentifier();
+        const input_string = `dharmakṣetre kurukṣetre samavetā /\nyuyutsavaḥ māmakāḥ pāṇḍavāś caiva kim akurvata sañjaya //`;
+        const result_keep = MI.identify_meter(input_string, 'resplit_max', true, 'IAST');
+        const result_free = MI.identify_meter(input_string, 'resplit_max', false, 'IAST');
+        expect(result_keep.meterLabel).toBe("na kiṃcid adhyavasitam");
+        expect(result_free.meterLabel.substring(0, 7)).toBe("anuṣṭup");
+    });
 });
