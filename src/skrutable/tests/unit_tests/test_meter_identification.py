@@ -540,18 +540,20 @@ def test_vaMSasTa_imperfect_not_upajAti():
 	assert truncated_output == expected_output
 
 def test_identify_meter_jAti_resplit_lite():
+	# resplit_lite cannot find the correct pāda boundaries for this verse
 	MI = MeterIdentifier()
-	input_string = """attā taha ramaṇijjaṃ aṃhaṃ gāmassa maṇḍaṇīhūaṃ
-luatilavāḍisaricchaṃ sisireṇakaaṃ bhisiṇisaṇḍaṃ"""
-	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite')
+	input_string = """स्वः स्वर्गः सुरसद्म त्रिदशावासस्त्रिविष्टपं त्रिदिवम्
+द्यौर्गौरमर्त्यभुवनं नाकः स्यादूर्ध्वलोकश्च"""
+	object_result = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_lite')
 	assert object_result.meter_label[:4] == 'āryā'
-	assert object_result.identification_score == meter_scores["max score"]
+	assert object_result.identification_score == meter_scores["jāti, imperfect"]
 
 def test_identify_meter_jAti_resplit_max_keep_midpoint():
+	# resplit_max_keep_midpoint finds the correct pāda boundaries
 	MI = MeterIdentifier()
-	input_string = """attā taha ramaṇijjaṃ aṃhaṃ gāmassa maṇḍaṇīhūaṃ
-luatilavāḍisaricchaṃ sisireṇakaaṃ bhisiṇisaṇḍaṃ"""
-	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_max', resplit_keep_midpoint=True)
+	input_string = """स्वः स्वर्गः सुरसद्म त्रिदशावासस्त्रिविष्टपं त्रिदिवम्
+द्यौर्गौरमर्त्यभुवनं नाकः स्यादूर्ध्वलोकश्च"""
+	object_result = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_max', resplit_keep_midpoint=True)
 	assert object_result.meter_label[:4] == 'āryā'
 	assert object_result.identification_score == meter_scores["max score"]
 
