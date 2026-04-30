@@ -648,7 +648,7 @@ class VerseTester(object):
 		combined_meter_labels = ', '.join(unique_meter_labels)
 
 		# assign scores and labels
-		family = meter_patterns.samavftta_family_names[ wbp_lens[0]]
+		family = meter_patterns.samavftta_family_names[wbp_lens[0]] if wbp_lens[0] < 27 else 'daṇḍaka'
 		unique_meter_labels_copy = unique_meter_labels; unique_meter_labels_copy.sort()
 		if (family == "triṣṭubh" and
 			unique_meter_labels_copy == ['indravajrā [11: ttjgg]', 'upendravajrā [11: jtjgg]']

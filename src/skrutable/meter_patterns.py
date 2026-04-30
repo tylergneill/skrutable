@@ -80,9 +80,6 @@ samavftta_family_names = {
 18: 'dhṛti', 	19: 'atidhṛti',
 20: 'kṛti',		21: 'prakṛti', 	22: 'ākṛti',	23: 'vikṛti',
 24: 'saṃkṛti',	25: 'atikṛti', 	26: 'utkṛti',
-27: 'daṇḍaka',	28: 'daṇḍaka', 	29: 'daṇḍaka', 	30: 'daṇḍaka',
-31: 'daṇḍaka',	32: 'daṇḍaka',	33: 'daṇḍaka',	34: 'daṇḍaka',
-35: 'daṇḍaka',	36: 'daṇḍaka',	37: 'daṇḍaka',	38: 'daṇḍaka',
 }
 
 # to delete...
