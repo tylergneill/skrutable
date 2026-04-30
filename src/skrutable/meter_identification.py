@@ -879,13 +879,71 @@ class VerseTester(object):
 			else:
 				mAtragaNa_abbrevs = '\n'.join([ganas_to_abbrevs(ardha1_ganas), ganas_to_abbrevs(ardha2_ganas)])
 
+			def _pada_morae_from_ganas(ganas, pada_syl_count):
+				"""Return (pada_a_morae, pada_b_morae) by splitting gaṇas at pada_syl_count syllables."""
+				cur = 0
+				split = len(ganas)
+				for i, g in enumerate(ganas):
+					if cur >= pada_syl_count:
+						split = i
+						break
+					cur += len(g)
+				def mora(gs): return sum(g.count('l') + g.count('g') * 2 for g in gs)
+				return mora(ganas[:split]), mora(ganas[split:])
+
+			def _pada_split_ok(morae_pair, expected_pair, ganas, pada_syl_count):
+				"""True if the gaṇa-derived pāda morae match expected (with anceps allowance)."""
+				actual_a, actual_b = _pada_morae_from_ganas(ganas, pada_syl_count)
+				exp_a, exp_b = expected_pair
+				cur = 0; split = len(ganas)
+				for i, g in enumerate(ganas):
+					if cur >= pada_syl_count: split = i; break
+					cur += len(g)
+				last_a = ganas[split - 1][-1] if split > 0 and ganas[split - 1] else ''
+				last_b = ganas[-1][-1] if ganas[-1] else ''
+				ok_a = actual_a == exp_a or (actual_a == exp_a - 1 and last_a == 'l')
+				ok_b = actual_b == exp_b or (actual_b == exp_b - 1 and last_b == 'l')
+				return ok_a and ok_b
+
 			if err1 or err2:
-				# Ardha morae match but gaṇa rules broken — imperfect identification.
-				# Map the bad syllable offsets (within the ardha weight string) back to
-				# pāda-level syllable indices for problem_syllables.
+				# Before reporting a gaṇa-rule error, check whether the pāda split is
+				# wrong — a bad split can corrupt the decomposition and produce artifactual
+				# gaṇa errors. If the split is the real problem, report that instead.
+				pada_split_bad = False
+				if len(w_p) >= 4:
+					split1_ok = _pada_split_ok(
+						(quarter_morae[0], quarter_morae[1]), (quarter_morae[0], quarter_morae[1]),
+						ardha1_ganas, len(w_p[0]))
+					split2_ok = _pada_split_ok(
+						(quarter_morae[2], quarter_morae[3]), (quarter_morae[2], quarter_morae[3]),
+						ardha2_ganas, len(w_p[2]))
+					pada_split_bad = not split1_ok or not split2_ok
+
+				if pada_split_bad:
+					per_pada_sanskrit = {}
+					per_pada_english = {}
+					for i, (actual, expected) in enumerate(zip(Vrs.morae_per_line, quarter_morae), start=1):
+						anceps_ok = (actual == expected - 1 and i - 1 < len(w_p) and w_p[i-1] and w_p[i-1][-1] == 'l')
+						if actual != expected and not anceps_ok:
+							hyper = actual > expected
+							per_pada_sanskrit[i] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
+							per_pada_english[i] = f"pāda split doesn't match expected pattern {list(quarter_morae)}"
+					jati_label = jAti_name + " (%s)" % quarter_label
+					jati_score = meter_scores["jāti, imperfect"]
+					if jati_score >= Vrs.identification_score:
+						Vrs.meter_label = jati_label + " (incorrect quarter split)"
+						Vrs.identification_score = jati_score
+						Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
+						Vrs.diagnostic = Diagnostic(
+							imperfect_label_sanskrit=per_pada_sanskrit or None,
+							imperfect_label_english=per_pada_english or None,
+						)
+					return 1
+
+				# Ardha morae match, pāda split is fine, but gaṇa rules broken.
+				# Map the bad syllable offsets back to pāda-level indices.
 				pada1_len = len(w_p[0]) if len(w_p) >= 4 else 0
 				def ardha_syls_to_padas(bad_offsets, pada_a, pada_b, pada_a_len):
-					"""Split flat ardha syllable offsets into two pāda index lists."""
 					a_syls = [i for i in bad_offsets if i < pada_a_len]
 					b_syls = [i - pada_a_len for i in bad_offsets if i >= pada_a_len]
 					return {pada_a: a_syls, pada_b: b_syls}
@@ -915,17 +973,17 @@ class VerseTester(object):
 					return code
 				def _gana_error_english(code):
 					if 'wrong_gana_count' in code:
-						return 'Ardha does not contain exactly 8 mātrā-gaṇas (Neill jāti)'
+						return 'Ardha does not contain exactly 8 mātrā-gaṇas (Hahn general, definition)'
 					if 'general_1_gana' in code:
-						return 'Odd gaṇa positions (1, 3, 5, 7) must never be ja-gaṇa (Neill jāti general rule)'
+						return 'Odd gaṇa positions (1, 3, 5, 7) must never be ja-gaṇa (Hahn general rule 1)'
 					if code.endswith('_2_gana6_not_ja_kha'):
-						return 'The 6th gaṇa must be ja or kha in this meter (Neill jāti special rule)'
+						return 'The 6th gaṇa must be ja or kha in this meter (Hahn general rule 2)*'
 					if code.endswith('_2_gana6_not_la'):
-						return 'The 6th gaṇa must be a single laghu in this meter (Neill jāti special rule)'
+						return 'The 6th gaṇa must be a single laghu in this meter (Hahn special rule 2)'
 					if code.endswith('_3_gana8_not_anceps'):
-						return 'The last gaṇa of both ardhas must be a single anceps syllable (Neill jāti general rule)'
+						return 'The last gaṇa of both ardhas must be a single anceps syllable (Hahn general, 8th gaṇa)*'
 					if code.endswith('_3_gana8_not_valid_aryagiti'):
-						return 'The last gaṇa of both ardhas must be 4 moras long and not kha-gaṇa in āryāgīti (Neill jāti general rule)'
+						return 'The last gaṇa of both ardhas must be 4 moras long and not kha-gaṇa in āryāgīti (Hahn special rule 4)*'
 					return code
 				raw_failure_code = (err1 or err2)[0]
 				imperfect_label_sa = _gana_error_sanskrit(raw_failure_code)
