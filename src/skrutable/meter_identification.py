@@ -41,6 +41,12 @@ def _decompose_into_mAtragaNas(weights_str, gana_6_morae, gana_8_morae):
 	Returns list of l/g substrings, one per gaṇa position (8 total).
 	gana_6_morae: 1 for upagīti-style 6th gaṇa (la), 4 for ja/kha.
 	gana_8_morae: 2 for standard final long, 4 for āryāgīti.
+
+	Fully greedy: consume syllables into each gaṇa until the running mora count
+	meets or exceeds the target, then stop. A perfect verse hits each target
+	exactly and never overflows. An imperfect verse overflows at the gaṇa where
+	the syllable sequence diverges — making the specific problem visible to
+	validation. Gaṇa 8 takes all remaining syllables.
 	"""
 	ganas = []
 	i = 0
@@ -58,11 +64,8 @@ def _decompose_into_mAtragaNas(weights_str, gana_6_morae, gana_8_morae):
 		seg_morae = 0
 		while i < n and seg_morae < target:
 			s = weights_str[i]
-			m = 1 if s == 'l' else 2
-			if seg_morae + m > target:
-				break
 			seg += s
-			seg_morae += m
+			seg_morae += 1 if s == 'l' else 2
 			i += 1
 		ganas.append(seg)
 
@@ -88,10 +91,11 @@ def _validate_jAti_gaNas(ganas, gana_6_morae, jati_name='', ardha_num=0):
 	Returns None if valid.
 	Returns (failure_code, bad_syllable_indices) on failure, where bad_syllable_indices
 	is a list of 0-indexed syllable offsets within the ardha weight string.
-	"""
-	if len(ganas) != 8:
-		return ('hahn_jati_wrong_gana_count', [])
 
+	Checks rules in position order on however many ganas were built, so the first
+	actual rule violation is always reported. Wrong gana count is only a fallback
+	when no earlier rule was broken.
+	"""
 	names = meter_patterns.mAtragaNa_names
 	slug = _jati_name_slugs.get(jati_name, jati_name)
 	prefix = f'neill_{slug}_ardha{ardha_num}' if slug else 'neill_jati'
@@ -103,35 +107,35 @@ def _validate_jAti_gaNas(ganas, gana_6_morae, jati_name='', ardha_num=0):
 		offsets.append(cur)
 		cur += len(g)
 
-	for pos in [1, 3, 5, 7]:  # 1-indexed odd positions — rule applies to all jāti meters
-		if names.get(ganas[pos - 1]) == 'ja':
-			start = offsets[pos - 1]
-			bad_syls = list(range(start, start + len(ganas[pos - 1])))
-			return (f'{prefix}_general_1_gana{pos}', bad_syls)
+	# check each position's rules in order, stopping at the first violation
+	for pos in range(1, min(len(ganas), 8) + 1):
+		g = ganas[pos - 1]
+		morae = g.count('l') + g.count('g') * 2
+		start = offsets[pos - 1]
+		bad_syls = list(range(start, start + len(g)))
 
-	g6_name = names.get(ganas[5], 'other')
-	g6_raw = ganas[5]
-	if gana_6_morae == 4 and g6_name not in ('ja', 'kha'):
-		start = offsets[5]
-		bad_syls = list(range(start, start + len(g6_raw)))
-		return (f'{prefix}_2_gana6_not_ja_kha', bad_syls)
-	if gana_6_morae == 1 and g6_raw != 'l':
-		start = offsets[5]
-		bad_syls = list(range(start, start + len(g6_raw)))
-		return (f'{prefix}_2_gana6_not_la', bad_syls)
+		if pos in (1, 2, 3, 4, 5, 7):
+			if morae != 4:
+				return (f'{prefix}_general_0_gana{pos}_wrong_morae', bad_syls)
+			if pos in (1, 3, 5, 7) and names.get(g) == 'ja':
+				return (f'{prefix}_general_1_gana{pos}', bad_syls)
 
-	g8_raw = ganas[7]
-	g8_morae = g8_raw.count('l') + g8_raw.count('g') * 2
-	if jati_name == 'āryāgīti':
-		if g8_morae != 4 or names.get(g8_raw) == 'kha':
-			start = offsets[7]
-			bad_syls = list(range(start, start + len(g8_raw)))
-			return (f'{prefix}_3_gana8_not_valid_aryagiti', bad_syls)
-	else:
-		if g8_raw not in ('l', 'g'):
-			start = offsets[7]
-			bad_syls = list(range(start, start + len(g8_raw)))
-			return (f'{prefix}_3_gana8_not_anceps', bad_syls)
+		elif pos == 6:
+			if gana_6_morae == 4 and names.get(g) not in ('ja', 'kha'):
+				return (f'{prefix}_2_gana6_not_ja_kha', bad_syls)
+			if gana_6_morae == 1 and g != 'l':
+				return (f'{prefix}_2_gana6_not_la', bad_syls)
+
+		elif pos == 8:
+			if jati_name == 'āryāgīti':
+				if morae != 4 or names.get(g) == 'kha':
+					return (f'{prefix}_3_gana8_not_valid_aryagiti', bad_syls)
+			else:
+				if g not in ('l', 'g'):
+					return (f'{prefix}_3_gana8_not_anceps', bad_syls)
+
+	if len(ganas) != 8:
+		return ('hahn_jati_wrong_gana_count', [])
 
 	return None
 
@@ -842,10 +846,39 @@ class VerseTester(object):
 
 		for std_ardha, jAti_name, g6_ardha1, g6_ardha2, quarter_label, quarter_morae in meter_patterns.jAtis_by_ardha_morae:
 
-			# ardha-level morae gate with anceps allowance on final syllable of each ardha
+			# ardha-level morae gate: the final syllable is anceps — a light final
+			# may stand for heavy, so one short is acceptable when the last is light.
 			ok1 = m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l')
 			ok2 = m2 == std_ardha[1] or (m2 == std_ardha[1] - 1 and ardha2_w[-1] == 'l')
 			if not ok1 or not ok2:
+				# Use effective morae (actual + 1 if light final, since anceps could
+				# close the gap) for the "close" check: if effective morae are within
+				# 1 of expected on both ardhas, record a low-confidence named guess.
+				eff1 = m1 + (1 if ardha1_w[-1] == 'l' else 0)
+				eff2 = m2 + (1 if ardha2_w[-1] == 'l' else 0)
+				close1 = abs(eff1 - std_ardha[0]) <= 1
+				close2 = abs(eff2 - std_ardha[1]) <= 1
+				if close1 and close2:
+					jati_label = jAti_name + " (%s)" % quarter_label
+					likely_score = meter_scores["jāti, likely"]
+					if likely_score > Vrs.identification_score:
+						Vrs.meter_label = jati_label + " (ardhamātrā nyūnādhikā)"
+						Vrs.identification_score = likely_score
+						per_pada_sanskrit = {}
+						per_pada_english = {}
+						for i, (actual, expected) in enumerate(zip(Vrs.morae_per_line, quarter_morae), start=1):
+							# anceps allowed only at ends of pādas 2 and 4 (ardha-final)
+							is_ardha_final = (i % 2 == 0)
+							anceps_ok = (is_ardha_final and actual == expected - 1
+										 and i - 1 < len(w_p) and w_p[i-1] and w_p[i-1][-1] == 'l')
+							if actual != expected and not anceps_ok:
+								hyper = actual > expected
+								per_pada_sanskrit[i] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
+								per_pada_english[i] = f"pāda mora count off from expected pattern {list(quarter_morae)}"
+						Vrs.diagnostic = Diagnostic(
+							imperfect_label_sanskrit=per_pada_sanskrit or None,
+							imperfect_label_english=per_pada_english or None,
+						)
 				continue
 
 			g8_morae = 4 if jAti_name == 'āryāgīti' else 2
@@ -861,7 +894,7 @@ class VerseTester(object):
 			def ganas_to_abbrevs(ganas):
 				return ' '.join(names.get(g, g) for g in ganas)
 			def split_ardha_ganas_to_padas(ganas, pada_a_syl_count):
-				"""Split 8 ardha gaṇas into two pāda abbreviation strings by syllable count."""
+				"""Split ardha gaṇas into two pāda abbreviation strings by syllable count."""
 				cur = 0
 				split = 0
 				for i, g in enumerate(ganas):
@@ -906,41 +939,13 @@ class VerseTester(object):
 				return ok_a and ok_b
 
 			if err1 or err2:
-				# Before reporting a gaṇa-rule error, check whether the pāda split is
-				# wrong — a bad split can corrupt the decomposition and produce artifactual
-				# gaṇa errors. If the split is the real problem, report that instead.
-				pada_split_bad = False
-				if len(w_p) >= 4:
-					split1_ok = _pada_split_ok(
-						(quarter_morae[0], quarter_morae[1]), (quarter_morae[0], quarter_morae[1]),
-						ardha1_ganas, len(w_p[0]))
-					split2_ok = _pada_split_ok(
-						(quarter_morae[2], quarter_morae[3]), (quarter_morae[2], quarter_morae[3]),
-						ardha2_ganas, len(w_p[2]))
-					pada_split_bad = not split1_ok or not split2_ok
-
-				if pada_split_bad:
-					per_pada_sanskrit = {}
-					per_pada_english = {}
-					for i, (actual, expected) in enumerate(zip(Vrs.morae_per_line, quarter_morae), start=1):
-						anceps_ok = (actual == expected - 1 and i - 1 < len(w_p) and w_p[i-1] and w_p[i-1][-1] == 'l')
-						if actual != expected and not anceps_ok:
-							hyper = actual > expected
-							per_pada_sanskrit[i] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
-							per_pada_english[i] = f"pāda split doesn't match expected pattern {list(quarter_morae)}"
-					jati_label = jAti_name + " (%s)" % quarter_label
-					jati_score = meter_scores["jāti, imperfect"]
-					if jati_score >= Vrs.identification_score:
-						Vrs.meter_label = jati_label + " (incorrect quarter split)"
-						Vrs.identification_score = jati_score
-						Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
-						Vrs.diagnostic = Diagnostic(
-							imperfect_label_sanskrit=per_pada_sanskrit or None,
-							imperfect_label_english=per_pada_english or None,
-						)
-					return 1
-
-				# Ardha morae match, pāda split is fine, but gaṇa rules broken.
+				# Gaṇa rules broken — report the specific violation.
+				# TODO: it is an open empirical question whether a pāda mora-count
+				# mismatch (Vrs.morae_per_line vs quarter_morae) ever occurs without
+				# an underlying gaṇa error. If corpus evidence shows it never does,
+				# the separate pāda-morae check in the else-branch below is redundant
+				# and can be removed, leaving gaṇa errors as the sole failure mode.
+				#
 				# Map the bad syllable offsets back to pāda-level indices.
 				pada1_len = len(w_p[0]) if len(w_p) >= 4 else 0
 				def ardha_syls_to_padas(bad_offsets, pada_a, pada_b, pada_a_len):
@@ -960,6 +965,12 @@ class VerseTester(object):
 				def _gana_error_sanskrit(code):
 					if 'wrong_gana_count' in code:
 						return 'asamīcīnā, gaṇasaṃkhyā na aṣṭau'
+					if 'general_0_gana' in code:
+						n = code.split('_gana')[1].split('_')[0]
+						_ordinals = {'1':'prathama','2':'dvitīya','3':'tṛtīya','4':'caturtha',
+									 '5':'pañcama','7':'saptama'}
+						o = _ordinals.get(n, n)
+						return f'asamīcīnā, {o}gaṇo na caturmātraḥ'
 					if 'general_1_gana' in code:
 						return 'asamīcīnā, jaḥ ayuggaṇe'
 					if code.endswith('_2_gana6_not_ja_kha'):
@@ -974,6 +985,9 @@ class VerseTester(object):
 				def _gana_error_english(code):
 					if 'wrong_gana_count' in code:
 						return 'Ardha does not contain exactly 8 mātrā-gaṇas (Hahn general, definition)'
+					if 'general_0_gana' in code:
+						n = code.split('_gana')[1].split('_')[0]
+						return f'Gaṇa {n} does not have exactly 4 morae (Hahn general, definition)'
 					if 'general_1_gana' in code:
 						return 'Odd gaṇa positions (1, 3, 5, 7) must never be ja-gaṇa (Hahn general rule 1)'
 					if code.endswith('_2_gana6_not_ja_kha'):
@@ -985,20 +999,43 @@ class VerseTester(object):
 					if code.endswith('_3_gana8_not_valid_aryagiti'):
 						return 'The last gaṇa of both ardhas must be 4 moras long and not kha-gaṇa in āryāgīti (Hahn special rule 4)*'
 					return code
+				# build per-pāda labels — each error maps to the specific pādas where
+				# prob has non-empty syllable lists; for ardha-level errors with no
+				# specific syllables (e.g. wrong gana count), label both pādas
+				label_sa_by_pada = {}
+				label_en_by_pada = {}
+				for err, padas in ((err1, [1, 2]), (err2, [3, 4])):
+					if not err:
+						continue
+					code = err[0]
+					sa = _gana_error_sanskrit(code)
+					en = _gana_error_english(code)
+					padas_with_syls = [p for p in padas if prob.get(p)]
+					for p in (padas_with_syls if padas_with_syls else padas[:1]):
+						label_sa_by_pada[p] = sa
+						label_en_by_pada[p] = en
+
+				# meter label shows the first (ardha 1) error if present, else ardha 2
 				raw_failure_code = (err1 or err2)[0]
 				imperfect_label_sa = _gana_error_sanskrit(raw_failure_code)
-				imperfect_label_en = _gana_error_english(raw_failure_code)
 				jati_label = jAti_name + " (%s)" % quarter_label
 				jati_score = meter_scores["jāti, imperfect"]
+				# penalise pāda mora mismatches so that resplit attempts with better
+				# pāda alignment score higher and win arbitration in combine_results
+				if len(w_p) >= 4:
+					for pi, (actual, expected) in enumerate(zip(Vrs.morae_per_line, quarter_morae)):
+						is_ardha_final = (pi % 2 == 1)
+						anceps_ok = (is_ardha_final and actual == expected - 1
+									 and w_p[pi] and w_p[pi][-1] == 'l')
+						if actual != expected and not anceps_ok:
+							jati_score -= 1
 				if jati_score >= Vrs.identification_score:
 					Vrs.meter_label = jati_label + f" ({imperfect_label_sa})"
 					Vrs.identification_score = jati_score
 					Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
-					ardha_num = 1 if (err1 and not err2) or ('ardha1' in raw_failure_code) else 2
-					affected_padas = [1, 2] if ardha_num == 1 else [3, 4]
 					Vrs.diagnostic = Diagnostic(
-						imperfect_label_sanskrit={p: imperfect_label_sa for p in affected_padas},
-						imperfect_label_english={p: imperfect_label_en for p in affected_padas},
+						imperfect_label_sanskrit=label_sa_by_pada or None,
+						imperfect_label_english=label_en_by_pada or None,
 						problem_syllables=prob or None,
 					)
 				return 1
@@ -1009,7 +1046,8 @@ class VerseTester(object):
 					return False
 				return all(
 					actual[i] == expected[i] or
-					(actual[i] == expected[i] - 1 and weights[i] and weights[i][-1] == 'l')
+					# anceps allowed only at ends of pādas 2 and 4 (ardha-final positions)
+					(i % 2 == 1 and actual[i] == expected[i] - 1 and weights[i] and weights[i][-1] == 'l')
 					for i in range(4)
 				)
 			if quarters_ok(Vrs.morae_per_line, quarter_morae, w_p):
@@ -1021,16 +1059,18 @@ class VerseTester(object):
 				per_pada_sanskrit = {}
 				per_pada_english = {}
 				for i, (actual, expected) in enumerate(zip(Vrs.morae_per_line, quarter_morae), start=1):
-					anceps_ok = (actual == expected - 1 and i - 1 < len(w_p) and w_p[i-1] and w_p[i-1][-1] == 'l')
+					is_ardha_final = (i % 2 == 0)
+					anceps_ok = (is_ardha_final and actual == expected - 1
+								 and i - 1 < len(w_p) and w_p[i-1] and w_p[i-1][-1] == 'l')
 					if actual != expected and not anceps_ok:
 						hyper = actual > expected
 						per_pada_sanskrit[i] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
-						per_pada_english[i] = f"pāda split doesn't match expected pattern {list(quarter_morae)}"
+						per_pada_english[i] = f"pāda mora count doesn't match expected pattern {list(quarter_morae)}"
 				diagnostic = Diagnostic(
 					imperfect_label_sanskrit=per_pada_sanskrit or None,
 					imperfect_label_english=per_pada_english or None,
 				)
-				new_label = jati_label + " (incorrect quarter split)"
+				new_label = jati_label + " (asamīcīnā, ūnādhikamātrā)"
 
 			if score >= Vrs.identification_score:
 				Vrs.meter_label = new_label

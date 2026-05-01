@@ -640,6 +640,20 @@ mOnaM viDeyaM satataM suDIBiH"""
 		assert 3 not in d.problem_syllables
 		assert 4 not in d.problem_syllables
 
+def test_jAti_anusvAra_gana_error():
+	# anuttaraṃ (anusvāra) forces gana 3 of āryā ardha 2 to 5 morae (overfull),
+	# which should be reported as tṛtīyagaṇo na caturmātraḥ, not a pāda split error.
+	# The correct spelling anuttaram (visarga-free m) would make it a perfect āryā.
+	MI = MeterIdentifier()
+	input_string = """aṅguṣṭhodaramātraṃ
+viśeṣavitprāpya padmarāgamaṇim /
+sukhasaṃvāhyamanuttaraṃ
+arthaṃ kiṃ tena nāpnoti // 329"""
+	result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='none')
+	assert result.meter_label[:4] == 'āryā'
+	assert 'tṛtīyagaṇo na caturmātraḥ' in result.meter_label
+	assert result.identification_score == meter_scores["jāti, imperfect"] - 1  # pāda 3 mora penalty
+
 def test_identify_meter_vizamavftta_perfect():
 	MI = MeterIdentifier()
 	input_string = """bibharāṃbabhūvur apavṛtta
