@@ -1015,9 +1015,25 @@ class VerseTester(object):
 						label_sa_by_pada[p] = sa
 						label_en_by_pada[p] = en
 
-				# meter label shows the first (ardha 1) error if present, else ardha 2
-				raw_failure_code = (err1 or err2)[0]
-				imperfect_label_sa = _gana_error_sanskrit(raw_failure_code)
+				# Build ardha-located error string: "1,2: <err>; 3,4: <err>"
+				# using label_sa_by_pada which keys on pāda number (1–4).
+				def _ardha_error_str(err, padas):
+					if not err:
+						return None
+					# representative pāda for this ardha: first one with a syllable hit,
+					# or just the first pāda of the ardha if no syllable-level location
+					padas_with_syls = [p for p in padas if prob.get(p)]
+					rep = padas_with_syls[0] if padas_with_syls else padas[0]
+					sa = label_sa_by_pada.get(rep)
+					if sa is None:
+						return None
+					pada_str = ','.join(str(p) for p in (padas_with_syls if padas_with_syls else padas[:1]))
+					return f"{pada_str}: {sa}"
+				ardha1_str = _ardha_error_str(err1, [1, 2])
+				ardha2_str = _ardha_error_str(err2, [3, 4])
+				parts = [s for s in [ardha1_str, ardha2_str] if s]
+				imperfect_label_sa = '; '.join(parts) if parts else _gana_error_sanskrit((err1 or err2)[0])
+
 				jati_label = jAti_name + " (%s)" % quarter_label
 				jati_score = meter_scores["jāti, imperfect"]
 				# penalise pāda mora mismatches so that resplit attempts with better
