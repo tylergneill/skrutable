@@ -523,7 +523,7 @@ def test_anuzwuB_hypometric_ab_hypermetric_cd():
 	MI = MeterIdentifier()
 	input_string = "pinākāstra ca dayitaṃ śuṣkārdre aśanī tathā / daṇḍāstram atha paiśācaṃ krauñcam astraṃ tathāiva ca //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: odd: asamīcīnā, na-vipulāyāḥ pūrvaṃ guruḥ syāt; 3,4: ?? even: adhikākṣarā)"
+	expected_output = "anuṣṭubh (1,2: odd: asamīcīnā, na-vipulāyāḥ pūrvam guruḥ syāt; 3,4: ?? even: adhikākṣarā)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 4
 
@@ -642,7 +642,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 
 def test_jAti_anusvAra_gana_error():
 	# anuttaraṃ (anusvāra) forces gana 3 of āryā ardha 2 to 5 morae (overfull),
-	# which should be reported as tṛtīyagaṇo na caturmātraḥ, not a pāda split error.
+	# which should be reported as tṛtīyagaṇaḥ na caturmātraḥ, not a pāda split error.
 	# The correct spelling anuttaram (visarga-free m) would make it a perfect āryā.
 	MI = MeterIdentifier()
 	input_string = """aṅguṣṭhodaramātraṃ
@@ -651,7 +651,7 @@ sukhasaṃvāhyamanuttaraṃ
 arthaṃ kiṃ tena nāpnoti // 329"""
 	result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='none')
 	assert result.meter_label[:4] == 'āryā'
-	assert 'tṛtīyagaṇo na caturmātraḥ' in result.meter_label
+	assert 'tṛtīyagaṇaḥ na caturmātraḥ' in result.meter_label
 	assert result.identification_score == meter_scores["jāti, imperfect"] - 1  # pāda 3 mora penalty
 
 def test_identify_meter_vizamavftta_perfect():

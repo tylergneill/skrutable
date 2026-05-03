@@ -228,7 +228,9 @@ class VerseTester(object):
 		if cache_key in self._anuzwuB_half_cache:
 			return self._anuzwuB_half_cache[cache_key]
 
-		# check lengths first; length_error only reported when exactly one pāda is off
+		# Length check first: both pādas must be 8 syllables.
+		# If both are wrong the split itself is bad — return None rather than
+		# producing a misleading imperfect label for one side.
 		even_len_ok = len(even_pAda_weights) == 8
 		odd_len_ok = len(odd_pAda_weights) == 8
 		if not even_len_ok and not odd_len_ok:
@@ -248,8 +250,11 @@ class VerseTester(object):
 				problem_syllables={'odd': list(range(len(odd_pAda_weights)))},
 			)
 		else:
-			# check even pāda
+			# Both pādas are 8 syllables. Even pāda must match first; only if it
+			# does do we bother checking the odd pāda's pathyā/vipulā pattern.
 			if not re.match(meter_patterns.anuzwuB_pAda['even'], even_pAda_weights):
+				# Even pāda fails the general rule — try known asamīcīna patterns
+				# before falling back to the generic ja-gaṇa violation label.
 				result = None
 				for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['even'].items():
 					if re.match(weights_pattern, even_pAda_weights):
@@ -266,14 +271,15 @@ class VerseTester(object):
 						problem_syllables={'even': [4, 5, 6]},
 					)
 			else:
-				# check odd pāda (both 'paTyA' and 'vipulA')
+				# Even pāda is valid; check odd pāda for pathyā or a known vipulā.
 				result = None
 				for weights_pattern, label in meter_patterns.anuzwuB_pAda['odd'].items():
 					if re.match(weights_pattern, odd_pAda_weights):
 						result = Diagnostic(perfect_id_label=label)
 						break
 				if result is None:
-					# check for broken conditioning on odd pāda
+					# Odd pāda matched no perfect pattern — try asamīcīna patterns
+					# before falling back to the generic ya-gaṇa violation label.
 					for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['odd'].items():
 						if re.match(weights_pattern, odd_pAda_weights):
 							result = Diagnostic(
@@ -308,10 +314,11 @@ class VerseTester(object):
 		try: w_p[3]
 		except IndexError: return None
 
-		# test each half
+		# test each half independently
 		pAdas_ab_result = self.test_as_anuzwuB_half(w_p[0], w_p[1])
 		pAdas_cd_result = self.test_as_anuzwuB_half(w_p[2], w_p[3])
 
+		# if per-pāda split produced nothing, retry treating each ardha as a single unit
 		if pAdas_ab_result is None and pAdas_cd_result is None:
 			ardham_eva_result = self.test_as_anuzwuB_half(w_p[0] + w_p[1], w_p[2] + w_p[3])
 			if ardham_eva_result is None:
@@ -330,6 +337,7 @@ class VerseTester(object):
 			else:
 				return None
 
+		# if only one half produced a result, the split is too bad to call
 		if pAdas_ab_result is None or pAdas_cd_result is None:
 			return None
 
@@ -478,7 +486,7 @@ class VerseTester(object):
 		if "ajñātasamavṛtta" in meter_label:
 			score -= 2
 
-		# build diagnostic
+		# Build per-pāda diagnostic: length errors, then position-level pattern errors.
 		problem_syllables = {}
 		per_pada_sanskrit = {}
 		per_pada_english = {}
@@ -495,7 +503,7 @@ class VerseTester(object):
 				per_pada_sanskrit[pada_num] = 'ūnākṣarā'
 				per_pada_english[pada_num] = 'hypometric'
 			else:
-				# compare position-by-position; final anceps always matches
+				# correct length but wrong pattern; final anceps always matches so skip it
 				bad = [j for j in range(len(w) - 1) if w[j] != canonical[j]]
 				if bad:
 					problem_syllables[pada_num] = bad
@@ -505,9 +513,10 @@ class VerseTester(object):
 		has_any_error = bool(problem_syllables) or bool(per_pada_english)
 
 		if imperfect_note is None and not has_any_error:
+			# all four pādas match perfectly
 			diagnostic = Diagnostic(perfect_id_label=meter_label)
 		elif imperfect_note is None:
-			# perfect meter-count but some pādas have length or pattern errors
+			# correct pāda count but some pādas have length or pattern errors
 			diagnostic = Diagnostic(
 				perfect_id_label=meter_label,
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
@@ -515,7 +524,7 @@ class VerseTester(object):
 				problem_syllables=problem_syllables or None,
 			)
 		else:
-			# collect length notes for meter_label string (kept for human readability)
+			# fewer than 4 matching pādas; append any length notes to the meter_label
 			length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items() if v in ('adhikākṣarā', 'ūnākṣarā')]
 			full_imperfect_str = imperfect_note
 			if length_notes:
@@ -527,7 +536,7 @@ class VerseTester(object):
 				problem_syllables=problem_syllables or None,
 			)
 
-		# may tie with pre-existing result (e.g., upajāti)
+		# score arbitration: may tie with pre-existing result (e.g., upajāti)
 		old_score = Vrs.identification_score
 		self.combine_results(Vrs, new_label=meter_label, new_score=score)
 		if score >= old_score:
@@ -588,13 +597,9 @@ class VerseTester(object):
 		excluded_indices = []
 
 		if unique_sorted_lens != [11, 12]:
-
-			# if imperfect, exclude all info for lines of non-majority lengths
-
-			# find most frequent pAda length
+			# For non-triṣṭubh-jagatī mixes: drop pādas of non-majority length so
+			# the identifier works on the largest consistent set.
 			most_freq_pAda_len = max( set(wbp_lens), key=wbp_lens.count )
-
-			# exclude based on most frequent pAda length
 			to_exclude = []
 			for i, weights in enumerate(wbp):
 				if len(weights) != most_freq_pAda_len:
@@ -605,9 +610,9 @@ class VerseTester(object):
 				del wbp_lens[i]
 				del gs_to_id[i]
 
-		# calculate what result could possibly score based on analysis so far
+		# Calculate maximum achievable score before doing any pattern work,
+		# and bail early if we can't beat the current best.
 		potential_score = meter_scores["upajāti, perfect"]
-
 		if 11 not in wbp_lens: # no triṣṭubh (could be mixed with jagatī)
 			potential_score -= 1
 		if 	(
@@ -615,8 +620,6 @@ class VerseTester(object):
 				unique_sorted_lens != [11, 12]
 			): # not perfect, less than 4 being analyzed
 			potential_score -= 2
-
-		# possibly quit based on analysis so far
 		if 	( potential_score < Vrs.identification_score
 			# not going to beat pre-existing result (e.g. 7 from imperfect samavftta)
 			) or ( disable_non_trizwuB_upajAti
@@ -624,8 +627,7 @@ class VerseTester(object):
 			):
 			return
 
-
-		# for however many pādas remain, produce labels as possible
+		# Identify each remaining pāda individually and collect labels.
 		meter_labels = []
 		for i, g_to_id in enumerate(gs_to_id):
 
@@ -651,7 +653,7 @@ class VerseTester(object):
 		unique_meter_labels = list(set(meter_labels)) # de-dupe
 		combined_meter_labels = ', '.join(unique_meter_labels)
 
-		# assign scores and labels
+		# Assign score based on how complete and homogeneous the match is.
 		family = meter_patterns.samavftta_family_names[wbp_lens[0]] if wbp_lens[0] < 27 else 'daṇḍaka'
 		unique_meter_labels_copy = unique_meter_labels; unique_meter_labels_copy.sort()
 		if (family == "triṣṭubh" and
@@ -686,7 +688,8 @@ class VerseTester(object):
 			imperfect_note = "? %d eva pādāḥ yuktāḥ" % len(wbp_lens)
 			overall_meter_label += " (%s)" % imperfect_note
 
-		# build diagnostic: excluded pādas are hyper/hypometric
+		# Build diagnostic: excluded pādas are flagged as hyper/hypometric relative
+		# to the majority length; included pādas contribute no error entry.
 		most_freq_len = wbp_lens[0] if wbp_lens else None
 		problem_syllables = {}
 		per_pada_sanskrit = {}
@@ -702,8 +705,10 @@ class VerseTester(object):
 					per_pada_english[pada_num] = 'hypermetric' if hyper else 'hypometric'
 
 		if imperfect_note is None and not per_pada_english:
+			# all four pādas included and none flagged
 			diagnostic = Diagnostic(perfect_id_label=overall_meter_label)
 		elif imperfect_note is None:
+			# all four pādas included but some have length errors
 			diagnostic = Diagnostic(
 				perfect_id_label=overall_meter_label,
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
@@ -711,6 +716,7 @@ class VerseTester(object):
 				problem_syllables=problem_syllables or None,
 			)
 		else:
+			# fewer than 4 pādas included; append length notes to the meter_label
 			length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items()]
 			if length_notes:
 				full_imperfect_str = imperfect_note + "; " + "; ".join(length_notes)
@@ -721,6 +727,7 @@ class VerseTester(object):
 				problem_syllables=problem_syllables or None,
 			)
 
+		# score arbitration: may tie with pre-existing result (e.g., samavṛtta)
 		old_score = Vrs.identification_score
 		self.combine_results(Vrs, overall_meter_label, score)
 		if score >= old_score:
@@ -851,36 +858,44 @@ class VerseTester(object):
 			ok1 = m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l')
 			ok2 = m2 == std_ardha[1] or (m2 == std_ardha[1] - 1 and ardha2_w[-1] == 'l')
 			if not ok1 or not ok2:
-				# Use effective morae (actual + 1 if light final, since anceps could
-				# close the gap) for the "close" check: if effective morae are within
-				# 1 of expected on both ardhas, record a low-confidence named guess.
-				eff1 = m1 + (1 if ardha1_w[-1] == 'l' else 0)
-				eff2 = m2 + (1 if ardha2_w[-1] == 'l' else 0)
+				# "Close" check: within 1 mora of expected on both ardhas.
+				# A light final can stand for heavy, closing a 1-mora gap when hypometric —
+				# so credit +1 only when actual < expected. A hypermetric ardha with a
+				# light final is still hypermetric; the anceps doesn't hurt it.
+				eff1 = m1 + (1 if m1 < std_ardha[0] and ardha1_w[-1] == 'l' else 0)
+				eff2 = m2 + (1 if m2 < std_ardha[1] and ardha2_w[-1] == 'l' else 0)
 				close1 = abs(eff1 - std_ardha[0]) <= 1
 				close2 = abs(eff2 - std_ardha[1]) <= 1
 				if close1 and close2:
 					jati_label = jAti_name + " (%s)" % quarter_label
 					likely_score = meter_scores["jāti, likely"]
 					if likely_score > Vrs.identification_score:
-						Vrs.meter_label = jati_label + " (ardhamātrā nyūnādhikā)"
-						Vrs.identification_score = likely_score
 						per_pada_sanskrit = {}
 						per_pada_english = {}
-						for i, (actual, expected) in enumerate(zip(Vrs.morae_per_line, quarter_morae), start=1):
-							# anceps allowed only at ends of pādas 2 and 4 (ardha-final)
-							is_ardha_final = (i % 2 == 0)
-							anceps_ok = (is_ardha_final and actual == expected - 1
-										 and i - 1 < len(w_p) and w_p[i-1] and w_p[i-1][-1] == 'l')
-							if actual != expected and not anceps_ok:
-								hyper = actual > expected
-								per_pada_sanskrit[i] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
-								per_pada_english[i] = f"pāda mora count off from expected pattern {list(quarter_morae)}"
+						# Attribute ardha-level mora error to the ardha-final (even) pāda.
+						ardha_morae_pairs = [
+							(m1, std_ardha[0], 2),
+							(m2, std_ardha[1], 4),
+						]
+						for actual, expected, even_pada in ardha_morae_pairs:
+							hyper = actual > expected
+							per_pada_sanskrit[even_pada] = 'adhikamātrā' if hyper else 'ūnamātrā'
+							per_pada_english[even_pada] = f"ardha mora count off from expected {expected}"
+						# Build meter_label suffix from the per-ardha directions.
+						sa_vals = list(per_pada_sanskrit.values())
+						if len(set(sa_vals)) == 1:
+							suffix = sa_vals[0]
+						else:
+							suffix = '; '.join(f"ardha {i+1}: {v}" for i, v in enumerate(sa_vals))
+						Vrs.meter_label = jati_label + f" ({suffix})"
+						Vrs.identification_score = likely_score
 						Vrs.diagnostic = Diagnostic(
 							imperfect_label_sanskrit=per_pada_sanskrit or None,
 							imperfect_label_english=per_pada_english or None,
 						)
 				continue
 
+			# Decompose each ardha into mātrā-gaṇas and validate against Hahn's rules.
 			g8_morae = 4 if jAti_name == 'āryāgīti' else 2
 			ardha1_ganas = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae)
 			ardha2_ganas = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae)
@@ -953,6 +968,7 @@ class VerseTester(object):
 					b_syls = [i - pada_a_len for i in bad_offsets if i >= pada_a_len]
 					return {pada_a: a_syls, pada_b: b_syls}
 
+				# prob: pāda → list of bad syllable offsets within that pāda.
 				prob = {1: [], 2: [], 3: [], 4: []}
 				if err1:
 					code, bad = err1
@@ -970,17 +986,17 @@ class VerseTester(object):
 						_ordinals = {'1':'prathama','2':'dvitīya','3':'tṛtīya','4':'caturtha',
 									 '5':'pañcama','7':'saptama'}
 						o = _ordinals.get(n, n)
-						return f'asamīcīnā, {o}gaṇo na caturmātraḥ'
+						return f'asamīcīnā, {o}gaṇaḥ na caturmātraḥ'
 					if 'general_1_gana' in code:
 						return 'asamīcīnā, jaḥ ayuggaṇe'
 					if code.endswith('_2_gana6_not_ja_kha'):
-						return 'asamīcīnā, ṣaṣṭhagaṇo na jaḥ/khaḥ'
+						return 'asamīcīnā, ṣaṣṭhagaṇaḥ na jaḥ/khaḥ'
 					if code.endswith('_2_gana6_not_la'):
-						return 'asamīcīnā, ṣaṣṭhagaṇo na laḥ'
+						return 'asamīcīnā, ṣaṣṭhagaṇaḥ na laḥ'
 					if code.endswith('_3_gana8_not_anceps'):
-						return 'asamīcīnā, aṣṭamagaṇo na ekākṣaraḥ'
+						return 'asamīcīnā, aṣṭamagaṇaḥ na ekākṣaraḥ'
 					if code.endswith('_3_gana8_not_valid_aryagiti'):
-						return 'asamīcīnā, aṣṭamagaṇo na caturmātro (akha)'
+						return 'asamīcīnā, aṣṭamagaṇaḥ na caturmātraḥ (akha)'
 					return code
 				def _gana_error_english(code):
 					if 'wrong_gana_count' in code:
@@ -1056,6 +1072,7 @@ class VerseTester(object):
 					)
 				return 1
 
+			# Gaṇa rules passed — check whether pāda-level morae also match.
 			jati_label = jAti_name + " (%s)" % quarter_label
 			def quarters_ok(actual, expected, weights):
 				if len(actual) < 4 or len(weights) < 4:
@@ -1066,6 +1083,8 @@ class VerseTester(object):
 					(i % 2 == 1 and actual[i] == expected[i] - 1 and weights[i] and weights[i][-1] == 'l')
 					for i in range(4)
 				)
+			# Perfect: all four pāda morae match (with anceps allowance at ardha ends).
+			# Imperfect: gaṇas valid but pāda split is off — report per-pāda mora mismatch.
 			if quarters_ok(Vrs.morae_per_line, quarter_morae, w_p):
 				score = meter_scores["jāti, perfect"]
 				diagnostic = Diagnostic(perfect_id_label=jati_label)
@@ -1080,14 +1099,20 @@ class VerseTester(object):
 								 and i - 1 < len(w_p) and w_p[i-1] and w_p[i-1][-1] == 'l')
 					if actual != expected and not anceps_ok:
 						hyper = actual > expected
-						per_pada_sanskrit[i] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
+						per_pada_sanskrit[i] = 'adhikamātrā' if hyper else 'ūnamātrā'
 						per_pada_english[i] = f"pāda mora count doesn't match expected pattern {list(quarter_morae)}"
 				diagnostic = Diagnostic(
 					imperfect_label_sanskrit=per_pada_sanskrit or None,
 					imperfect_label_english=per_pada_english or None,
 				)
-				new_label = jati_label + " (asamīcīnā, ūnādhikamātrā)"
+				sa_vals = list(per_pada_sanskrit.values())
+				if len(set(sa_vals)) == 1:
+					suffix = f"asamīcīnā, {sa_vals[0]}"
+				else:
+					suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in per_pada_sanskrit.items())
+				new_label = jati_label + f" ({suffix})"
 
+			# Score arbitration: only update if this result ties or beats current best.
 			if score >= Vrs.identification_score:
 				Vrs.meter_label = new_label
 				Vrs.identification_score = score
@@ -1221,7 +1246,6 @@ class MeterIdentifier(object):
 					resplit_option=VrsTster.resplit_option
 					)
 
-		wiggle_resplit_output_buffer = ''
 		temp_V = None
 		S = Sc()
 		Verses_found = []
@@ -1231,19 +1255,11 @@ class MeterIdentifier(object):
 				for pos_cd in pos_iterators['cd']:
 
 					try:
-
 						new_text_syllabified = self.resplit_Verse(
 							syllable_list, pos_ab, pos_bc, pos_cd)
 
-						# print()
-						# print(new_text_syllabified)
-						# import pdb; pdb.set_trace()
-
 						temp_V = copy(Vrs)
 						temp_V.text_syllabified = new_text_syllabified
-
-						# print(temp_V.text_syllabified.replace('\n','\t'))
-
 						temp_V.syllable_weights = S.scan_syllable_weights(
 							temp_V.text_syllabified)
 						temp_V.morae_per_line = S.count_morae(
@@ -1252,20 +1268,14 @@ class MeterIdentifier(object):
 						[ S.gaRa_abbreviate(line) for line in temp_V.syllable_weights.split('\n') ]
 						)
 
-						# temp_V.meter_label = VrsTster.attempt_identification(temp_V)
 						success = VrsTster.attempt_identification(temp_V)
 
 						if success:
 							Verses_found.append(temp_V)
 
+						# short-circuit as soon as any perfect result is found
 						if temp_V.identification_score == meter_scores["max score"]:
 							return Verses_found
-							# done when any perfect exemplar found
-							# for greater speed and efficiency
-							# disable for debugging:
-							 	# check whether finding multiple 9s
-								# check whether any temp_V breaks system
-
 
 					except IndexError:
 						continue
@@ -1280,15 +1290,15 @@ class MeterIdentifier(object):
 		all_weights_one_line = tmp_V.syllable_weights.replace('\n','')
 		all_syllables_one_line = tmp_V.text_syllabified.replace('\n','')
 
+		# Build a regex matching one pathyā half-verse (16 syllables) to slide across
+		# the flattened weight string and locate candidate anuṣṭubh verses.
 		pathyA_odd = list(meter_patterns.anuzwuB_pAda['odd'].keys())[0][1:-1]
 		even = meter_patterns.anuzwuB_pAda['even'][1:-1]
 		overall_pattern = pathyA_odd + even
-		# regex = re.compile('(?=(%s))' % overall_pattern) # > e.g. [(2, 2), (18, 18)]
-		regex = re.compile('%s' % overall_pattern) # > e.g. [(2, 18), (18, 34)]
+		regex = re.compile('%s' % overall_pattern)
 
-		# matches = re.findall(regex, all_weights_one_line) # > e.g. ['lglglgglgglllgll', 'gggllggllggglglg']
 		matches = re.finditer(regex, all_weights_one_line)
-		match_index_pairs = [ (m.start(0), m.end(0)) for m in matches ] # > e.g. [(2, 18), (18, 34)]
+		match_index_pairs = [ (m.start(0), m.end(0)) for m in matches ]
 
 		match_strings = []
 		syllables = all_syllables_one_line.split(' ')
@@ -1338,27 +1348,27 @@ class MeterIdentifier(object):
 		self.VerseTester.resplit_keep_midpoint = resplit_keep_midpoint
 
 		if resplit_option in ['none', 'single_pAda'] or V.text_cleaned == '':
+			# No resplitting: test the verse exactly as scanned.
 			success = VT.attempt_identification(V)
-			# label and score set internally
 
 		elif resplit_option in ['resplit_max', 'resplit_lite']:
 
-			# capture any user-provided pāda breaks (= all newlines after scansion cleaning)
+			# Capture any user-provided pāda breaks (newlines surviving scansion cleaning).
 			newline_indices = [
 				m.start() for m in re.finditer('\n', V.text_syllabified)
 				]
 
-			# make pure list of only syllables
+			# Flatten to a pure syllable list for wiggle_identify.
 			syllable_list = (
 							V.text_syllabified.replace('\n', '')
 							).split(scansion_syllable_separator)
-			# discard any final separator(s)
 			try:
 				while syllable_list[-1] == '':
 					syllable_list.pop(-1)
-			except IndexError: pass # empty list...
+			except IndexError: pass # empty list
 
-			# initialize length-based pāda breaks
+			# Seed pāda break positions from quarter-length, then override with
+			# user-provided newlines according to resplit mode.
 			pAda_brs = {}
 			total_syll_count = len(syllable_list)
 			quarter_len = int(total_syll_count / 4)
@@ -1367,56 +1377,50 @@ class MeterIdentifier(object):
 				)
 
 			if len(newline_indices) == 3:
-
 				if resplit_option == 'resplit_lite':
-					# full three breaks provided (ab, bc, cd), override all length-based ones
+					# all three breaks provided — override all three
 					pAda_brs['ab'], pAda_brs['bc'], pAda_brs['cd'] = (
 						V.text_syllabified[:newline_indices[i]].count(
 							scansion_syllable_separator
 							) for i in [0, 1, 2]
 						)
-
 				elif	(
 							resplit_option == 'resplit_max' and
 							self.VerseTester.resplit_keep_midpoint
 						):
-					# full three breaks provided, override second (bc) only, keep other two
+					# all three breaks provided — override bc only, wiggle the rest
 					pAda_brs['bc'] = V.text_syllabified[:newline_indices[1]].count(
 						scansion_syllable_separator)
 
 			elif len(newline_indices) == 1:
-
 				if 	(
 						resplit_option == 'resplit_lite'
 					) or (
 						resplit_option == 'resplit_max' and
 						self.VerseTester.resplit_keep_midpoint
 					):
-				# only one break provided, assume bc, override that one, keep other two
-
+					# single break provided — treat as bc, wiggle the rest
 					pAda_brs['bc'] = V.text_syllabified[:newline_indices[0]].count(
 					scansion_syllable_separator)
 
 			else:
-				# unusable number of user-provided pāda breaks
-				# do nothing, use length-based ones
-				# could give user some feedback...
+				# unusable number of user-provided pāda breaks — use length-based seeds
 				pass
 
-			# use initial Verse to generate potentially large number of others Verses
-			# store their respective results internally, collect overall list
+			# Generate all wiggle candidates and collect identified ones.
 			self.Verses_found =	self.wiggle_identify(
 				V, syllable_list, VT,
 				pAda_brs, quarter_len
 				)
 
-			# pick best match, i.e. resulting Verse with highest identification_score
+			# Pick the candidate with the highest identification score.
 			if len(self.Verses_found) > 0:
 				self.Verses_found.sort(key=lambda x: x.identification_score, reverse=True)
-				V = self.Verses_found[0] # replace initial Verse object
+				V = self.Verses_found[0]
 
-		if V.meter_label == None: # initial Verse label still not populated
-			V.meter_label = 'na kiṃcid adhyavasitam'  # do not return None
-			V.identification_score = meter_scores["none found"] # did at least try
+		if V.meter_label == None:
+			# No identification succeeded; return a legible failure label.
+			V.meter_label = 'na kiṃcid adhyavasitam'
+			V.identification_score = meter_scores["none found"]
 
 		return V

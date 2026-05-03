@@ -50,10 +50,10 @@ anuzwuB_pAda = {
 anuzwuB_pAda_asamIcIna = {
 	'odd' : {
 		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',               [1, 2],    'Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn 2014 anuṣṭubh general rule 2)'),
-		'^.{4}ggg.$' :  ('asamīcīnā, ma-vipulāyāḥ pūrvaṃ raḥ syāt',   [1, 2, 3], 'ma-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 3)'),
-		'^.{4}gll.$' :  ('asamīcīnā, bha-vipulāyāḥ pūrvaṃ raḥ syāt',  [1, 2, 3], 'bha-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 2)'),
-		'^.{3}llll.$' : ('asamīcīnā, na-vipulāyāḥ pūrvaṃ guruḥ syāt', [3],        'na-vipulā must be preceded by heavy syllable (Hahn 2014 anuṣṭubh vipulā rule 1)'),
-		'^.{3}lglg.$' : ('asamīcīnā, ra-vipulāyāḥ pūrvaṃ guruḥ syāt', [3],        'ra-vipulā must be preceded by heavy syllable (Hahn 2014 anuṣṭubh vipulā rule 4)'),
+		'^.{4}ggg.$' :  ('asamīcīnā, ma-vipulāyāḥ pūrvam raḥ syāt',   [1, 2, 3], 'ma-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 3)'),
+		'^.{4}gll.$' :  ('asamīcīnā, bha-vipulāyāḥ pūrvam raḥ syāt',  [1, 2, 3], 'bha-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 2)'),
+		'^.{3}llll.$' : ('asamīcīnā, na-vipulāyāḥ pūrvam guruḥ syāt', [3],        'na-vipulā must be preceded by heavy syllable (Hahn 2014 anuṣṭubh vipulā rule 1)'),
+		'^.{3}lglg.$' : ('asamīcīnā, ra-vipulāyāḥ pūrvam guruḥ syāt', [3],        'ra-vipulā must be preceded by heavy syllable (Hahn 2014 anuṣṭubh vipulā rule 4)'),
 	},
 	'even' : {
 		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',                        [1, 2],    'Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn 2014 anuṣṭubh general rule 2)'),
