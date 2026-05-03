@@ -336,7 +336,7 @@ sA jayati sarasvatI devI"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = meter_scores["jāti, perfect"]
+	expected_output = meter_scores["max score"]
 	assert output == expected_output
 
 def test_identify_meter_jAti():
@@ -350,7 +350,7 @@ sA jayati sarasvatI devI"""
 	other_output = object_result.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = meter_scores["jāti, perfect"]
+	expected_output = meter_scores["max score"]
 	assert output == expected_output
 
 def test_evaluate_ardhasamavftta():
@@ -499,7 +499,7 @@ def test_anuzwuB_hypermetric_ab_imperfect_cd():
 	MI = MeterIdentifier()
 	input_string = "ikṣvākuvaśaprabhavo rāmo nāma janaiḥ śrutataḥ / niyatamā mahāvīryo dyutimān dhṛtimān vaśī //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: ?? hypermetric; 3,4: asamīcīnā, na prathamāt snau)"
+	expected_output = "anuṣṭubh (1,2: ?? even: adhikākṣarā; 3,4: odd: asamīcīnā, na prathamāt snau)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 4
 
@@ -507,7 +507,7 @@ def test_anuzwuB_hypermetric_ab_perfect_cd():
 	MI = MeterIdentifier()
 	input_string = "śrutvā tūśasano vākyaṃ sa āśramāvasatho janaḥ / niṣkrānto viṣayāt tasya sthānaṃ cakre 'tha bāhyataḥ //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: ?? hypermetric; 3,4: pathyā)"
+	expected_output = "anuṣṭubh (1,2: ?? even: adhikākṣarā; 3,4: pathyā)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 6
 
@@ -515,7 +515,7 @@ def test_anuzwuB_perfect_ab_hypermetric_cd():
 	MI = MeterIdentifier()
 	input_string = "pinākāstraṃ ca dayitaṃ śuṣkārdre aśanī tathā / daṇḍāstram atha paiśācaṃ krauñcam astraṃ tathāiva ca //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: na-vipulā; 3,4: ?? hypermetric)"
+	expected_output = "anuṣṭubh (1,2: na-vipulā; 3,4: ?? even: adhikākṣarā)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 6
 
@@ -523,7 +523,7 @@ def test_anuzwuB_hypometric_ab_hypermetric_cd():
 	MI = MeterIdentifier()
 	input_string = "pinākāstra ca dayitaṃ śuṣkārdre aśanī tathā / daṇḍāstram atha paiśācaṃ krauñcam astraṃ tathāiva ca //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: asamīcīnā, na-vipulāyāḥ paścād guruḥ syāt; 3,4: ?? hypermetric)"
+	expected_output = "anuṣṭubh (1,2: odd: asamīcīnā, na-vipulāyāḥ pūrvam guruḥ syāt; 3,4: ?? even: adhikākṣarā)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 4
 
@@ -540,30 +540,22 @@ def test_vaMSasTa_imperfect_not_upajAti():
 	assert truncated_output == expected_output
 
 def test_identify_meter_jAti_resplit_lite():
+	# resplit_lite cannot find the correct pāda boundaries for this verse
 	MI = MeterIdentifier()
 	input_string = """स्वः स्वर्गः सुरसद्म त्रिदशावासस्त्रिविष्टपं त्रिदिवम्
 द्यौर्गौरमर्त्यभुवनं नाकः स्यादूर्ध्वलोकश्च"""
-	# print()
-	object_result = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_lite', )
-	output = object_result.summarize()
-	truncated_output = object_result.meter_label[:6]
-	curr_func = inspect.stack()[0][3]
-	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = "udgīti"
-	assert truncated_output == expected_output
+	object_result = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_lite')
+	assert object_result.meter_label[:4] == 'āryā'
+	assert object_result.identification_score == meter_scores["jāti, imperfect"]
 
 def test_identify_meter_jAti_resplit_max_keep_midpoint():
+	# resplit_max_keep_midpoint finds the correct pāda boundaries
 	MI = MeterIdentifier()
 	input_string = """स्वः स्वर्गः सुरसद्म त्रिदशावासस्त्रिविष्टपं त्रिदिवम्
 द्यौर्गौरमर्त्यभुवनं नाकः स्यादूर्ध्वलोकश्च"""
-	# print()
 	object_result = MI.identify_meter(input_string, from_scheme='DEV', resplit_option='resplit_max', resplit_keep_midpoint=True)
-	output = object_result.summarize()
-	truncated_output = object_result.meter_label[:4]
-	curr_func = inspect.stack()[0][3]
-	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = "āryā"
-	assert truncated_output == expected_output
+	assert object_result.meter_label[:4] == 'āryā'
+	assert object_result.identification_score == meter_scores["max score"]
 
 def test_identify_meter_samavftta_imperfect_resplit_lite_keep_mid():
 	MI = MeterIdentifier()
@@ -592,7 +584,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	d = V.diagnostic
 	assert d.perfect()
 	assert "indravajrā" in d.perfect_id_label
-	assert d.problem_syllables == {1: [], 2: [], 3: [], 4: []}
+	assert d.problem_syllables is None
 
 def test_samavftta_imperfect_3_diagnostic():
 	S = Scanner()
@@ -607,11 +599,12 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	VT.evaluate_samavftta(V)
 	d = V.diagnostic
 	assert d.imperfect()
-	assert "3 eva pādāḥ yuktāḥ" in d.imperfect_id_label
+	assert d.imperfect_label_english[1].startswith('does not match expected gaṇa pattern')
+	assert d.imperfect_label_sanskrit[1] == 'vikṛtavṛtta'
 	assert d.problem_syllables[1] == [4]
-	assert d.problem_syllables[2] == []
-	assert d.problem_syllables[3] == []
-	assert d.problem_syllables[4] == []
+	assert 2 not in d.problem_syllables
+	assert 3 not in d.problem_syllables
+	assert 4 not in d.problem_syllables
 
 def test_upajAti_perfect_diagnostic():
 	S = Scanner()
@@ -625,7 +618,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	d = V.diagnostic
 	assert d.perfect()
 	assert "upajāti" in d.perfect_id_label
-	assert d.problem_syllables == {1: [], 2: [], 3: [], 4: []}
+	assert d.problem_syllables is None
 
 def test_upajAti_imperfect_hypometric_diagnostic():
 	S = Scanner()
@@ -641,11 +634,25 @@ mOnaM viDeyaM satataM suDIBiH"""
 	if not disable_non_trizwuB_upajAti:
 		d = V.diagnostic
 		assert d.imperfect()
-		assert "hypometric" in d.imperfect_id_label
+		assert d.imperfect_label_english[1] == 'hypometric'
 		assert d.problem_syllables[1] == list(range(10))  # 10-syllable pāda excluded
-		assert d.problem_syllables[2] == []
-		assert d.problem_syllables[3] == []
-		assert d.problem_syllables[4] == []
+		assert 2 not in d.problem_syllables
+		assert 3 not in d.problem_syllables
+		assert 4 not in d.problem_syllables
+
+def test_jAti_anusvAra_gana_error():
+	# anuttaraṃ (anusvāra) forces gana 3 of āryā ardha 2 to 5 morae (overfull),
+	# which should be reported as tṛtīyagaṇaḥ na caturmātraḥ, not a pāda split error.
+	# The correct spelling anuttaram (visarga-free m) would make it a perfect āryā.
+	MI = MeterIdentifier()
+	input_string = """aṅguṣṭhodaramātraṃ
+viśeṣavitprāpya padmarāgamaṇim /
+sukhasaṃvāhyamanuttaraṃ
+arthaṃ kiṃ tena nāpnoti // 329"""
+	result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='none')
+	assert result.meter_label[:4] == 'āryā'
+	assert 'tṛtīyagaṇaḥ na caturmātraḥ' in result.meter_label
+	assert result.identification_score == meter_scores["jāti, imperfect"] - 1  # pāda 3 mora penalty
 
 def test_identify_meter_vizamavftta_perfect():
 	MI = MeterIdentifier()

@@ -49,15 +49,15 @@ anuzwuB_pAda = {
 
 anuzwuB_pAda_asamIcIna = {
 	'odd' : {
-		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',              [1, 2],    'hahn_general_2'),  # syllables 2–3 both light
-		'^.{4}ggg.$' :  ('asamīcīnā, ma-vipulāyāḥ paścād raḥ syāt',  [1, 2, 3], 'hahn_vipulA_3'),   # ma-vipulā conditioning violated
-		'^.{4}gll.$' :  ('asamīcīnā, bha-vipulāyāḥ paścād raḥ syāt', [1, 2, 3], 'hahn_vipulA_2'),   # bha-vipulā conditioning violated
-		'^.{3}llll.$' : ('asamīcīnā, na-vipulāyāḥ paścād guruḥ syāt', [3],       'hahn_vipulA_1'),   # na-vipulā conditioning violated
-		'^.{3}lglg.$' : ('asamīcīnā, ra-vipulāyāḥ paścād guruḥ syāt', [3],       'hahn_vipulA_4'),   # ra-vipulā conditioning violated
+		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',               [1, 2],    'Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn 2014 anuṣṭubh general rule 2)'),
+		'^.{4}ggg.$' :  ('asamīcīnā, ma-vipulāyāḥ pūrvam raḥ syāt',   [1, 2, 3], 'ma-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 3)'),
+		'^.{4}gll.$' :  ('asamīcīnā, bha-vipulāyāḥ pūrvam raḥ syāt',  [1, 2, 3], 'bha-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 2)'),
+		'^.{3}llll.$' : ('asamīcīnā, na-vipulāyāḥ pūrvam guruḥ syāt', [3],        'na-vipulā must be preceded by heavy syllable (Hahn 2014 anuṣṭubh vipulā rule 1)'),
+		'^.{3}lglg.$' : ('asamīcīnā, ra-vipulāyāḥ pūrvam guruḥ syāt', [3],        'ra-vipulā must be preceded by heavy syllable (Hahn 2014 anuṣṭubh vipulā rule 4)'),
 	},
 	'even' : {
-		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',         [1, 2],    'hahn_general_2'),  # syllables 2–3 both light
-		'^.glg.{4}$' :  ('asamīcīnā, [na] dvitīyacaturthayo raḥ', [1, 2, 3], 'hahn_general_3'),  # ra-gaṇa at syllables 2–4
+		'^.ll.{5}$' :   ('asamīcīnā, na prathamāt snau',                        [1, 2],    'Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn 2014 anuṣṭubh general rule 2)'),
+		'^.glg.{4}$' :  ('asamīcīnā, [na ca prathamāt] dvitīyacaturthayo raḥ', [1, 2, 3], 'Syllables 2–3 in even pāda cannot be ra-gaṇa (Piṅgala; Hahn 2014 anuṣṭubh general rule 3)'),
 	},
 }
 
@@ -80,9 +80,6 @@ samavftta_family_names = {
 18: 'dhṛti', 	19: 'atidhṛti',
 20: 'kṛti',		21: 'prakṛti', 	22: 'ākṛti',	23: 'vikṛti',
 24: 'saṃkṛti',	25: 'atikṛti', 	26: 'utkṛti',
-27: 'daṇḍaka',	28: 'daṇḍaka', 	29: 'daṇḍaka', 	30: 'daṇḍaka',
-31: 'daṇḍaka',	32: 'daṇḍaka',	33: 'daṇḍaka',	34: 'daṇḍaka',
-35: 'daṇḍaka',	36: 'daṇḍaka',	37: 'daṇḍaka',	38: 'daṇḍaka',
 }
 
 # to delete...
@@ -356,19 +353,41 @@ vizamavftta_by_4_tuple = {
 
 
 """
-	Lists of jātis by total mātrās in each pāda.
-	Structure is: regex of flexible pattern, fixed pattern as list, name as string.
+	Lists of jātis by ardha (half-verse) morae totals.
+	Structure: std_ardha_morae, name, gana_6_ardha1, gana_6_ardha2.
+	std_ardha_morae: [ardha1_std, ardha2_std]; anceps (±1) checked in test_as_jAti.
+	gana_6_ardha1/2: expected mora count for gaṇa 6 of each ardha (1=la, 4=ja/kha).
+	āryāgīti also has gaṇa 8 = 4 morae (not 2) in both ardhas; all others have gaṇa 8 = 2.
 """
-jAtis_by_morae = [
-['\[(12|11), (18|17), (12|11), (15|14)\]', [12, 18, 12, 15], 'āryā'],
+jAtis_by_ardha_morae = [
+#  std_ardha_morae  name         g6_a1  g6_a2  conventional_quarter_label    quarter_morae
+[[30, 27], 'āryā',     4, 1, '12, 18, 12, 15', [12, 18, 12, 15]],
 # see Andrew Ollett's work (e.g., @ prakrit.info) for extra rules on Prakrit gāhā...
-['\[(12|11), (18|17), (12|11), (18|17)\]', [12, 18, 12, 18], 'gīti'],
-['\[(12|11), (15|14), (12|11), (15|14)\]', [12, 15, 12, 15], 'upagīti'],
-['\[(12|11), (15|14), (12|11), (18|17)\]', [12, 15, 12, 18], 'udgīti'],
-['\[(12|11), (20|19), (12|11), (20|19)\]', [12, 20, 12, 20], 'āryāgīti'],
-# ['\[(14|13), (16|15), (14|13), (16|15)\]', [12, 18, 12, 18], 'vaitālīya'], # more rules...
-# ['\[(16|15), (16|15), (16|15), (16|15)\]', [16, 16, 16, 16], 'mātrāsamaka'], # more rules...
+[[30, 30], 'gīti',     4, 4, '12, 18, 12, 18', [12, 18, 12, 18]],
+[[27, 27], 'upagīti',  1, 1, '12, 15, 12, 15', [12, 15, 12, 15]],
+[[27, 30], 'udgīti',   1, 4, '12, 15, 12, 18', [12, 15, 12, 18]],
+[[32, 32], 'āryāgīti', 4, 4, '12, 20, 12, 20', [12, 20, 12, 20]],
+# [[28, 30], 'vaitālīya'],  # more rules...
+# [[32, 32], 'mātrāsamaka'], # more rules...
 ]
+
+# Named mātrā-gaṇas relevant to āryā-family rule checking
+mAtragaNa_names = {
+	'lgl':  'ja',   # v – v  (3 syllables, 4 morae)
+	'llll': 'kha',  # v v v v (4 syllables, 4 morae)
+	'gll':  'bha',  # – v v (3 syllables, 4 morae)
+	'llg':  'sa',   # v v – (3 syllables, 4 morae)
+	'ggg':  'ma',   # – – – (3 syllables, 6 morae)
+	'lgg':  'ya',   # v – – (3 syllables, 5 morae)
+	'glg':  'ra',   # – v – (3 syllables, 5 morae)
+	'ggl':  'ta',   # – – v (3 syllables, 5 morae)
+	'lll':  'na',   # v v v (3 syllables, 3 morae — āryāgīti 8th gaṇa only)
+	'gg':   'gg',   # – – (2 syllables, 4 morae — āryāgīti 8th gaṇa)
+	'gl':   'gl',   # – v (2 syllables, 3 morae — āryāgīti 8th gaṇa)
+	'lg':   'lg',   # v – (2 syllables, 3 morae — āryāgīti 8th gaṇa)
+	'l':    'l',    # v (1 mora — āryā 6th gaṇa of 2nd ardha)
+	'g':    'g',    # – (2 morae — standard 8th gaṇa)
+}
 
 meter_melodies = {
 	'anuṣṭubh' : ['Madhura Godbole', 'H.V. Nagaraja Rao', 'Shatavadhani Ganesh',  'Diwakar Acarya'],
