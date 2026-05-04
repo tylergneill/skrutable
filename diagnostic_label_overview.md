@@ -51,6 +51,8 @@ Keyed by pāda number (1–4). Length errors and pattern errors can co-occur acr
 | `ūnākṣarā` | `hypometric` |
 | `vikṛtavṛtta` | `does not match expected gaṇa pattern {XYZ}` (e.g. `does not match expected gaṇa pattern ttjg`) |
 
+Note: `problem_syllables` for length errors contains a single Levenshtein-derived index: a positive int for the extra syllable (hypermetric), or `-(canonical_pos + 1)` for the gap location (hypometric). The frontend uses this to highlight the specific syllable or insert a blank cell, rather than marking the entire pāda.
+
 ## Upajāti — excluded pādas
 
 Keyed by pāda number (1–4). Pādas of non-majority length are excluded from identification and flagged here. `meter_label` appends `(? N eva pādāḥ yuktāḥ)` when fewer than 4 pādas are included.
@@ -62,7 +64,15 @@ Keyed by pāda number (1–4). Pādas of non-majority length are excluded from i
 
 ## Ardhasamavṛtta — per-pāda errors
 
-*Placeholder — not yet implemented. Currently only perfect identification is supported.*
+Identified via edit distance on raw `lg` weight strings against known canonical patterns (odd pādas 1,3 and even pādas 2,4 checked separately). Detection threshold: `ARDHASAMAVFTTA_EDIT_DISTANCE_THRESHOLD = 2`. Score degrades by 1 per unit of edit distance beyond the first (`ardhasamavṛtta, imperfect` base score 6 → 5 for distance 2). Keyed by pāda number (1–4).
+
+| `imperfect_label_sanskrit` | `imperfect_label_english` |
+|---------------------------|--------------------------|
+| `vikṛtavṛtta` | `does not match expected gaṇa pattern for {meter_name}` |
+| `adhikākṣarā` | `hypermetric` |
+| `ūnākṣarā` | `hypometric` |
+
+`problem_syllables` uses the same Levenshtein encoding as samavṛtta length errors (see above). `ajñātārdhasamavṛtta` is not produced; unrecognized patterns yield no result.
 
 ## Viṣamavṛtta — per-pāda errors
 

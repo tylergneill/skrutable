@@ -370,19 +370,52 @@ bhayam agamat punar eva rāmamātā //"""
 	expected_output = meter_scores["ardhasamavṛtta, perfect"]
 	assert output == expected_output
 
-# def test_identify_meter_ardhasamavftta():
-# 	MI = MeterIdentifier()
-# 	input_string = """iti vilapati pārthive pranaṣṭe
-# karuṇataraṃ dviguṇaṃ ca rāmahetoḥ /
-# vacanam anuniśamya tasya devī
-# bhayam agamat punar eva rāmamātā //"""
-# 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_max')
-# 	output = object_result.identification_score
-# 	other_output = object_result.meter_label
-# 	curr_func = inspect.stack()[0][3]
-# 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-# 	expected_output = 8
-# 	assert output == expected_output
+def test_identify_meter_ardhasamavftta():
+	MI = MeterIdentifier()
+	input_string = """iti vilapati pārthive pranaṣṭe
+karuṇataraṃ dviguṇaṃ ca rāmahetoḥ /
+vacanam anuniśamya tasya devī
+bhayam agamat punar eva rāmamātā //"""
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_max')
+	output = object_result.identification_score
+	other_output = object_result.meter_label
+	curr_func = inspect.stack()[0][3]
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	expected_output = meter_scores["ardhasamavṛtta, perfect"]
+	assert output == expected_output
+
+
+def test_evaluate_ardhasamavftta_imperfect_vikrtavrtta():
+	# kalohaṃ instead of kalahaṃ in pāda 3 — one syllable wrong (vikṛtavṛtta)
+	MI = MeterIdentifier()
+	input_string = """akaroḥ kimu netraśoṇimānaṃ
+kimakārṣīḥ karapallavāvarodham /
+kalohaṃ kimadhāḥ krudhā rasajñe
+hitamarthaṃ na vidanti daivadaṣṭāḥ //"""
+	result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='none')
+	d = result.diagnostic
+	assert result.meter_label.startswith('aupacchandasika')
+	assert 'asamīcīnā' in result.meter_label
+	assert result.identification_score == meter_scores["ardhasamavṛtta, imperfect"]
+	assert d.imperfect_label_sanskrit[3] == 'vikṛtavṛtta'
+	assert d.imperfect_label_english[3].startswith('does not match expected gaṇa pattern for')
+	assert d.problem_syllables[3]
+
+
+def test_evaluate_ardhasamavftta_imperfect_hypometric():
+	# drop one syllable from pāda 3 (ūnākṣarā)
+	MI = MeterIdentifier()
+	input_string = """akaroḥ kimu netraśoṇimānaṃ
+kimakārṣīḥ karapallavāvarodham /
+kalaṃ kimadhāḥ krudhā rasajñe
+hitamarthaṃ na vidanti daivadaṣṭāḥ //"""
+	result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='none')
+	d = result.diagnostic
+	assert result.meter_label.startswith('aupacchandasika')
+	assert d.imperfect_label_sanskrit[3] == 'ūnākṣarā'
+	assert d.imperfect_label_english[3] == 'hypometric'
+	assert len(d.problem_syllables[3]) == 1
+	assert d.problem_syllables[3][0] < 0  # negative = -(gap_canonical_pos + 1)
 
 def test_identify_meter_vaMSasTa():
 	# after enabling ardhasamavftta
@@ -464,20 +497,20 @@ sA jayati sarasvatI devI"""
 	expected_output = "āryā"
 	assert truncated_output == expected_output
 
-# def test_resplit_lite_ardhasamavftta():
-# 	MI = MeterIdentifier()
-# 	input_string = """iti vilapati pārthive pranaṣṭe
-# karuṇataraṃ dviguṇaṃ ca rāmahetoḥ /
-# vacanam anuniśamya tasya devī
-# bhayam agamat punar eva rāmamātā //"""
-# 	# print()
-# 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_max')
-# 	output = object_result.summarize()
-# 	truncated_output = object_result.meter_label[:10]
-# 	curr_func = inspect.stack()[0][3]
-# 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-# 	expected_output = "puṣpitāgrā"
-# 	assert truncated_output == expected_output
+def test_resplit_lite_ardhasamavftta():
+	MI = MeterIdentifier()
+	input_string = """iti vilapati pārthive pranaṣṭe
+karuṇataraṃ dviguṇaṃ ca rāmahetoḥ /
+vacanam anuniśamya tasya devī
+bhayam agamat punar eva rāmamātā //"""
+	# print()
+	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_max')
+	output = object_result.summarize()
+	truncated_output = object_result.meter_label[:10]
+	curr_func = inspect.stack()[0][3]
+	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
+	expected_output = "puṣpitāgrā"
+	assert truncated_output == expected_output
 
 
 def test_resplit_lite_anuzwuB():
