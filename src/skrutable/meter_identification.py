@@ -36,6 +36,7 @@ class Diagnostic:
 
 
 ARDHASAMAVFTTA_EDIT_DISTANCE_THRESHOLD = 2
+VIZAMAVFTTA_EDIT_DISTANCE_THRESHOLD = 2
 
 
 def _levenshtein_align(observed, canonical):
@@ -287,6 +288,7 @@ class VerseTester(object):
 		self.identification_attempt_count = 0
 		self._anuzwuB_half_cache = {}  # cleared per wiggle_identify run
 		self._ardha_stash = []  # [(wbp, label, odd_can, even_can)] accumulated across wiggle candidates
+		self._vizama_stash = []  # [(wbp, label, canonicals_4tuple, tsyl, gaRa, morae)] accumulated across wiggle candidates
 		self._samavftta_has_length_error = False  # set during first evaluate_samavftta call
 
 	def combine_results(self, Vrs, new_label, new_score):
@@ -924,20 +926,111 @@ class VerseTester(object):
 			Vrs.diagnostic = diagnostic
 
 
-	def is_vizamavftta(self, Vrs):
-
-		gs_to_id = Vrs.gaRa_abbreviations.split('\n')
-		if len(gs_to_id) < 4: return False
-
-		for (a, b, c, d) in meter_patterns.vizamavftta_by_4_tuple:
-			if (gs_to_id[0],gs_to_id[1],gs_to_id[2],gs_to_id[3]) == (a, b, c, d):
-				Vrs.identification_score = meter_scores["viṣamavṛtta, perfect"]
-				Vrs.meter_label = meter_patterns.vizamavftta_by_4_tuple[(a, b, c, d)]
-				Vrs.diagnostic = Diagnostic(perfect_id_label=Vrs.meter_label)
-				return True
-
-		else:
+	def is_vizamavftta(self, Vrs, perfect_only=False):
+		# bail early if even a perfect result can't beat what's already recorded
+		if meter_scores["viṣamavṛtta, perfect"] <= Vrs.identification_score:
 			return False
+
+		wbp = Vrs.syllable_weights.split('\n')  # weight strings per pāda
+		if len(wbp) < 4: return False
+		gs_to_id = Vrs.gaRa_abbreviations.split('\n')  # gaṇa abbrev strings per pāda
+		if len(gs_to_id) < 4: return False
+		tsyl = Vrs.text_syllabified
+		gaRa = Vrs.gaRa_abbreviations
+		morae = Vrs.morae_per_line
+
+		# canonical weight strings derived from gaṇa abbreviations
+		_weights_by_gaRa = {v: k for k, v in meter_patterns.gaRas_by_weights.items()}
+
+		def _gaRa_to_weights(gaRa_str):
+			return ''.join(_weights_by_gaRa.get(ch, ch) for ch in gaRa_str)
+
+		if perfect_only:
+			# Perfect match: compare gaṇa abbreviations directly (exact).
+			# Stash near-misses (by weight-string length) for imperfect Levenshtein pass.
+			for canonicals, meter_label in meter_patterns.vizamavftta_by_4_tuple.items():
+				canonical_weights = [_gaRa_to_weights(c) for c in canonicals]
+
+				# Perfect match via gaṇa abbreviations
+				if all(gs_to_id[i] == canonicals[i] for i in range(4)):
+					Vrs.identification_score = meter_scores["viṣamavṛtta, perfect"]
+					Vrs.meter_label = meter_label
+					Vrs.diagnostic = Diagnostic(perfect_id_label=meter_label)
+					self._vizama_stash = []  # perfect found; no need for imperfect pass
+					return True
+
+				# Not a perfect match — stash if weight lengths are within threshold
+				if all(
+					abs(len(wbp[i]) - len(canonical_weights[i])) <= VIZAMAVFTTA_EDIT_DISTANCE_THRESHOLD
+					for i in range(4)
+				):
+					self._vizama_stash.append((wbp, meter_label, canonical_weights, tsyl, gaRa, morae))
+			return False
+
+		# Imperfect pass: consume the stash built during perfect_only pass.
+		if not self._vizama_stash:
+			self.is_vizamavftta(Vrs, perfect_only=True)
+		if not self._vizama_stash:
+			return False
+
+		best_total_dist = None
+		best_entry = None
+		for _wbp, _label, _canonical_weights, _tsyl, _gaRa, _morae in self._vizama_stash:
+			total_dist = sum(
+				_levenshtein_align(_wbp[i], _canonical_weights[i])[0]
+				for i in range(4)
+			)
+			if total_dist <= VIZAMAVFTTA_EDIT_DISTANCE_THRESHOLD:
+				if best_total_dist is None or total_dist < best_total_dist:
+					best_total_dist = total_dist
+					best_entry = (_wbp, _label, _canonical_weights, _tsyl, _gaRa, _morae)
+
+		if best_entry is None:
+			return False
+
+		best_wbp, best_label, best_canonical_weights, *_ = best_entry
+		score = meter_scores["viṣamavṛtta, imperfect"] - (best_total_dist - 1)
+		if score <= 0:
+			return False
+
+		problem_syllables = {}
+		per_pada_sanskrit = {}
+		per_pada_english = {}
+		for i, w in enumerate(best_wbp[:4]):
+			canonical = best_canonical_weights[i]
+			dist, prob_indices = _levenshtein_align(w, canonical)
+			if dist == 0:
+				continue
+			pada_num = i + 1
+			problem_syllables[pada_num] = prob_indices
+			meter_name = best_label.split(' = ')[0]
+			if len(w) > len(canonical):
+				per_pada_sanskrit[pada_num] = 'adhikākṣarā'
+				per_pada_english[pada_num] = 'hypermetric'
+			elif len(w) < len(canonical):
+				per_pada_sanskrit[pada_num] = 'ūnākṣarā'
+				per_pada_english[pada_num] = 'hypometric'
+			else:
+				per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
+				per_pada_english[pada_num] = f'does not match expected gaṇa pattern for {meter_name}'
+
+		sa_vals = list(per_pada_sanskrit.items())
+		if len(sa_vals) == 1:
+			suffix = f"asamīcīnā, pāda {sa_vals[0][0]}: {sa_vals[0][1]}"
+		else:
+			suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in sa_vals)
+		imperfect_label = best_label + f" ({suffix})"
+
+		old_score = Vrs.identification_score
+		self.combine_results(Vrs, new_label=imperfect_label, new_score=score)
+		if score >= old_score:
+			Vrs.diagnostic = Diagnostic(
+				perfect_id_label=imperfect_label,
+				imperfect_label_sanskrit=per_pada_sanskrit or None,
+				imperfect_label_english=per_pada_english or None,
+				problem_syllables=problem_syllables or None,
+			)
+		return True
 
 	def test_as_samavftta_etc(self, Vrs):
 
@@ -967,8 +1060,8 @@ class VerseTester(object):
 		if ( self.pAdasamatva_count == 0 and self.resplit_option == "single_pAda"):
 			self.evaluate_samavftta(Vrs)
 
-		# test perfect viṣamavṛtta
-		if self.pAdasamatva_count == 0 and self.is_vizamavftta(Vrs):
+		# test perfect viṣamavṛtta (Levenshtein for imperfect deferred to imperfect pass)
+		if self.pAdasamatva_count == 0 and self.is_vizamavftta(Vrs, perfect_only=True):
 			# will give id_score == 9
 			# label and score already set in is_vizamavftta if test was successful
 			return 1 # max score already reached
@@ -1445,6 +1538,7 @@ class MeterIdentifier(object):
 
 		self._anuzwuB_half_cache = {}
 		VrsTster._ardha_stash = []
+		VrsTster._vizama_stash = []
 		pos_iterators = {}
 		for k in ['ab', 'bc', 'cd']:
 			if  (
@@ -1592,10 +1686,14 @@ class MeterIdentifier(object):
 		if resplit_option in ['none', 'single_pAda'] or V.text_cleaned == '':
 			# No resplitting: test the verse exactly as scanned.
 			VT._ardha_stash = []
+			VT._vizama_stash = []
 			success = VT.attempt_identification(V)
 			# Post-identification: deferred imperfect ardhasamavṛtta pass over stash.
 			if VT._ardha_stash and meter_scores["ardhasamavṛtta, imperfect"] > V.identification_score:
 				VT.evaluate_ardhasamavftta(V)
+			# Post-identification: deferred imperfect viṣamavṛtta pass over stash.
+			if VT._vizama_stash and meter_scores["viṣamavṛtta, imperfect"] > V.identification_score:
+				VT.is_vizamavftta(V)
 			if _DEBUG_TIMING:
 				cat = _meter_label_to_category(V.meter_label)
 				bucket = _category_totals.setdefault(cat, {})
@@ -1730,17 +1828,89 @@ class MeterIdentifier(object):
 								problem_syllables=problem_syllables or None,
 							)
 							self.Verses_found.append(ardha_Vrs)
+			if _DEBUG_TIMING:
+				_lev_ardha_elapsed = _time.perf_counter() - _lev_ardha_t0
+				_section_totals['lev_ardha'] = _section_totals.get('lev_ardha', 0.0) + _lev_ardha_elapsed
+
+			# Post-wiggle: deferred imperfect viṣamavṛtta pass over accumulated stash.
+			if _DEBUG_TIMING:
+				_lev_vizama_t0 = _time.perf_counter()
+			vizama_stash = VT._vizama_stash
+			if vizama_stash:
+				best_current_score = (
+					max(v.identification_score for v in self.Verses_found)
+					if self.Verses_found else 0
+				)
+				if meter_scores["viṣamavṛtta, imperfect"] > best_current_score:
+					best_total_dist = None
+					best_entry = None
+					for _wbp, _label, _canonicals, _tsyl, _gaRa, _morae in vizama_stash:
+						total_dist = sum(
+							_levenshtein_align(_wbp[i], _canonicals[i])[0]
+							for i in range(4)
+						)
+						if total_dist <= VIZAMAVFTTA_EDIT_DISTANCE_THRESHOLD:
+							if best_total_dist is None or total_dist < best_total_dist:
+								best_total_dist = total_dist
+								best_entry = (_wbp, _label, _canonicals, _tsyl, _gaRa, _morae)
+					if best_entry is not None:
+						vizama_score = meter_scores["viṣamavṛtta, imperfect"] - (best_total_dist - 1)
+						if vizama_score > best_current_score:
+							best_wbp, best_label, best_canonicals, best_tsyl, best_gaRa, best_morae = best_entry
+							problem_syllables = {}
+							per_pada_sanskrit = {}
+							per_pada_english = {}
+							for i, w in enumerate(best_wbp[:4]):
+								canonical = best_canonicals[i]
+								dist, prob_indices = _levenshtein_align(w, canonical)
+								if dist == 0:
+									continue
+								pada_num = i + 1
+								problem_syllables[pada_num] = prob_indices
+								meter_name = best_label.split(' = ')[0]
+								if len(w) > len(canonical):
+									per_pada_sanskrit[pada_num] = 'adhikākṣarā'
+									per_pada_english[pada_num] = 'hypermetric'
+								elif len(w) < len(canonical):
+									per_pada_sanskrit[pada_num] = 'ūnākṣarā'
+									per_pada_english[pada_num] = 'hypometric'
+								else:
+									per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
+									per_pada_english[pada_num] = f'does not match expected gaṇa pattern for {meter_name}'
+							sa_vals = list(per_pada_sanskrit.items())
+							if len(sa_vals) == 1:
+								suffix = f"asamīcīnā, pāda {sa_vals[0][0]}: {sa_vals[0][1]}"
+							else:
+								suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in sa_vals)
+							imperfect_label = best_label + f" ({suffix})"
+							vizama_Vrs = copy(self.Verses_found[0]) if self.Verses_found else copy(V)
+							vizama_Vrs.text_syllabified = best_tsyl
+							vizama_Vrs.syllable_weights = '\n'.join(best_wbp)
+							vizama_Vrs.gaRa_abbreviations = best_gaRa
+							vizama_Vrs.morae_per_line = best_morae
+							vizama_Vrs.meter_label = imperfect_label
+							vizama_Vrs.identification_score = vizama_score
+							vizama_Vrs.diagnostic = Diagnostic(
+								perfect_id_label=imperfect_label,
+								imperfect_label_sanskrit=per_pada_sanskrit or None,
+								imperfect_label_english=per_pada_english or None,
+								problem_syllables=problem_syllables or None,
+							)
+							self.Verses_found.append(vizama_Vrs)
+			if _DEBUG_TIMING:
+				_lev_vizama_elapsed = _time.perf_counter() - _lev_vizama_t0
+				_section_totals['lev_vizama'] = _section_totals.get('lev_vizama', 0.0) + _lev_vizama_elapsed
+
 			# Pick the candidate with the highest identification score.
 			if len(self.Verses_found) > 0:
 				self.Verses_found.sort(key=lambda x: x.identification_score, reverse=True)
 				V = self.Verses_found[0]
 
 			if _DEBUG_TIMING:
-				_lev_ardha_elapsed = _time.perf_counter() - _lev_ardha_t0
-				_section_totals['lev_ardha'] = _section_totals.get('lev_ardha', 0.0) + _lev_ardha_elapsed
 				cat = _meter_label_to_category(V.meter_label)
 				bucket = _category_totals.setdefault(cat, {})
 				bucket['lev_ardha'] = bucket.get('lev_ardha', 0.0) + _lev_ardha_elapsed
+				bucket['lev_vizama'] = bucket.get('lev_vizama', 0.0) + _lev_vizama_elapsed
 				_verse_wiggle_scan = _section_totals.get('wiggle_scan', 0.0) - _pre_wiggle_scan
 				bucket['scan'] = bucket.get('scan', 0.0) + _verse_scan + _verse_wiggle_scan
 
@@ -1754,7 +1924,7 @@ class MeterIdentifier(object):
 			if n % 100 == 0:
 				import sys, os
 				scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
-				type_keys = ('anuzwuB', 'samavftta_etc', 'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_ardha')
+				type_keys = ('anuzwuB', 'samavftta_etc', 'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_ardha', 'lev_vizama')
 				type_abbrev = {
 					'anuzwuB': 'anuṣṭ',
 					'samavftta_etc': 'sama',
@@ -1762,6 +1932,7 @@ class MeterIdentifier(object):
 					'jAti': 'jāti',
 					'lev_samavftta': 'lev✗sama',
 					'lev_ardha': 'lev✗ardha',
+					'lev_vizama': 'lev✗viza',
 				}
 				cat_order = [
 					'anuṣṭubh', 'samavṛtta', 'upajāti', 'ardhasamavṛtta',
@@ -1773,12 +1944,14 @@ class MeterIdentifier(object):
 				#   wiggle_scan  = weight/morae/gana recompute inside wiggle loop
 				#   wiggle_id    = attempt_identification() calls inside wiggle loop
 				#   lev_ardha    = post-wiggle Levenshtein ardhasamavṛtta pass
+				#   lev_vizama   = post-wiggle Levenshtein viṣamavṛtta pass
 				initial_scan = sum(_section_totals.get(k, 0.0) for k in scan_keys)
 				type_total = sum(_section_totals.get(k, 0.0) for k in type_keys)
 				wiggle_id = _section_totals.get('wiggle_type', 0.0)
 				initial_id = type_total - wiggle_id
 				wiggle_scan = _section_totals.get('wiggle_scan', 0.0)
 				lev_ardha = _section_totals.get('lev_ardha', 0.0)
+				lev_vizama = _section_totals.get('lev_vizama', 0.0)
 				scan_total = initial_scan + wiggle_scan
 				grand_total = scan_total + type_total
 
