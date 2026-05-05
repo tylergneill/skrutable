@@ -660,6 +660,9 @@ class VerseTester(object):
 			return
 
 		wbp = Vrs.syllable_weights.split('\n')  # weights by pāda
+		tsyl = Vrs.text_syllabified
+		gaRa = Vrs.gaRa_abbreviations
+		morae = Vrs.morae_per_line
 
 		if perfect_only:
 			# Search all patterns; stash imperfect candidates (no Levenshtein yet), commit perfect immediately.
@@ -676,7 +679,7 @@ class VerseTester(object):
 						<= ARDHASAMAVFTTA_EDIT_DISTANCE_THRESHOLD
 						for pada_num, w in enumerate(wbp[:4], start=1)
 					):
-						self._ardha_stash.append((wbp, meter_label, odd_canonical, even_canonical))
+						self._ardha_stash.append((wbp, meter_label, odd_canonical, even_canonical, tsyl, gaRa, morae))
 					continue
 
 				# exact length: direct string comparison for perfect match (no Levenshtein needed)
@@ -692,7 +695,7 @@ class VerseTester(object):
 					self._ardha_stash = []  # perfect found; no need for imperfect pass
 					return
 				# same length but not perfect — stash without distance computation
-				self._ardha_stash.append((wbp, meter_label, odd_canonical, even_canonical))
+				self._ardha_stash.append((wbp, meter_label, odd_canonical, even_canonical, tsyl, gaRa, morae))
 			return
 
 		# Imperfect pass: consume the stash built during perfect_only pass.
@@ -705,7 +708,7 @@ class VerseTester(object):
 		# Run full Levenshtein on every stash entry to find minimum total distance.
 		best_total_dist = None
 		best_entry = None
-		for _stash_wbp, _label, _odd_can, _even_can in self._ardha_stash:
+		for _stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_gaRa, _stash_morae in self._ardha_stash:
 			total_dist = sum(
 				_levenshtein_align(w, _odd_can if pada_num in (1, 3) else _even_can)[0]
 				for pada_num, w in enumerate(_stash_wbp[:4], start=1)
@@ -713,12 +716,12 @@ class VerseTester(object):
 			if total_dist <= ARDHASAMAVFTTA_EDIT_DISTANCE_THRESHOLD:
 				if best_total_dist is None or total_dist < best_total_dist:
 					best_total_dist = total_dist
-					best_entry = (_stash_wbp, _label, _odd_can, _even_can)
+					best_entry = (_stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_gaRa, _stash_morae)
 
 		if best_entry is None:
 			return
 
-		best_stash_wbp, best_label, best_odd_canonical, best_even_canonical = best_entry
+		best_stash_wbp, best_label, best_odd_canonical, best_even_canonical, *_ = best_entry
 		score = meter_scores["ardhasamavṛtta, imperfect"] - (best_total_dist - 1)
 		if score <= 0:
 			return
@@ -855,6 +858,12 @@ class VerseTester(object):
 			score = meter_scores["upajāti, non-triṣṭubh, imperfect"]
 		else:
 			score = meter_scores["none found"]
+
+		# Extra penalties for especially weak upajāti results.
+		if len(wbp_lens) == 2:
+			score -= 1  # two pādas excluded instead of one
+		if all(lbl.startswith('ajñātam') for lbl in meter_labels):
+			score -= 1
 
 		imperfect_note = None
 		overall_meter_label = "upajāti %s: %s" % (
@@ -1482,10 +1491,14 @@ class MeterIdentifier(object):
 								_section_totals.get('wiggle_scan', 0.0)
 								+ _time.perf_counter() - _scan_t0
 							)
+							_type_keys = ('anuzwuB', 'samavftta_etc', 'ardhasamavftta_perfect', 'jAti', 'lev_samavftta')
+							_pre_type = {k: _section_totals.get(k, 0.0) for k in _type_keys}
 
 						success = VrsTster.attempt_identification(temp_V)
 
 						if _DEBUG_TIMING:
+							_wiggle_type = sum(_section_totals.get(k, 0.0) - _pre_type[k] for k in _type_keys)
+							_section_totals['wiggle_type'] = _section_totals.get('wiggle_type', 0.0) + _wiggle_type
 							_section_totals['wiggle_candidate'] = (
 								_section_totals.get('wiggle_candidate', 0.0)
 								+ _time.perf_counter() - _cand_t0
@@ -1561,8 +1574,16 @@ class MeterIdentifier(object):
 
 		self.Scanner = S = Sc()
 
+		if _DEBUG_TIMING:
+			import time as _time
+			_scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
+			_pre_scan = sum(_section_totals.get(k, 0.0) for k in _scan_keys)
+
 		# gets back mostly populated Verse object
 		V = S.scan(rw_str, from_scheme=from_scheme)
+
+		if _DEBUG_TIMING:
+			_verse_scan = sum(_section_totals.get(k, 0.0) for k in _scan_keys) - _pre_scan
 
 		self.VerseTester = VT = VerseTester()
 		self.VerseTester.resplit_option = resplit_option
@@ -1575,6 +1596,10 @@ class MeterIdentifier(object):
 			# Post-identification: deferred imperfect ardhasamavṛtta pass over stash.
 			if VT._ardha_stash and meter_scores["ardhasamavṛtta, imperfect"] > V.identification_score:
 				VT.evaluate_ardhasamavftta(V)
+			if _DEBUG_TIMING:
+				cat = _meter_label_to_category(V.meter_label)
+				bucket = _category_totals.setdefault(cat, {})
+				bucket['scan'] = bucket.get('scan', 0.0) + _verse_scan
 
 		elif resplit_option in ['resplit_max', 'resplit_lite']:
 
@@ -1633,6 +1658,8 @@ class MeterIdentifier(object):
 				pass
 
 			# Generate all wiggle candidates and collect identified ones.
+			if _DEBUG_TIMING:
+				_pre_wiggle_scan = _section_totals.get('wiggle_scan', 0.0)
 			self.Verses_found =	self.wiggle_identify(
 				V, syllable_list, VT,
 				pAda_brs, quarter_len
@@ -1651,7 +1678,7 @@ class MeterIdentifier(object):
 				if meter_scores["ardhasamavṛtta, imperfect"] > best_current_score:
 					best_total_dist = None
 					best_entry = None
-					for _stash_wbp, _label, _odd_can, _even_can in ardha_stash:
+					for _stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_gaRa, _stash_morae in ardha_stash:
 						total_dist = sum(
 							_levenshtein_align(w, _odd_can if pada_num in (1, 3) else _even_can)[0]
 							for pada_num, w in enumerate(_stash_wbp[:4], start=1)
@@ -1659,11 +1686,11 @@ class MeterIdentifier(object):
 						if total_dist <= ARDHASAMAVFTTA_EDIT_DISTANCE_THRESHOLD:
 							if best_total_dist is None or total_dist < best_total_dist:
 								best_total_dist = total_dist
-								best_entry = (_stash_wbp, _label, _odd_can, _even_can)
+								best_entry = (_stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_gaRa, _stash_morae)
 					if best_entry is not None:
 						ardha_score = meter_scores["ardhasamavṛtta, imperfect"] - (best_total_dist - 1)
 						if ardha_score > best_current_score:
-							best_stash_wbp, best_label, best_odd_can, best_even_can = best_entry
+							best_stash_wbp, best_label, best_odd_can, best_even_can, best_stash_text_syl, best_stash_gaRa, best_stash_morae = best_entry
 							problem_syllables = {}
 							per_pada_sanskrit = {}
 							per_pada_english = {}
@@ -1690,7 +1717,10 @@ class MeterIdentifier(object):
 								suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in sa_vals)
 							imperfect_label = best_label + f" ({suffix})"
 							ardha_Vrs = copy(self.Verses_found[0]) if self.Verses_found else copy(V)
+							ardha_Vrs.text_syllabified = best_stash_text_syl
 							ardha_Vrs.syllable_weights = '\n'.join(best_stash_wbp)
+							ardha_Vrs.gaRa_abbreviations = best_stash_gaRa
+							ardha_Vrs.morae_per_line = best_stash_morae
 							ardha_Vrs.meter_label = imperfect_label
 							ardha_Vrs.identification_score = ardha_score
 							ardha_Vrs.diagnostic = Diagnostic(
@@ -1711,6 +1741,8 @@ class MeterIdentifier(object):
 				cat = _meter_label_to_category(V.meter_label)
 				bucket = _category_totals.setdefault(cat, {})
 				bucket['lev_ardha'] = bucket.get('lev_ardha', 0.0) + _lev_ardha_elapsed
+				_verse_wiggle_scan = _section_totals.get('wiggle_scan', 0.0) - _pre_wiggle_scan
+				bucket['scan'] = bucket.get('scan', 0.0) + _verse_scan + _verse_wiggle_scan
 
 		if V.meter_label == None:
 			# No identification succeeded; return a legible failure label.
@@ -1721,8 +1753,9 @@ class MeterIdentifier(object):
 			n = _verse_count[0]
 			if n % 100 == 0:
 				import sys, os
-				section_keys = ('anuzwuB', 'samavftta_etc', 'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_ardha')
-				section_abbrev = {
+				scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
+				type_keys = ('anuzwuB', 'samavftta_etc', 'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_ardha')
+				type_abbrev = {
 					'anuzwuB': 'anuṣṭ',
 					'samavftta_etc': 'sama',
 					'ardhasamavftta_perfect': 'ardha✓',
@@ -1734,35 +1767,65 @@ class MeterIdentifier(object):
 					'anuṣṭubh', 'samavṛtta', 'upajāti', 'ardhasamavṛtta',
 					'viṣamavṛtta', 'jāti', 'na kiṃcid adhyavasitam',
 				]
-				wiggle_total = _section_totals.get('wiggle_candidate', 0.0)
-				section_total = sum(_section_totals.get(k, 0.0) for k in section_keys)
-				scan_overhead = _section_totals.get('wiggle_scan', 0.0)
-				other_overhead = wiggle_total - section_total - scan_overhead
+				# Accounting (summary line shows minimum-cost baseline):
+				#   initial_scan = initial scan() call (outside wiggle)
+				#   initial_id   = attempt_identification() before wiggle
+				#   wiggle_scan  = weight/morae/gana recompute inside wiggle loop
+				#   wiggle_id    = attempt_identification() calls inside wiggle loop
+				#   lev_ardha    = post-wiggle Levenshtein ardhasamavṛtta pass
+				initial_scan = sum(_section_totals.get(k, 0.0) for k in scan_keys)
+				type_total = sum(_section_totals.get(k, 0.0) for k in type_keys)
+				wiggle_id = _section_totals.get('wiggle_type', 0.0)
+				initial_id = type_total - wiggle_id
+				wiggle_scan = _section_totals.get('wiggle_scan', 0.0)
+				lev_ardha = _section_totals.get('lev_ardha', 0.0)
+				scan_total = initial_scan + wiggle_scan
+				grand_total = scan_total + type_total
 
-				col_w = 8  # width for each section column
-				hdr_abbrevs = [section_abbrev[k] for k in section_keys]
+				col_w = 8
+				sub_w = 15  # width for subtotal columns (fits 'scan-subtotal', 'types-subtotal')
+				hdr_abbrevs = [type_abbrev[k] for k in type_keys]
 				col_cat_w = max(len(c) for c in cat_order + ['category']) + 2
 
 				lines = []
 				wiggle_count = _section_totals.get('wiggle_count', 0)
 				lines.append(f'\n=== timing @ {n} attempts / {wiggle_count} wiggle candidates ===')
-				lines.append(f'  wiggle_total={wiggle_total:.2f}s  sections={section_total:.2f}s  overhead: scan={scan_overhead:.2f}s  other={other_overhead:.2f}s')
+				lines.append(
+					f'  total={grand_total:.2f}s'
+					f'  initial_scan={initial_scan:.2f}s'
+					f'  initial_id={initial_id:.2f}s'
+				)
 				lines.append('')
-				# header row
-				lines.append('  ' + 'category'.ljust(col_cat_w) + 'total'.rjust(7) + '  ' + '  '.join(a.rjust(col_w) for a in hdr_abbrevs))
-				lines.append('  ' + '-' * (col_cat_w + 7 + 2 + len(hdr_abbrevs) * (col_w + 2)))
+				# header: category | total | scan-subtotal | types-subtotal | anuṣṭ | sama | ...
+				hdr = ('  ' + 'category'.ljust(col_cat_w)
+					+ 'total'.rjust(sub_w)
+					+ 'scan-subtotal'.rjust(sub_w)
+					+ 'types-subtotal'.rjust(sub_w)
+					+ '  ' + '  '.join(a.rjust(col_w) for a in hdr_abbrevs))
+				sep = '  ' + '-' * (col_cat_w + sub_w * 3 + 2 + len(hdr_abbrevs) * (col_w + 2))
+				lines.append(hdr)
+				lines.append(sep)
 				# per-category rows
 				for cat in cat_order:
 					bucket = _category_totals.get(cat)
 					if not bucket:
 						continue
-					cat_total = sum(bucket.values())
-					cells = [f'{bucket.get(k, 0.0):.2f}s'.rjust(col_w) for k in section_keys]
-					lines.append('  ' + cat.ljust(col_cat_w) + f'{cat_total:.2f}s'.rjust(7) + '  ' + '  '.join(cells))
+					cat_scan = bucket.get('scan', 0.0)
+					cat_types = sum(bucket.get(k, 0.0) for k in type_keys)
+					cells = [f'{bucket.get(k, 0.0):.2f}s'.rjust(col_w) for k in type_keys]
+					lines.append('  ' + cat.ljust(col_cat_w)
+						+ f'{cat_scan + cat_types:.2f}s'.rjust(sub_w)
+						+ f'{cat_scan:.2f}s'.rjust(sub_w)
+						+ f'{cat_types:.2f}s'.rjust(sub_w)
+						+ '  ' + '  '.join(cells))
 				# totals row
-				lines.append('  ' + '-' * (col_cat_w + 7 + 2 + len(hdr_abbrevs) * (col_w + 2)))
-				total_cells = [f'{_section_totals.get(k,0.0):.2f}s'.rjust(col_w) for k in section_keys]
-				lines.append('  ' + 'TOTAL'.ljust(col_cat_w) + f'{section_total:.2f}s'.rjust(7) + '  ' + '  '.join(total_cells))
+				lines.append(sep)
+				total_cells = [f'{_section_totals.get(k,0.0):.2f}s'.rjust(col_w) for k in type_keys]
+				lines.append('  ' + 'TOTAL'.ljust(col_cat_w)
+					+ f'{grand_total:.2f}s'.rjust(sub_w)
+					+ f'{scan_total:.2f}s'.rjust(sub_w)
+					+ f'{type_total:.2f}s'.rjust(sub_w)
+					+ '  ' + '  '.join(total_cells))
 
 				block = '\n'.join(lines) + '\n'
 
