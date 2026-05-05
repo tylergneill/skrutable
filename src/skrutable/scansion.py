@@ -155,22 +155,21 @@ class Scanner(object):
 		Returns result as string.
 		"""
 
-		# manage additional newlines
-
-		for chr in additional_pAda_separators:
-			cntnts = cntnts.replace(chr, '\n')
-		# also dedupe, also allowing for carriage returns introduced in HTML form input
-		regex = re.compile(r"(\n\r?){2,}")
-		cntnts = re.sub(regex, '\n', cntnts)
-		# also remove buffer-initial and -final newlines
-		regex = re.compile(r"(\A\s*)|(\s*\Z)")
-		cntnts = re.sub(regex, '', cntnts)
-
-		# filter out disallowed characters
-
+		# filter out disallowed characters (numbers, irrelevant punctuation, etc.)
+		# pāda separator chars are preserved so they can be converted to \n below
+		pAda_sep_chars = set(c for sep in additional_pAda_separators for c in sep)
 		for c in list(set(cntnts)):
-			if c not in phonemes.character_set[scheme_in]:
-				cntnts = cntnts.replace(c,'')
+			if c not in phonemes.character_set[scheme_in] and c not in pAda_sep_chars:
+				cntnts = cntnts.replace(c, '')
+
+		# replace all pāda separator characters with newline
+		for sep in additional_pAda_separators:
+			cntnts = cntnts.replace(sep, '\n')
+
+		# strip horizontal whitespace around newlines, dedupe, strip leading/trailing
+		cntnts = re.sub(r'[ \t]*\n[ \t]*', '\n', cntnts)
+		cntnts = re.sub(r'\n+', '\n', cntnts)
+		cntnts = cntnts.strip()
 
 		return cntnts
 
@@ -369,14 +368,28 @@ class Scanner(object):
 		V.original_scheme = T.scheme_in
 		T.scheme_out = 'SLP'
 
-		V.text_cleaned = self.clean_input(V.text_raw, V.original_scheme)
-		V.text_SLP = T.transliterate(V.text_cleaned)
-		V.text_syllabified = self.syllabify_text(V.text_SLP)
-		V.syllable_weights = self.scan_syllable_weights(V.text_syllabified)
-		V.morae_per_line = self.count_morae(V.syllable_weights)
-		V.gaRa_abbreviations = '\n'.join(
-		[ self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n') ]
-		)
+		try:
+			from skrutable.meter_identification import _DEBUG_TIMING, _section_totals
+		except ImportError:
+			_DEBUG_TIMING = False
+
+		if _DEBUG_TIMING:
+			import time as _st
+			_t = _st.perf_counter
+			_t0 = _t(); V.text_cleaned = self.clean_input(V.text_raw, V.original_scheme); _section_totals['scan_clean'] = _section_totals.get('scan_clean', 0.0) + _t() - _t0
+			_t0 = _t(); V.text_SLP = T.transliterate(V.text_cleaned); _section_totals['scan_translit'] = _section_totals.get('scan_translit', 0.0) + _t() - _t0
+			_t0 = _t(); V.text_syllabified = self.syllabify_text(V.text_SLP); _section_totals['scan_syllabify'] = _section_totals.get('scan_syllabify', 0.0) + _t() - _t0
+			_t0 = _t(); V.syllable_weights = self.scan_syllable_weights(V.text_syllabified); _section_totals['scan_weights'] = _section_totals.get('scan_weights', 0.0) + _t() - _t0
+			_t0 = _t(); V.morae_per_line = self.count_morae(V.syllable_weights); V.gaRa_abbreviations = '\n'.join([self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n')]); _section_totals['scan_morae_gana'] = _section_totals.get('scan_morae_gana', 0.0) + _t() - _t0
+		else:
+			V.text_cleaned = self.clean_input(V.text_raw, V.original_scheme)
+			V.text_SLP = T.transliterate(V.text_cleaned)
+			V.text_syllabified = self.syllabify_text(V.text_SLP)
+			V.syllable_weights = self.scan_syllable_weights(V.text_syllabified)
+			V.morae_per_line = self.count_morae(V.syllable_weights)
+			V.gaRa_abbreviations = '\n'.join(
+			[ self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n') ]
+			)
 
 		self.Verse = V
 		self.Transliterator = T
