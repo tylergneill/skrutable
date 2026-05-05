@@ -1671,13 +1671,14 @@ class MeterIdentifier(object):
 		if _DEBUG_TIMING:
 			import time as _time
 			_scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
-			_pre_scan = sum(_section_totals.get(k, 0.0) for k in _scan_keys)
+			_pre_scan_by_key = {k: _section_totals.get(k, 0.0) for k in _scan_keys}
 
 		# gets back mostly populated Verse object
 		V = S.scan(rw_str, from_scheme=from_scheme)
 
 		if _DEBUG_TIMING:
-			_verse_scan = sum(_section_totals.get(k, 0.0) for k in _scan_keys) - _pre_scan
+			_verse_scan_by_key = {k: _section_totals.get(k, 0.0) - _pre_scan_by_key[k] for k in _scan_keys}
+			_verse_scan = sum(_verse_scan_by_key.values())
 
 		self.VerseTester = VT = VerseTester()
 		self.VerseTester.resplit_option = resplit_option
@@ -1698,6 +1699,8 @@ class MeterIdentifier(object):
 				cat = _meter_label_to_category(V.meter_label)
 				bucket = _category_totals.setdefault(cat, {})
 				bucket['scan'] = bucket.get('scan', 0.0) + _verse_scan
+				for k, v in _verse_scan_by_key.items():
+					bucket[k] = bucket.get(k, 0.0) + v
 
 		elif resplit_option in ['resplit_max', 'resplit_lite']:
 
@@ -1913,6 +1916,8 @@ class MeterIdentifier(object):
 				bucket['lev_vizama'] = bucket.get('lev_vizama', 0.0) + _lev_vizama_elapsed
 				_verse_wiggle_scan = _section_totals.get('wiggle_scan', 0.0) - _pre_wiggle_scan
 				bucket['scan'] = bucket.get('scan', 0.0) + _verse_scan + _verse_wiggle_scan
+				for k, v in _verse_scan_by_key.items():
+					bucket[k] = bucket.get(k, 0.0) + v
 
 		if V.meter_label == None:
 			# No identification succeeded; return a legible failure label.
@@ -1956,8 +1961,10 @@ class MeterIdentifier(object):
 				grand_total = scan_total + type_total
 
 				col_w = 8
-				sub_w = 15  # width for subtotal columns (fits 'scan-subtotal', 'types-subtotal')
-				hdr_abbrevs = [type_abbrev[k] for k in type_keys]
+				sub_w = 15  # width for subtotal columns
+				scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'translit', 'scan_syllabify': 'syllabify', 'scan_weights': 'weights', 'scan_morae_gana': 'morae_gana'}
+				hdr_scan_abbrevs = [scan_abbrev[k] for k in scan_keys]
+				hdr_type_abbrevs = [type_abbrev[k] for k in type_keys]
 				col_cat_w = max(len(c) for c in cat_order + ['category']) + 2
 
 				lines = []
@@ -1969,13 +1976,13 @@ class MeterIdentifier(object):
 					f'  initial_id={initial_id:.2f}s'
 				)
 				lines.append('')
-				# header: category | total | scan-subtotal | types-subtotal | anuṣṭ | sama | ...
+				# header: category | total | clean | translit | syllabify | weights | morae_gana | types-subtotal | anuṣṭ | sama | ...
 				hdr = ('  ' + 'category'.ljust(col_cat_w)
 					+ 'total'.rjust(sub_w)
-					+ 'scan-subtotal'.rjust(sub_w)
+					+ '  ' + '  '.join(a.rjust(col_w) for a in hdr_scan_abbrevs)
 					+ 'types-subtotal'.rjust(sub_w)
-					+ '  ' + '  '.join(a.rjust(col_w) for a in hdr_abbrevs))
-				sep = '  ' + '-' * (col_cat_w + sub_w * 3 + 2 + len(hdr_abbrevs) * (col_w + 2))
+					+ '  ' + '  '.join(a.rjust(col_w) for a in hdr_type_abbrevs))
+				sep = '  ' + '-' * (col_cat_w + sub_w * 2 + 2 + len(scan_keys) * (col_w + 2) + 2 + len(type_keys) * (col_w + 2))
 				lines.append(hdr)
 				lines.append(sep)
 				# per-category rows
@@ -1985,20 +1992,22 @@ class MeterIdentifier(object):
 						continue
 					cat_scan = bucket.get('scan', 0.0)
 					cat_types = sum(bucket.get(k, 0.0) for k in type_keys)
-					cells = [f'{bucket.get(k, 0.0):.2f}s'.rjust(col_w) for k in type_keys]
+					scan_cells = [f'{bucket.get(k, 0.0):.2f}s'.rjust(col_w) for k in scan_keys]
+					type_cells = [f'{bucket.get(k, 0.0):.2f}s'.rjust(col_w) for k in type_keys]
 					lines.append('  ' + cat.ljust(col_cat_w)
 						+ f'{cat_scan + cat_types:.2f}s'.rjust(sub_w)
-						+ f'{cat_scan:.2f}s'.rjust(sub_w)
+						+ '  ' + '  '.join(scan_cells)
 						+ f'{cat_types:.2f}s'.rjust(sub_w)
-						+ '  ' + '  '.join(cells))
+						+ '  ' + '  '.join(type_cells))
 				# totals row
 				lines.append(sep)
-				total_cells = [f'{_section_totals.get(k,0.0):.2f}s'.rjust(col_w) for k in type_keys]
+				total_scan_cells = [f'{_section_totals.get(k,0.0):.2f}s'.rjust(col_w) for k in scan_keys]
+				total_type_cells = [f'{_section_totals.get(k,0.0):.2f}s'.rjust(col_w) for k in type_keys]
 				lines.append('  ' + 'TOTAL'.ljust(col_cat_w)
 					+ f'{grand_total:.2f}s'.rjust(sub_w)
-					+ f'{scan_total:.2f}s'.rjust(sub_w)
+					+ '  ' + '  '.join(total_scan_cells)
 					+ f'{type_total:.2f}s'.rjust(sub_w)
-					+ '  ' + '  '.join(total_cells))
+					+ '  ' + '  '.join(total_type_cells))
 
 				block = '\n'.join(lines) + '\n'
 
