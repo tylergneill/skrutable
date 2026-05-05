@@ -269,18 +269,18 @@ class Scanner(object):
 
 				if (
 					# heavy by nature
-					syllable[-1] in phonemes.SLP_long_vowels + ['M', 'H']
+					syllable[-1] in phonemes.SLP_long_vowels_set or syllable[-1] in ('M', 'H')
 
 					or
 
 					# heavy by position:
 					# consonant closes syllable or next syllable begins with a cluster
-					syllable[-1] in (phonemes.SLP_consonants_for_scansion)
+					syllable[-1] in phonemes.SLP_consonants_for_scansion_set
 					or
 					n <= (len(syllables)-2)
 					and len(syllables[n+1]) > 1
-					and syllables[n+1][0] in (phonemes.SLP_consonants_for_scansion)
-					and syllables[n+1][1] in (phonemes.SLP_consonants_for_scansion)
+					and syllables[n+1][0] in phonemes.SLP_consonants_for_scansion_set
+					and syllables[n+1][1] in phonemes.SLP_consonants_for_scansion_set
 
 					):
 
