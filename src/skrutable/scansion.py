@@ -3,6 +3,7 @@ from skrutable import scheme_detection
 from skrutable import meter_patterns
 from skrutable import phonemes
 from skrutable.config import load_config_dict_from_json_file
+from skrutable.utils import timed
 import re
 
 # load config variables
@@ -146,6 +147,7 @@ class Scanner(object):
 		self.Transliterator = None	# will hold Transliterator object
 
 
+	@timed('scan_clean')
 	def clean_input(self, cntnts, scheme_in):
 		"""
 		Accepts raw text string,
@@ -173,6 +175,7 @@ class Scanner(object):
 
 		return cntnts
 
+	@timed('scan_syllabify')
 	def syllabify_text(self, txt_SLP):
 		"""
 		Accepts (newline-separated) multi-line string of SLP text.
@@ -237,6 +240,7 @@ class Scanner(object):
 		return text_syllabified
 
 
+	@timed('scan_weights')
 	def scan_syllable_weights(self, txt_syl):
 		"""
 		Accepts (newline-separated) multi-line string of text
@@ -294,6 +298,7 @@ class Scanner(object):
 		return syllable_weights
 
 
+	@timed('scan_morae_gana')
 	def count_morae(self, syl_wts):
 		"""
 		Accepts (newline-separated) multi-line string of text
@@ -368,28 +373,14 @@ class Scanner(object):
 		V.original_scheme = T.scheme_in
 		T.scheme_out = 'SLP'
 
-		try:
-			from skrutable.meter_identification import _DEBUG_TIMING, _section_totals
-		except ImportError:
-			_DEBUG_TIMING = False
-
-		if _DEBUG_TIMING:
-			import time as _st
-			_t = _st.perf_counter
-			_t0 = _t(); V.text_cleaned = self.clean_input(V.text_raw, V.original_scheme); _section_totals['scan_clean'] = _section_totals.get('scan_clean', 0.0) + _t() - _t0
-			_t0 = _t(); V.text_SLP = T.transliterate(V.text_cleaned); _section_totals['scan_translit'] = _section_totals.get('scan_translit', 0.0) + _t() - _t0
-			_t0 = _t(); V.text_syllabified = self.syllabify_text(V.text_SLP); _section_totals['scan_syllabify'] = _section_totals.get('scan_syllabify', 0.0) + _t() - _t0
-			_t0 = _t(); V.syllable_weights = self.scan_syllable_weights(V.text_syllabified); _section_totals['scan_weights'] = _section_totals.get('scan_weights', 0.0) + _t() - _t0
-			_t0 = _t(); V.morae_per_line = self.count_morae(V.syllable_weights); V.gaRa_abbreviations = '\n'.join([self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n')]); _section_totals['scan_morae_gana'] = _section_totals.get('scan_morae_gana', 0.0) + _t() - _t0
-		else:
-			V.text_cleaned = self.clean_input(V.text_raw, V.original_scheme)
-			V.text_SLP = T.transliterate(V.text_cleaned)
-			V.text_syllabified = self.syllabify_text(V.text_SLP)
-			V.syllable_weights = self.scan_syllable_weights(V.text_syllabified)
-			V.morae_per_line = self.count_morae(V.syllable_weights)
-			V.gaRa_abbreviations = '\n'.join(
-			[ self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n') ]
-			)
+		V.text_cleaned = self.clean_input(V.text_raw, V.original_scheme)
+		V.text_SLP = timed('scan_translit')(T.transliterate)(V.text_cleaned)
+		V.text_syllabified = self.syllabify_text(V.text_SLP)
+		V.syllable_weights = self.scan_syllable_weights(V.text_syllabified)
+		V.morae_per_line = self.count_morae(V.syllable_weights)
+		V.gaRa_abbreviations = timed('scan_morae_gana')(
+			lambda: '\n'.join([ self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n') ])
+		)()
 
 		self.Verse = V
 		self.Transliterator = T

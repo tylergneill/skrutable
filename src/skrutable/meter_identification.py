@@ -227,9 +227,8 @@ def _fix_conjunct_pada_boundaries(syllable_list, break_positions):
 		syllable_list[br] = syl[vowel_idx - 1:]
 
 
-_DEBUG_TIMING = True  # set True to enable per-section timing output to stderr
+from skrutable.utils import _DEBUG_TIMING, _section_totals, timed
 
-_section_totals = {}
 _category_totals = {}  # { category: { section: seconds } }
 _verse_count = [0]
 
@@ -1572,18 +1571,19 @@ class MeterIdentifier(object):
 						temp_V = copy(Vrs)
 						temp_V.text_syllabified = new_text_syllabified
 
-						if _DEBUG_TIMING: _scan_t0 = _time.perf_counter()
+						if _DEBUG_TIMING:
+							_pre_wiggle_scan_weights = _section_totals.get('scan_weights', 0.0) + _section_totals.get('scan_morae_gana', 0.0)
 						temp_V.syllable_weights = S.scan_syllable_weights(
 							temp_V.text_syllabified)
 						temp_V.morae_per_line = S.count_morae(
 							temp_V.syllable_weights)
-						temp_V.gaRa_abbreviations = '\n'.join(
-						[ S.gaRa_abbreviate(line) for line in temp_V.syllable_weights.split('\n') ]
-						)
+						temp_V.gaRa_abbreviations = timed('scan_morae_gana')(
+							lambda: '\n'.join([ S.gaRa_abbreviate(line) for line in temp_V.syllable_weights.split('\n') ])
+						)()
 						if _DEBUG_TIMING:
 							_section_totals['wiggle_scan'] = (
 								_section_totals.get('wiggle_scan', 0.0)
-								+ _time.perf_counter() - _scan_t0
+								+ _section_totals.get('scan_weights', 0.0) + _section_totals.get('scan_morae_gana', 0.0) - _pre_wiggle_scan_weights
 							)
 							_type_keys = ('anuzwuB', 'samavftta_etc', 'ardhasamavftta_perfect', 'jAti', 'lev_samavftta')
 							_pre_type = {k: _section_totals.get(k, 0.0) for k in _type_keys}
@@ -1671,14 +1671,12 @@ class MeterIdentifier(object):
 		if _DEBUG_TIMING:
 			import time as _time
 			_scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
-			_pre_scan_by_key = {k: _section_totals.get(k, 0.0) for k in _scan_keys}
+			_all_keys = _scan_keys + ('anuzwuB', 'samavftta_etc', 'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_ardha', 'lev_vizama', 'wiggle_scan', 'wiggle_type')
+			_pre = {k: _section_totals.get(k, 0.0) for k in _all_keys}
+			_verse_times = {}  # accumulates all per-verse timings; flushed to category bucket at end
 
 		# gets back mostly populated Verse object
 		V = S.scan(rw_str, from_scheme=from_scheme)
-
-		if _DEBUG_TIMING:
-			_verse_scan_by_key = {k: _section_totals.get(k, 0.0) - _pre_scan_by_key[k] for k in _scan_keys}
-			_verse_scan = sum(_verse_scan_by_key.values())
 
 		self.VerseTester = VT = VerseTester()
 		self.VerseTester.resplit_option = resplit_option
@@ -1695,12 +1693,6 @@ class MeterIdentifier(object):
 			# Post-identification: deferred imperfect viṣamavṛtta pass over stash.
 			if VT._vizama_stash and meter_scores["viṣamavṛtta, imperfect"] > V.identification_score:
 				VT.is_vizamavftta(V)
-			if _DEBUG_TIMING:
-				cat = _meter_label_to_category(V.meter_label)
-				bucket = _category_totals.setdefault(cat, {})
-				bucket['scan'] = bucket.get('scan', 0.0) + _verse_scan
-				for k, v in _verse_scan_by_key.items():
-					bucket[k] = bucket.get(k, 0.0) + v
 
 		elif resplit_option in ['resplit_max', 'resplit_lite']:
 
@@ -1759,8 +1751,6 @@ class MeterIdentifier(object):
 				pass
 
 			# Generate all wiggle candidates and collect identified ones.
-			if _DEBUG_TIMING:
-				_pre_wiggle_scan = _section_totals.get('wiggle_scan', 0.0)
 			self.Verses_found =	self.wiggle_identify(
 				V, syllable_list, VT,
 				pAda_brs, quarter_len
@@ -1834,6 +1824,7 @@ class MeterIdentifier(object):
 			if _DEBUG_TIMING:
 				_lev_ardha_elapsed = _time.perf_counter() - _lev_ardha_t0
 				_section_totals['lev_ardha'] = _section_totals.get('lev_ardha', 0.0) + _lev_ardha_elapsed
+				_verse_times['lev_ardha'] = _verse_times.get('lev_ardha', 0.0) + _lev_ardha_elapsed
 
 			# Post-wiggle: deferred imperfect viṣamavṛtta pass over accumulated stash.
 			if _DEBUG_TIMING:
@@ -1903,21 +1894,12 @@ class MeterIdentifier(object):
 			if _DEBUG_TIMING:
 				_lev_vizama_elapsed = _time.perf_counter() - _lev_vizama_t0
 				_section_totals['lev_vizama'] = _section_totals.get('lev_vizama', 0.0) + _lev_vizama_elapsed
+				_verse_times['lev_vizama'] = _verse_times.get('lev_vizama', 0.0) + _lev_vizama_elapsed
 
 			# Pick the candidate with the highest identification score.
 			if len(self.Verses_found) > 0:
 				self.Verses_found.sort(key=lambda x: x.identification_score, reverse=True)
 				V = self.Verses_found[0]
-
-			if _DEBUG_TIMING:
-				cat = _meter_label_to_category(V.meter_label)
-				bucket = _category_totals.setdefault(cat, {})
-				bucket['lev_ardha'] = bucket.get('lev_ardha', 0.0) + _lev_ardha_elapsed
-				bucket['lev_vizama'] = bucket.get('lev_vizama', 0.0) + _lev_vizama_elapsed
-				_verse_wiggle_scan = _section_totals.get('wiggle_scan', 0.0) - _pre_wiggle_scan
-				bucket['scan'] = bucket.get('scan', 0.0) + _verse_scan + _verse_wiggle_scan
-				for k, v in _verse_scan_by_key.items():
-					bucket[k] = bucket.get(k, 0.0) + v
 
 		if V.meter_label == None:
 			# No identification succeeded; return a legible failure label.
@@ -1925,6 +1907,15 @@ class MeterIdentifier(object):
 			V.identification_score = meter_scores["none found"]
 
 		if _DEBUG_TIMING:
+			# Flush all per-verse timings to the category bucket now that the label is final.
+			_flush_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana', 'anuzwuB', 'samavftta_etc', 'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_ardha', 'lev_vizama')
+			for k in _flush_keys:
+				_verse_times[k] = _section_totals.get(k, 0.0) - _pre[k]
+			_verse_times['scan'] = sum(_verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
+			cat = _meter_label_to_category(V.meter_label)
+			bucket = _category_totals.setdefault(cat, {})
+			for k, v in _verse_times.items():
+				bucket[k] = bucket.get(k, 0.0) + v
 			n = _verse_count[0]
 			if n % 100 == 0:
 				import sys, os
@@ -1932,57 +1923,48 @@ class MeterIdentifier(object):
 				type_keys = ('anuzwuB', 'samavftta_etc', 'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_ardha', 'lev_vizama')
 				type_abbrev = {
 					'anuzwuB': 'anuṣṭ',
-					'samavftta_etc': 'sama',
+					'samavftta_etc': 'samav',
 					'ardhasamavftta_perfect': 'ardha✓',
 					'jAti': 'jāti',
 					'lev_samavftta': 'lev✗sama',
-					'lev_ardha': 'lev✗ardha',
-					'lev_vizama': 'lev✗viza',
+					'lev_ardha': 'lev✗ardh',
+					'lev_vizama': 'lev✗visa',
 				}
 				cat_order = [
 					'anuṣṭubh', 'samavṛtta', 'upajāti', 'ardhasamavṛtta',
 					'viṣamavṛtta', 'jāti', 'na kiṃcid adhyavasitam',
 				]
-				# Accounting (summary line shows minimum-cost baseline):
-				#   initial_scan = initial scan() call (outside wiggle)
-				#   initial_id   = attempt_identification() before wiggle
-				#   wiggle_scan  = weight/morae/gana recompute inside wiggle loop
-				#   wiggle_id    = attempt_identification() calls inside wiggle loop
+				# Accounting:
+				#   scan sub-keys = decorated methods, accumulate initial + wiggle calls
 				#   lev_ardha    = post-wiggle Levenshtein ardhasamavṛtta pass
 				#   lev_vizama   = post-wiggle Levenshtein viṣamavṛtta pass
 				initial_scan = sum(_section_totals.get(k, 0.0) for k in scan_keys)
 				type_total = sum(_section_totals.get(k, 0.0) for k in type_keys)
 				wiggle_id = _section_totals.get('wiggle_type', 0.0)
 				initial_id = type_total - wiggle_id
-				wiggle_scan = _section_totals.get('wiggle_scan', 0.0)
 				lev_ardha = _section_totals.get('lev_ardha', 0.0)
 				lev_vizama = _section_totals.get('lev_vizama', 0.0)
-				scan_total = initial_scan + wiggle_scan
+				scan_total = initial_scan  # sub-keys accumulate both initial and wiggle via decorators
 				grand_total = scan_total + type_total
 
-				col_w = 8
-				sub_w = 15  # width for subtotal columns
-				scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'translit', 'scan_syllabify': 'syllabify', 'scan_weights': 'weights', 'scan_morae_gana': 'morae_gana'}
+				scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'transl', 'scan_syllabify': 'syl', 'scan_weights': 'wts', 'scan_morae_gana': 'mor+g'}
 				hdr_scan_abbrevs = [scan_abbrev[k] for k in scan_keys]
 				hdr_type_abbrevs = [type_abbrev[k] for k in type_keys]
 				col_cat_w = max(len(c) for c in cat_order + ['category']) + 2
+				sub_w = max(len('scan∑'), len('types∑'), len('total'), len('0.00s')) + 2
+				col_w = max(max(len(a) for a in hdr_scan_abbrevs + hdr_type_abbrevs), len('0.00s')) + 1
 
 				lines = []
 				wiggle_count = _section_totals.get('wiggle_count', 0)
 				lines.append(f'\n=== timing @ {n} attempts / {wiggle_count} wiggle candidates ===')
-				lines.append(
-					f'  total={grand_total:.2f}s'
-					f'  initial_scan={initial_scan:.2f}s'
-					f'  initial_id={initial_id:.2f}s'
-				)
-				lines.append('')
-				# header: category | total | clean | translit | syllabify | weights | morae_gana | types-subtotal | anuṣṭ | sama | ...
+				# header: category | total | scan-subtotal | types-subtotal | clean | translit | syllabify | weights | morae_gana | anuṣṭ | sama | ...
 				hdr = ('  ' + 'category'.ljust(col_cat_w)
 					+ 'total'.rjust(sub_w)
+					+ 'scan∑'.rjust(sub_w)
+					+ 'types∑'.rjust(sub_w)
 					+ '  ' + '  '.join(a.rjust(col_w) for a in hdr_scan_abbrevs)
-					+ 'types-subtotal'.rjust(sub_w)
 					+ '  ' + '  '.join(a.rjust(col_w) for a in hdr_type_abbrevs))
-				sep = '  ' + '-' * (col_cat_w + sub_w * 2 + 2 + len(scan_keys) * (col_w + 2) + 2 + len(type_keys) * (col_w + 2))
+				sep = '  ' + '-' * (col_cat_w + sub_w * 3 + 2 + len(scan_keys) * (col_w + 2) + 2 + len(type_keys) * (col_w + 2))
 				lines.append(hdr)
 				lines.append(sep)
 				# per-category rows
@@ -1996,17 +1978,19 @@ class MeterIdentifier(object):
 					type_cells = [f'{bucket.get(k, 0.0):.2f}s'.rjust(col_w) for k in type_keys]
 					lines.append('  ' + cat.ljust(col_cat_w)
 						+ f'{cat_scan + cat_types:.2f}s'.rjust(sub_w)
-						+ '  ' + '  '.join(scan_cells)
+						+ f'{cat_scan:.2f}s'.rjust(sub_w)
 						+ f'{cat_types:.2f}s'.rjust(sub_w)
+						+ '  ' + '  '.join(scan_cells)
 						+ '  ' + '  '.join(type_cells))
-				# totals row
+				# totals row — sum from category buckets so scan sub-keys include wiggle
 				lines.append(sep)
-				total_scan_cells = [f'{_section_totals.get(k,0.0):.2f}s'.rjust(col_w) for k in scan_keys]
-				total_type_cells = [f'{_section_totals.get(k,0.0):.2f}s'.rjust(col_w) for k in type_keys]
+				total_scan_cells = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s'.rjust(col_w) for k in scan_keys]
+				total_type_cells = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s'.rjust(col_w) for k in type_keys]
 				lines.append('  ' + 'TOTAL'.ljust(col_cat_w)
 					+ f'{grand_total:.2f}s'.rjust(sub_w)
-					+ '  ' + '  '.join(total_scan_cells)
+					+ f'{scan_total:.2f}s'.rjust(sub_w)
 					+ f'{type_total:.2f}s'.rjust(sub_w)
+					+ '  ' + '  '.join(total_scan_cells)
 					+ '  ' + '  '.join(total_type_cells))
 
 				block = '\n'.join(lines) + '\n'
