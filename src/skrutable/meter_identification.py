@@ -3,7 +3,6 @@ from skrutable import meter_patterns
 from skrutable.config import load_config_dict_from_json_file
 from skrutable.utils import _DEBUG_TIMING, _section_totals, timed
 import re
-import time as _time
 from copy import copy
 
 # load config variables
@@ -14,8 +13,77 @@ default_resplit_keep_midpoint = config["default_resplit_keep_midpoint"]  # e.g. 
 disable_non_trizwuB_upajAti = config["disable_non_trizwuB_upajAti"]  # e.g. True
 meter_scores = config["meter_scores"]  # dict
 
-_category_totals = {}  # { category: { section: seconds } }
-_verse_count = [0]
+_category_totals = {}  # { category: { section: float seconds } }, single source of truth
+
+
+def flush_profiling_report():
+	"""Print the accumulated profiling table to stderr and profiling_debug.txt, then reset all counters.
+
+	Call this after processing a batch of verses to get a clean per-run report.
+	Safe to call even when _DEBUG_TIMING is False (no-op).
+	"""
+	if not _DEBUG_TIMING or not _category_totals:
+		return
+	import sys, os
+	scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
+	type_keys = ('anuzwuB', 'samavftta_etc', 'jAti')
+	type_abbrev = {
+		'anuzwuB': 'anuṣṭ', 'samavftta_etc': 'samav', 'jAti': 'jāti',
+	}
+	scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'transl', 'scan_syllabify': 'syl', 'scan_weights': 'wts', 'scan_morae_gana': 'mor+g'}
+	cat_order = ['anuṣṭubh', 'samavṛtta', 'upajāti', 'ardhasamavṛtta', 'viṣamavṛtta', 'jāti', 'na kiṃcid adhyavasitam']
+	hdr_scan_abbrevs = [scan_abbrev[k] for k in scan_keys]
+	hdr_type_abbrevs = [type_abbrev[k] for k in type_keys]
+	val_w = len('0.00s')
+	col_cat_w = max(len(c) for c in cat_order + ['category']) + 2
+	sub_w = max(len('scan∑'), len('types∑'), len('total'), val_w) + 2
+	scan_col_ws = [max(len(a), val_w) + 1 for a in hdr_scan_abbrevs]
+	type_col_ws = [max(len(a), val_w) + 1 for a in hdr_type_abbrevs]
+
+	def fmt_row(scan_vals, type_vals):
+		return ('  '.join(v.rjust(w) for v, w in zip(scan_vals, scan_col_ws))
+			+ '  ' + '  '.join(v.rjust(w) for v, w in zip(type_vals, type_col_ws)))
+
+	n_verses = sum(b.get('_count', 0) for b in _category_totals.values())
+	wiggle_count = _section_totals.get('wiggle_count', 0)
+	lines = [f'\n=== {n_verses} verses / {wiggle_count} resplit candidates ===']
+	hdr = ('  ' + 'category'.ljust(col_cat_w)
+		+ 'total'.rjust(sub_w) + 'scan∑'.rjust(sub_w) + 'types∑'.rjust(sub_w)
+		+ '  ' + fmt_row(hdr_scan_abbrevs, hdr_type_abbrevs))
+	sep_w = col_cat_w + sub_w * 3 + 2 + sum(w + 2 for w in scan_col_ws) - 2 + 2 + sum(w + 2 for w in type_col_ws) - 2
+	sep = '  ' + '-' * sep_w
+	lines += [hdr, sep]
+	for cat in cat_order:
+		bucket = _category_totals.get(cat)
+		if not bucket:
+			continue
+		cat_scan = bucket.get('scan', 0.0)
+		cat_types = sum(bucket.get(k, 0.0) for k in type_keys)
+		scan_vals = [f'{bucket.get(k, 0.0):.2f}s' for k in scan_keys]
+		type_vals = [f'{bucket.get(k, 0.0):.2f}s' for k in type_keys]
+		lines.append('  ' + cat.ljust(col_cat_w)
+			+ f'{cat_scan + cat_types:.2f}s'.rjust(sub_w)
+			+ f'{cat_scan:.2f}s'.rjust(sub_w)
+			+ f'{cat_types:.2f}s'.rjust(sub_w)
+			+ '  ' + fmt_row(scan_vals, type_vals))
+	lines.append(sep)
+	total_scan = sum(sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order) for k in scan_keys)
+	total_types = sum(sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order) for k in type_keys)
+	total_scan_vals = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s' for k in scan_keys]
+	total_type_vals = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s' for k in type_keys]
+	lines.append('  ' + 'TOTAL'.ljust(col_cat_w)
+		+ f'{total_scan + total_types:.2f}s'.rjust(sub_w)
+		+ f'{total_scan:.2f}s'.rjust(sub_w)
+		+ f'{total_types:.2f}s'.rjust(sub_w)
+		+ '  ' + fmt_row(total_scan_vals, total_type_vals))
+	block = '\n'.join(lines) + '\n'
+	timing_path = os.path.join(os.path.dirname(__file__), 'profiling_debug.txt')
+	with open(timing_path, 'w', encoding='utf-8') as _f:
+		_f.write(block)
+	print(block, file=sys.stderr, flush=True)
+	_category_totals.clear()
+	_section_totals.clear()
+
 
 _ARDHASAMAVRTTA_NAMES = [
 	'aparavaktra', 'upacitra', 'puṣpitāgrā', 'viyoginī', 'vegavatī',
@@ -41,15 +109,6 @@ def _meter_label_to_category(label):
 	if 'jāti' in label or 'vaitālīya' in label or 'mātrā' in label:
 		return 'jāti'
 	return 'samavṛtta'
-
-def _log_times(times, meter_label=None):
-	for k, v in times.items():
-		_section_totals[k] = _section_totals.get(k, 0.0) + v
-	cat = _meter_label_to_category(meter_label)
-	bucket = _category_totals.setdefault(cat, {})
-	for k, v in times.items():
-		bucket[k] = bucket.get(k, 0.0) + v
-	_verse_count[0] += 1
 
 
 class VerseTester(object):
@@ -578,24 +637,14 @@ class VerseTester(object):
 
 		self.identification_attempt_count += 1
 
-		_times = {}
-
 		# anuzwuB
-
-		if _DEBUG_TIMING: _t0 = _time.perf_counter()
-		success_anuzwuB = self.test_as_anuzwuB(Vrs) # 1 if successful, 0 if not
-		if _DEBUG_TIMING: _times['anuzwuB'] = _time.perf_counter() - _t0
+		success_anuzwuB = timed('anuzwuB')(self.test_as_anuzwuB)(Vrs)
 		if success_anuzwuB and Vrs.identification_score == meter_scores["max score"]:
-			if _DEBUG_TIMING: _log_times(_times, Vrs.meter_label)
 			return 1
 
 		# samavftta, upajAti, vizamavftta, ardhasamavftta
-
-		if _DEBUG_TIMING: _t0 = _time.perf_counter()
-		success_samavftta_etc = self.test_as_samavftta_etc(Vrs)
-		if _DEBUG_TIMING: _times['samavftta_etc'] = _time.perf_counter() - _t0
+		success_samavftta_etc = timed('samavftta_etc')(self.test_as_samavftta_etc)(Vrs)
 		if success_samavftta_etc and Vrs.identification_score >= 8:
-			if _DEBUG_TIMING: _log_times(_times, Vrs.meter_label)
 			return 1
 		# i.e., if upajāti or anything imperfect, also continue on to check jāti
 
@@ -603,11 +652,7 @@ class VerseTester(object):
 		# where ardhasamavftta is also jAti?
 
 		# jāti
-
-		if _DEBUG_TIMING: _t0 = _time.perf_counter()
-		success_jAti = self.test_as_jAti(Vrs)
-		if _DEBUG_TIMING: _times['jAti'] = _time.perf_counter() - _t0
-		if _DEBUG_TIMING: _log_times(_times, Vrs.meter_label)
+		success_jAti = timed('jAti')(self.test_as_jAti)(Vrs)
 
 		if success_anuzwuB or success_samavftta_etc or success_jAti:
 			return 1
@@ -702,11 +747,8 @@ class MeterIdentifier(object):
 						# print(temp_V.text_syllabified.replace('\n','\t'))
 
 						if _DEBUG_TIMING:
-							_cand_t0 = _time.perf_counter()
 							_section_totals['wiggle_count'] = _section_totals.get('wiggle_count', 0) + 1
 
-						if _DEBUG_TIMING:
-							_pre_wiggle_scan_weights = _section_totals.get('scan_weights', 0.0) + _section_totals.get('scan_morae_gana', 0.0)
 						temp_V.syllable_weights = timed('scan_weights')(S.scan_syllable_weights)(
 							temp_V.text_syllabified)
 						temp_V.morae_per_line = timed('scan_morae_gana')(S.count_morae)(
@@ -714,24 +756,9 @@ class MeterIdentifier(object):
 						temp_V.gaRa_abbreviations = timed('scan_morae_gana')(
 							lambda: '\n'.join([ S.gaRa_abbreviate(line) for line in temp_V.syllable_weights.split('\n') ])
 						)()
-						if _DEBUG_TIMING:
-							_section_totals['wiggle_scan'] = (
-								_section_totals.get('wiggle_scan', 0.0)
-								+ _section_totals.get('scan_weights', 0.0) + _section_totals.get('scan_morae_gana', 0.0) - _pre_wiggle_scan_weights
-							)
-							_type_keys = ('anuzwuB', 'samavftta_etc', 'jAti')
-							_pre_type = {k: _section_totals.get(k, 0.0) for k in _type_keys}
 
 						# temp_V.meter_label = VrsTster.attempt_identification(temp_V)
 						success = VrsTster.attempt_identification(temp_V)
-
-						if _DEBUG_TIMING:
-							_wiggle_type = sum(_section_totals.get(k, 0.0) - _pre_type[k] for k in _type_keys)
-							_section_totals['wiggle_type'] = _section_totals.get('wiggle_type', 0.0) + _wiggle_type
-							_section_totals['wiggle_candidate'] = (
-								_section_totals.get('wiggle_candidate', 0.0)
-								+ _time.perf_counter() - _cand_t0
-							)
 
 						if success:
 							Verses_found.append(temp_V)
@@ -812,11 +839,9 @@ class MeterIdentifier(object):
 		V = S.scan(rw_str, from_scheme=from_scheme)
 
 		if _DEBUG_TIMING:
-			_scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
-			_type_keys = ('anuzwuB', 'samavftta_etc', 'jAti')
-			_all_keys = _scan_keys + _type_keys + ('wiggle_scan', 'wiggle_type')
-			_pre = {k: _section_totals.get(k, 0.0) for k in _all_keys}
-			_verse_times = {}
+			_pre_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
+				'anuzwuB', 'samavftta_etc', 'jAti')
+			_pre = {k: _section_totals.get(k, 0.0) for k in _pre_keys}
 
 		self.VerseTester = VT = VerseTester()
 		self.VerseTester.resplit_option = resplit_option
@@ -905,82 +930,14 @@ class MeterIdentifier(object):
 			V.identification_score = meter_scores["none found"] # did at least try
 
 		if _DEBUG_TIMING:
-			_flush_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana', 'anuzwuB', 'samavftta_etc', 'jAti')
-			for k in _flush_keys:
-				_verse_times[k] = _section_totals.get(k, 0.0) - _pre[k]
-			_verse_times['scan'] = sum(_verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
+			all_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
+				'anuzwuB', 'samavftta_etc', 'jAti')
+			verse_times = {k: _section_totals.get(k, 0.0) - _pre[k] for k in all_keys}
+			verse_times['scan'] = sum(verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
 			cat = _meter_label_to_category(V.meter_label)
 			bucket = _category_totals.setdefault(cat, {})
-			for k, v in _verse_times.items():
+			for k, v in verse_times.items():
 				bucket[k] = bucket.get(k, 0.0) + v
-			n = _verse_count[0]
-			if n % 100 == 0:
-				import sys, os
-				scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
-				type_keys = ('anuzwuB', 'samavftta_etc', 'jAti')
-				type_abbrev = {
-					'anuzwuB': 'anuṣṭ',
-					'samavftta_etc': 'samav',
-					'jAti': 'jāti',
-				}
-				cat_order = [
-					'anuṣṭubh', 'samavṛtta', 'upajāti', 'ardhasamavṛtta',
-					'viṣamavṛtta', 'jāti', 'na kiṃcid adhyavasitam',
-				]
-				initial_scan = sum(_section_totals.get(k, 0.0) for k in scan_keys)
-				type_total = sum(_section_totals.get(k, 0.0) for k in type_keys)
-				wiggle_id = _section_totals.get('wiggle_type', 0.0)
-				scan_total = initial_scan
-				grand_total = scan_total + type_total
-
-				scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'transl', 'scan_syllabify': 'syl', 'scan_weights': 'wts', 'scan_morae_gana': 'mor+g'}
-				hdr_scan_abbrevs = [scan_abbrev[k] for k in scan_keys]
-				hdr_type_abbrevs = [type_abbrev[k] for k in type_keys]
-				col_cat_w = max(len(c) for c in cat_order + ['category']) + 2
-				sub_w = max(len('scan∑'), len('types∑'), len('total'), len('0.00s')) + 2
-				col_w = max(max(len(a) for a in hdr_scan_abbrevs + hdr_type_abbrevs), len('0.00s')) + 1
-
-				lines = []
-				wiggle_count = _section_totals.get('wiggle_count', 0)
-				lines.append(f'\n=== timing @ {n} attempts / {wiggle_count} wiggle candidates ===')
-				hdr = ('  ' + 'category'.ljust(col_cat_w)
-					+ 'total'.rjust(sub_w)
-					+ 'scan∑'.rjust(sub_w)
-					+ 'types∑'.rjust(sub_w)
-					+ '  ' + '  '.join(a.rjust(col_w) for a in hdr_scan_abbrevs)
-					+ '  ' + '  '.join(a.rjust(col_w) for a in hdr_type_abbrevs))
-				sep = '  ' + '-' * (col_cat_w + sub_w * 3 + 2 + len(scan_keys) * (col_w + 2) + 2 + len(type_keys) * (col_w + 2))
-				lines.append(hdr)
-				lines.append(sep)
-				for cat in cat_order:
-					bucket = _category_totals.get(cat)
-					if not bucket:
-						continue
-					cat_scan = bucket.get('scan', 0.0)
-					cat_types = sum(bucket.get(k, 0.0) for k in type_keys)
-					scan_cells = [f'{bucket.get(k, 0.0):.2f}s'.rjust(col_w) for k in scan_keys]
-					type_cells = [f'{bucket.get(k, 0.0):.2f}s'.rjust(col_w) for k in type_keys]
-					lines.append('  ' + cat.ljust(col_cat_w)
-						+ f'{cat_scan + cat_types:.2f}s'.rjust(sub_w)
-						+ f'{cat_scan:.2f}s'.rjust(sub_w)
-						+ f'{cat_types:.2f}s'.rjust(sub_w)
-						+ '  ' + '  '.join(scan_cells)
-						+ '  ' + '  '.join(type_cells))
-				lines.append(sep)
-				total_scan_cells = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s'.rjust(col_w) for k in scan_keys]
-				total_type_cells = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s'.rjust(col_w) for k in type_keys]
-				lines.append('  ' + 'TOTAL'.ljust(col_cat_w)
-					+ f'{grand_total:.2f}s'.rjust(sub_w)
-					+ f'{scan_total:.2f}s'.rjust(sub_w)
-					+ f'{type_total:.2f}s'.rjust(sub_w)
-					+ '  ' + '  '.join(total_scan_cells)
-					+ '  ' + '  '.join(total_type_cells))
-
-				block = '\n'.join(lines) + '\n'
-
-				timing_path = os.path.join(os.path.dirname(__file__), 'timing_debug.txt')
-				with open(timing_path, 'w', encoding='utf-8') as _f:
-					_f.write(block)
-				print(block, file=sys.stderr, flush=True)
+			bucket['_count'] = bucket.get('_count', 0) + 1
 
 		return V
