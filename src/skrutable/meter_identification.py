@@ -39,6 +39,8 @@ def flush_profiling_report():
 	sub_w = max(len('scan∑'), len('types∑'), len('total'), val_w) + 2
 	scan_col_ws = [max(len(a), val_w) + 1 for a in hdr_scan_abbrevs]
 	type_col_ws = [max(len(a), val_w) + 1 for a in hdr_type_abbrevs]
+	all_counts = [b.get('_count', 0) for b in _category_totals.values()]
+	count_w = max(len(str(max(all_counts))) if all_counts else 1, len('perf'), len('impf')) + 1
 
 	def fmt_row(scan_vals, type_vals):
 		return ('  '.join(v.rjust(w) for v, w in zip(scan_vals, scan_col_ws))
@@ -48,11 +50,14 @@ def flush_profiling_report():
 	wiggle_count = _section_totals.get('wiggle_count', 0)
 	lines = [f'\n=== {n_verses} verses / {wiggle_count} resplit candidates ===']
 	hdr = ('  ' + 'category'.ljust(col_cat_w)
+		+ 'perf'.rjust(count_w) + 'impf'.rjust(count_w)
 		+ 'total'.rjust(sub_w) + 'scan∑'.rjust(sub_w) + 'types∑'.rjust(sub_w)
 		+ '  ' + fmt_row(hdr_scan_abbrevs, hdr_type_abbrevs))
-	sep_w = col_cat_w + sub_w * 3 + 2 + sum(w + 2 for w in scan_col_ws) - 2 + 2 + sum(w + 2 for w in type_col_ws) - 2
+	sep_w = col_cat_w + count_w * 2 + sub_w * 3 + 2 + sum(w + 2 for w in scan_col_ws) - 2 + 2 + sum(w + 2 for w in type_col_ws) - 2
 	sep = '  ' + '-' * sep_w
 	lines += [hdr, sep]
+	total_perfect = 0
+	total_imperfect = 0
 	for cat in cat_order:
 		bucket = _category_totals.get(cat)
 		if not bucket:
@@ -61,7 +66,12 @@ def flush_profiling_report():
 		cat_types = sum(bucket.get(k, 0.0) for k in type_keys)
 		scan_vals = [f'{bucket.get(k, 0.0):.2f}s' for k in scan_keys]
 		type_vals = [f'{bucket.get(k, 0.0):.2f}s' for k in type_keys]
+		n_perf = bucket.get('_perfect_count', 0)
+		n_impf = bucket.get('_count', 0) - n_perf
+		total_perfect += n_perf
+		total_imperfect += n_impf
 		lines.append('  ' + cat.ljust(col_cat_w)
+			+ str(n_perf).rjust(count_w) + str(n_impf).rjust(count_w)
 			+ f'{cat_scan + cat_types:.2f}s'.rjust(sub_w)
 			+ f'{cat_scan:.2f}s'.rjust(sub_w)
 			+ f'{cat_types:.2f}s'.rjust(sub_w)
@@ -72,6 +82,7 @@ def flush_profiling_report():
 	total_scan_vals = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s' for k in scan_keys]
 	total_type_vals = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s' for k in type_keys]
 	lines.append('  ' + 'TOTAL'.ljust(col_cat_w)
+		+ str(total_perfect).rjust(count_w) + str(total_imperfect).rjust(count_w)
 		+ f'{total_scan + total_types:.2f}s'.rjust(sub_w)
 		+ f'{total_scan:.2f}s'.rjust(sub_w)
 		+ f'{total_types:.2f}s'.rjust(sub_w)
@@ -109,6 +120,13 @@ def _meter_label_to_category(label):
 	if 'jāti' in label or 'vaitālīya' in label or 'mātrā' in label:
 		return 'jāti'
 	return 'samavṛtta'
+
+
+def _verse_is_perfect(V):
+	"""Approximate isPerfect(): True iff identified with a perfect-grade score (>= 8)."""
+	if not V.meter_label or 'adhyavasitam' in V.meter_label:
+		return False
+	return V.identification_score >= _PERFECT_SCORE_THRESHOLD
 
 
 class VerseTester(object):
@@ -939,5 +957,7 @@ class MeterIdentifier(object):
 			for k, v in verse_times.items():
 				bucket[k] = bucket.get(k, 0.0) + v
 			bucket['_count'] = bucket.get('_count', 0) + 1
+			if _verse_is_perfect(V):
+				bucket['_perfect_count'] = bucket.get('_perfect_count', 0) + 1
 
 		return V
