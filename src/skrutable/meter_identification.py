@@ -122,6 +122,8 @@ def _meter_label_to_category(label):
 	return 'samavṛtta'
 
 
+_PERFECT_SCORE_THRESHOLD = meter_scores["ardhasamavṛtta, perfect"]  # 8
+
 def _verse_is_perfect(V):
 	"""Approximate isPerfect(): True iff identified with a perfect-grade score (>= 8)."""
 	if not V.meter_label or 'adhyavasitam' in V.meter_label:
