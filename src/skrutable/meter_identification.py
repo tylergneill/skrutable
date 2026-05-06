@@ -145,7 +145,7 @@ class VerseTester(object):
 		self.resplit_keep_midpoint = default_resplit_keep_midpoint # bool
 		self.identification_attempt_count = 0
 
-	def combine_results(self, Vrs, new_label, new_score):
+	def combine_results(self, Vrs, new_label, new_score, new_is_perfect=False):
 		old_label = Vrs.meter_label or ''
 		old_score = Vrs.identification_score
 
@@ -159,6 +159,7 @@ class VerseTester(object):
 			# override previous
 			Vrs.meter_label = new_label
 			Vrs.identification_score = new_score
+			Vrs.is_perfect = new_is_perfect
 
 		elif new_score == old_score:
 			# tie, concatenate as old + new
@@ -325,8 +326,7 @@ class VerseTester(object):
 			score -= 2
 
 		# may tie with pre-existing result (e.g., upajāti)
-		Vrs.is_perfect = 'imperfect' not in score_key
-		self.combine_results(Vrs, new_label=meter_label, new_score=score)
+		self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect='imperfect' not in score_key)
 
 
 
@@ -476,8 +476,7 @@ class VerseTester(object):
 			): # not perfect and also not triṣṭubh-jagatī-saṃkara
 			overall_meter_label += " (? %d eva pādāḥ yuktāḥ)" % len(wbp_lens)
 
-		Vrs.is_perfect = 'imperfect' not in score_key
-		self.combine_results(Vrs, overall_meter_label, score)
+		self.combine_results(Vrs, overall_meter_label, score, new_is_perfect='imperfect' not in score_key)
 
 
 	def is_vizamavftta(self, Vrs):
