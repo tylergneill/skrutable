@@ -122,13 +122,15 @@ def _meter_label_to_category(label):
 	return 'samavṛtta'
 
 
-_PERFECT_SCORE_THRESHOLD = meter_scores["ardhasamavṛtta, perfect"]  # 8
+_IMPERFECT_SCORES = frozenset(
+	v for k, v in meter_scores.items() if 'imperfect' in k
+)
 
 def _verse_is_perfect(V):
-	"""Approximate isPerfect(): True iff identified with a perfect-grade score (>= 8)."""
+	"""True iff identified and score doesn't correspond to any imperfect key in config."""
 	if not V.meter_label or 'adhyavasitam' in V.meter_label:
 		return False
-	return V.identification_score >= _PERFECT_SCORE_THRESHOLD
+	return V.identification_score not in _IMPERFECT_SCORES
 
 
 class VerseTester(object):
