@@ -260,15 +260,21 @@ def _meter_label_to_category(label):
 
 
 def _verse_is_perfect(V):
-	"""Mirror isPerfect() from batch_meter_results.html: True iff identified and all Diagnostics are perfect."""
+	"""Mirror isPerfect() from batch_meter_results.html.
+
+	A Diagnostic is perfect iff imperfect_label_sanskrit is empty/None
+	(matches front-end check on d.imperfect_label_sanskrit, not perfect_id_label).
+	"""
 	if not V.meter_label or 'adhyavasitam' in V.meter_label:
 		return False
 	d = getattr(V, 'diagnostic', None)
 	if d is None:
 		return False
+	def _diag_perfect(diag):
+		return not diag.imperfect_label_sanskrit
 	if isinstance(d, dict):
-		return all(sub.perfect() for sub in d.values() if isinstance(sub, Diagnostic))
-	return d.perfect()
+		return all(_diag_perfect(sub) for sub in d.values() if isinstance(sub, Diagnostic))
+	return _diag_perfect(d)
 
 
 def flush_profiling_report():
