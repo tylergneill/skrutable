@@ -3,6 +3,7 @@ from skrutable import scheme_detection
 from skrutable import meter_patterns
 from skrutable import phonemes
 from skrutable.config import load_config_dict_from_json_file
+from skrutable.utils import timed
 import re
 
 # load config variables
@@ -141,6 +142,7 @@ class Scanner(object):
 		self.Transliterator = None	# will hold Transliterator object
 
 
+	@timed('scan_clean')
 	def clean_input(self, cntnts, scheme_in):
 		"""
 		Accepts raw text string,
@@ -169,6 +171,7 @@ class Scanner(object):
 
 		return cntnts
 
+	@timed('scan_syllabify')
 	def syllabify_text(self, txt_SLP):
 		"""
 		Accepts (newline-separated) multi-line string of SLP text.
@@ -233,6 +236,7 @@ class Scanner(object):
 		return text_syllabified
 
 
+	@timed('scan_weights')
 	def scan_syllable_weights(self, txt_syl):
 		"""
 		Accepts (newline-separated) multi-line string of text
@@ -289,6 +293,7 @@ class Scanner(object):
 		return syllable_weights
 
 
+	@timed('scan_morae_gana')
 	def count_morae(self, syl_wts):
 		"""
 		Accepts (newline-separated) multi-line string of text
@@ -364,13 +369,13 @@ class Scanner(object):
 		T.scheme_out = 'SLP'
 
 		V.text_cleaned = self.clean_input(V.text_raw, V.original_scheme)
-		V.text_SLP = T.transliterate(V.text_cleaned)
+		V.text_SLP = timed('scan_translit')(T.transliterate)(V.text_cleaned)
 		V.text_syllabified = self.syllabify_text(V.text_SLP)
 		V.syllable_weights = self.scan_syllable_weights(V.text_syllabified)
 		V.morae_per_line = self.count_morae(V.syllable_weights)
-		V.gaRa_abbreviations = '\n'.join(
-		[ self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n') ]
-		)
+		V.gaRa_abbreviations = timed('scan_morae_gana')(
+			lambda: '\n'.join([ self.gaRa_abbreviate(line) for line in V.syllable_weights.split('\n') ])
+		)()
 
 		self.Verse = V
 		self.Transliterator = T
