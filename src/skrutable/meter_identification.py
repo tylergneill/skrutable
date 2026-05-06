@@ -122,15 +122,9 @@ def _meter_label_to_category(label):
 	return 'samavṛtta'
 
 
-_IMPERFECT_SCORES = frozenset(
-	v for k, v in meter_scores.items() if 'imperfect' in k
-)
-
 def _verse_is_perfect(V):
-	"""True iff identified and score doesn't correspond to any imperfect key in config."""
-	if not V.meter_label or 'adhyavasitam' in V.meter_label:
-		return False
-	return V.identification_score not in _IMPERFECT_SCORES
+	"""True iff V.is_perfect was set True at identification time."""
+	return getattr(V, 'is_perfect', False)
 
 
 class VerseTester(object):
@@ -222,6 +216,7 @@ class VerseTester(object):
 		if pAdas_ab != None and pAdas_cd != None:
 			Vrs.meter_label = "anuṣṭubh (1,2: " + pAdas_ab + ", 3,4: " + pAdas_cd + ")"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves perfect)"]
+			Vrs.is_perfect = True
 			return 1
 
 		# one half imperfect
@@ -229,10 +224,12 @@ class VerseTester(object):
 		elif pAdas_ab == None and pAdas_cd != None:
 			Vrs.meter_label = "anuṣṭubh (1,2: asamīcīna, 3,4: " + pAdas_cd + ")"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
+			Vrs.is_perfect = False
 			return 1
 		elif pAdas_ab != None and pAdas_cd == None:
 			Vrs.meter_label = "anuṣṭubh (1,2: " + pAdas_ab + ", 3,4: asamīcīna)"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
+			Vrs.is_perfect = False
 			return 1
 
 		# currently cannot do both halves imperfect
@@ -243,6 +240,7 @@ class VerseTester(object):
 		if pAdas_ab != None:
 			Vrs.meter_label = "anuṣṭubh (ardham eva: " + pAdas_ab + ")"
 			Vrs.identification_score = meter_scores["anuṣṭubh, half, single half perfect)"]
+			Vrs.is_perfect = True
 			return 1
 
 		# currently cannot do just a single imperfect half
@@ -308,23 +306,26 @@ class VerseTester(object):
 			meter_label = "ajñātasamavṛtta" # i.e., might need to add to meter_patterns
 			meter_label += ' [%d: %s]' % ( len(w_to_id), g_to_id )
 
-		score = meter_scores["samavṛtta, perfect"]
+		score_key = "samavṛtta, perfect"
 
 		if self.pAdasamatva_count == 3:
 			meter_label += " (? 3 eva pādāḥ yuktāḥ)"
-			score = meter_scores["samavṛtta, imperfect (3)"]
+			score_key = "samavṛtta, imperfect (3)"
 		elif self.pAdasamatva_count == 2:
 			meter_label += " (? 2 eva pādāḥ yuktāḥ)"
-			score = meter_scores["samavṛtta, imperfect (2)"]
+			score_key = "samavṛtta, imperfect (2)"
 		elif self.pAdasamatva_count == 0:
 			meter_label += " (1 eva pādaḥ)"
-			score = meter_scores["samavṛtta, quarter, perfect"]
+			score_key = "samavṛtta, quarter, perfect"
+
+		score = meter_scores[score_key]
 
 		# experimental penalty, can later incorporate into config meter_scores
 		if meter_label == "ajñātasamavṛtta":
 			score -= 2
 
 		# may tie with pre-existing result (e.g., upajāti)
+		Vrs.is_perfect = 'imperfect' not in score_key
 		self.combine_results(Vrs, new_label=meter_label, new_score=score)
 
 
@@ -332,6 +333,7 @@ class VerseTester(object):
 	def evaluate_ardhasamavftta(self, Vrs):
 		# sufficient pAdasamatva already assured, now just evaluate
 		Vrs.identification_score = meter_scores["ardhasamavṛtta, perfect"]
+		Vrs.is_perfect = True
 
 		wbp = Vrs.syllable_weights.split('\n') # weights by pāda
 
@@ -360,6 +362,7 @@ class VerseTester(object):
 			meter_label = "ajñātārdhasamavṛtta" # i.e., might need to add to meter_patterns
 			meter_label += ' [%s, %s]' % (odd_g_to_id, even_g_to_id)
 			Vrs.identification_score = meter_scores["ardhasamavṛtta, perfect, unknown"]
+			Vrs.is_perfect = True  # "perfect, unknown" means pattern unknown, not imperfect
 
 		Vrs.meter_label = meter_label
 
@@ -447,19 +450,20 @@ class VerseTester(object):
 			family = '' # clearer not to specify in this case
 
 		if len(wbp_lens) == 4 and unique_sorted_lens == [11]: # triṣṭubh
-			score = meter_scores["upajāti, perfect"]
+			score_key = "upajāti, perfect"
 		elif unique_sorted_lens == [11, 12]:
-			score = meter_scores["upajāti, triṣṭubh-jagatī-saṃkara, perfect"]
+			score_key = "upajāti, triṣṭubh-jagatī-saṃkara, perfect"
 			family = "triṣṭubh-jagatī-saṃkara?" # overwrite
 		elif len(wbp_lens) == 4 and 11 not in unique_sorted_lens:
-			score = meter_scores["upajāti, non-triṣṭubh, perfect"]
+			score_key = "upajāti, non-triṣṭubh, perfect"
 		elif len(wbp_lens) in [2,3] and wbp_lens.count(11) == len(wbp_lens): # triṣṭubh
-			score = meter_scores["upajāti, imperfect"]
+			score_key = "upajāti, imperfect"
 		elif len(wbp_lens) in [2,3] and 11 not in wbp_lens:
-			score = meter_scores["upajāti, non-triṣṭubh, imperfect"]
+			score_key = "upajāti, non-triṣṭubh, imperfect"
 		else:
-			score = meter_scores["none found"]
+			score_key = "none found"
 
+		score = meter_scores[score_key]
 
 		overall_meter_label = "upajāti %s: %s" % (
 			family,
@@ -472,6 +476,7 @@ class VerseTester(object):
 			): # not perfect and also not triṣṭubh-jagatī-saṃkara
 			overall_meter_label += " (? %d eva pādāḥ yuktāḥ)" % len(wbp_lens)
 
+		Vrs.is_perfect = 'imperfect' not in score_key
 		self.combine_results(Vrs, overall_meter_label, score)
 
 
@@ -483,6 +488,7 @@ class VerseTester(object):
 		for (a, b, c, d) in meter_patterns.vizamavftta_by_4_tuple:
 			if (gs_to_id[0],gs_to_id[1],gs_to_id[2],gs_to_id[3]) == (a, b, c, d):
 				Vrs.identification_score = meter_scores["viṣamavṛtta, perfect"]
+				Vrs.is_perfect = True
 				Vrs.meter_label = meter_patterns.vizamavftta_by_4_tuple[(a, b, c, d)]
 				return True
 
@@ -615,6 +621,7 @@ class VerseTester(object):
 				else:  # if all four pAdas proven valid, i.e., if no breaks
 					Vrs.meter_label = jAti_name + " (%s)" % str(std_pattern)[1:-1]
 					Vrs.identification_score = meter_scores["jāti, perfect"]
+					Vrs.is_perfect = True
 
 					# should be combining results in case of previous match
 
