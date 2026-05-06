@@ -476,7 +476,8 @@ class VerseTester(object):
 			): # not perfect and also not triṣṭubh-jagatī-saṃkara
 			overall_meter_label += " (? %d eva pādāḥ yuktāḥ)" % len(wbp_lens)
 
-		self.combine_results(Vrs, overall_meter_label, score, new_is_perfect='imperfect' not in score_key)
+		is_perf = 'imperfect' not in score_key and 'ajñātam' not in overall_meter_label
+		self.combine_results(Vrs, overall_meter_label, score, new_is_perfect=is_perf)
 
 
 	def is_vizamavftta(self, Vrs):
