@@ -157,22 +157,21 @@ class Scanner(object):
 		Returns result as string.
 		"""
 
-		# manage additional newlines
-
-		for chr in additional_pAda_separators:
-			cntnts = cntnts.replace(chr, '\n')
-		# also dedupe, also allowing for carriage returns introduced in HTML form input
-		regex = re.compile(r"(\n\r?){2,}")
-		cntnts = re.sub(regex, '\n', cntnts)
-		# also remove buffer-initial and -final newlines
-		regex = re.compile(r"(\A\s*)|(\s*\Z)")
-		cntnts = re.sub(regex, '', cntnts)
-
-		# filter out disallowed characters
-
+		# filter out disallowed characters (numbers, irrelevant punctuation, etc.)
+		# pāda separator chars are preserved so they can be converted to \n below
+		pAda_sep_chars = set(c for sep in additional_pAda_separators for c in sep)
 		for c in list(set(cntnts)):
-			if c not in phonemes.character_set[scheme_in]:
-				cntnts = cntnts.replace(c,'')
+			if c not in phonemes.character_set[scheme_in] and c not in pAda_sep_chars:
+				cntnts = cntnts.replace(c, '')
+
+		# replace all pāda separator strings with newline
+		for sep in additional_pAda_separators:
+			cntnts = cntnts.replace(sep, '\n')
+
+		# strip horizontal whitespace around newlines, dedupe, strip leading/trailing
+		cntnts = re.sub(r'[ \t]*\n[ \t]*', '\n', cntnts)
+		cntnts = re.sub(r'\n+', '\n', cntnts)
+		cntnts = cntnts.strip()
 
 		return cntnts
 
