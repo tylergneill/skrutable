@@ -147,9 +147,10 @@ for verse in my_verses:
     MI.identify_meter(verse, resplit_option="resplit_lite", resplit_keep_midpoint=True, from_scheme="IAST")  # e.g.
 
 flush_profiling_report()  # prints table to stderr, resets counters
+# flush_profiling_report(write_file=True)  # also writes profiling_debug.txt
 ```
 
-The table breaks down wall-clock time per meter category with columns for each scan sub-phase (`clean`, `transl`, `syl`, `wts`, `mor+g`) and each identification type (`anuṣṭ`, `samav`, `jāti`, etc.), plus perfect/imperfect verse counts per category. Set `utils._DEBUG_TIMING_FILE = True` to also write the table to `profiling_debug.txt` alongside the library source.
+The table breaks down wall-clock time per meter category with columns for each scan sub-phase (`clean`, `transl`, `syl`, `wts`, `mor+g`) and each identification type (`anuṣṭ`, `samav`, `jāti`, etc.), plus perfect/imperfect verse counts per category.
 
 If using the front end, `make launch-profiling` (or `./launch.sh --scan-profiling`) enables profiling for the server process without touching any source files.
 

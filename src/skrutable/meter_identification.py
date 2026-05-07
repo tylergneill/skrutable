@@ -1,7 +1,7 @@
 from skrutable.scansion import Scanner as Sc
 from skrutable import meter_patterns
 from skrutable.config import load_config_dict_from_json_file
-from skrutable.utils import _DEBUG_TIMING, _DEBUG_TIMING_FILE, _section_totals, timed
+from skrutable.utils import _DEBUG_TIMING, _section_totals, timed
 import re
 from copy import copy
 
@@ -16,11 +16,10 @@ meter_scores = config["meter_scores"]  # dict
 _category_totals = {}  # { category: { section: float seconds } }, single source of truth
 
 
-def flush_profiling_report():
+def flush_profiling_report(write_file=False):
 	"""Print the accumulated profiling table to stderr, then reset all counters.
 
-	If utils._DEBUG_TIMING_FILE is True, also writes the table to profiling_debug.txt.
-	Call this after processing a batch of verses to get a clean per-run report.
+	Pass write_file=True to also write the table to profiling_debug.txt alongside the library source.
 	Safe to call even when _DEBUG_TIMING is False (no-op).
 	"""
 	if not _DEBUG_TIMING or not _category_totals:
@@ -89,7 +88,7 @@ def flush_profiling_report():
 		+ f'{total_types:.2f}s'.rjust(sub_w)
 		+ '  ' + fmt_row(total_scan_vals, total_type_vals))
 	block = '\n'.join(lines) + '\n'
-	if _DEBUG_TIMING_FILE:
+	if write_file:
 		timing_path = os.path.join(os.path.dirname(__file__), 'profiling_debug.txt')
 		with open(timing_path, 'w', encoding='utf-8') as _f:
 			_f.write(block)
