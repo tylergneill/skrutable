@@ -11,6 +11,16 @@ gaRas_by_weights = {
 'llg' : 's', # anapest / antidactylus
 }
 
+weights_by_gaRa = {v: k for k, v in gaRas_by_weights.items()}
+
+def expand_gaRa_pattern(gaRa_str):
+    """Expand canonical gaṇa abbreviation string (no regex) to lg weight string.
+    Single trailing g/l (final anceps) passes through unchanged."""
+    result = []
+    for ch in gaRa_str:
+        result.append(weights_by_gaRa.get(ch, ch))
+    return ''.join(result)
+
 """
 	Sources:
 		Apte, V.S. (1890). Practical Sanskrit-English Dictionary, "Appendix A: Sanskrit Prosody".
@@ -336,14 +346,16 @@ all_known_samavRttas = []
 for k in samavfttas_by_family_and_gaRa.keys(): # for each family
 	all_known_samavRttas = all_known_samavRttas + list(samavfttas_by_family_and_gaRa[k].values())
 
-ardhasamavftta_by_odd_even_regex_tuple = {
-('nnrl(g|l)', 'njj(r|B)') : 'aparavaktra = [11: nnrlg] 1,3 + [12: njjr] 2,4', # aka vaitālīya
-('sssl(g|l)', 'BBBg(g|l)') : 'upacitra = [11: ssslg] 1,3 + [11: BBBgg] 2,4',
-('nnr(y|j)', 'njjr(g|l)') : 'puṣpitāgrā = [12: nnry] 1,3 + [12: njjrg] 2,4', # aka aupacchandasika
-('ssj(g|l)', 'sBrl(g|l)') : 'viyoginī = [10: ssjg] 1,3 + [11: sBrlg] 2,4', # aka vaitālīya, sundarī
-('sss(g|l)', 'BBBg(g|l)') : 'vegavatī = [10: sssg] 1,3 + [11: BBBgg] 2,4',
-('sssl(g|l)', 'nBB(r|B)') : 'hariṇaplutā = [11: ssjgg] 1,3 + [12: nBBr] 2,4',
-('ssjg(g|l)', 'sBr(y|j)') : 'aupacchandasika = [11: ssjgg] 1,3 + [12: sBry] 2,4', # aka mālābhāriṇī
+ardhasamavftta_by_odd_even_weights = {
+    # Keys are (odd_canonical_lg, even_canonical_lg) with heavy final anceps.
+    # Gaṇa abbreviations shown in comments and embedded in meter label strings.
+    ('llllllglglg',  'llllgllglglg'):  'aparavaktra = [11: nnrlg] 1,3 + [12: njjr] 2,4',   # aka vaitālīya
+    ('llgllgllglg',  'gllgllgllgg'):   'upacitra = [11: ssslg] 1,3 + [11: BBBgg] 2,4',
+    ('llllllglglgg', 'llllgllglglgg'): 'puṣpitāgrā = [12: nnry] 1,3 + [13: njjrg] 2,4',   # aka aupacchandasika
+    ('llgllglglg',   'llggllglglg'):   'viyoginī = [10: ssjg] 1,3 + [11: sBrlg] 2,4',      # aka vaitālīya, sundarī
+    ('llgllgllgg',   'gllgllgllgg'):   'vegavatī = [10: sssg] 1,3 + [11: BBBgg] 2,4',
+    ('llgllgllglg',  'lllgllgllglg'):  'hariṇaplutā = [11: ssslg] 1,3 + [12: nBBr] 2,4',
+    ('llgllglglgg',  'llggllglglgg'):  'aupacchandasika = [11: ssjgg] 1,3 + [12: sBry] 2,4', # aka mālābhāriṇī
 }
 
 vizamavftta_by_4_tuple = {
