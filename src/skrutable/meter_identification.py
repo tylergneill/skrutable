@@ -59,9 +59,10 @@ def flush_profiling_report(write_file=False):
 		return
 	import sys, os
 	scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
-	type_keys = ('anuzwuB', 'samavftta', 'upajAti', 'vizamavftta', 'jAti')
+	type_keys = ('anuzwuB', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti')
 	type_abbrev = {
-		'anuzwuB': 'anuṣṭ', 'samavftta': 'samav', 'upajAti': 'upajāti', 'vizamavftta': 'vizama', 'jAti': 'jāti',
+		'anuzwuB': 'anuṣṭ', 'samavftta': 'samav', 'upajAti': 'upajāti',
+		'ardhasamavftta': 'ardha', 'vizamavftta': 'vizama', 'jAti': 'jāti',
 	}
 	scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'transl', 'scan_syllabify': 'syl', 'scan_weights': 'wts', 'scan_morae_gana': 'mor+g'}
 	cat_order = ['anuṣṭubh', 'samavṛtta', 'upajāti', 'ardhasamavṛtta', 'viṣamavṛtta', 'jāti', 'na kiṃcid adhyavasitam']
@@ -914,7 +915,7 @@ class VerseTester(object):
 			 and wbp_lens.count(11) != 4 # bc triṣṭubh upajāti so common
 			 ):
 			# will give id_score == 8
-			self.evaluate_ardhasamavftta(Vrs)
+			timed('ardhasamavftta')(self.evaluate_ardhasamavftta)(Vrs)
 			# max score not necessarily yet reached, don't return
 
 		# test perfect single pāda of samavṛtta
@@ -1480,7 +1481,7 @@ class MeterIdentifier(object):
 
 		if _DEBUG_TIMING:
 			_pre_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
-				'anuzwuB', 'samavftta', 'upajAti', 'vizamavftta', 'jAti')
+				'anuzwuB', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti')
 			_pre = {k: _section_totals.get(k, 0.0) for k in _pre_keys}
 
 		# gets back mostly populated Verse object
@@ -1568,7 +1569,7 @@ class MeterIdentifier(object):
 
 		if _DEBUG_TIMING:
 			all_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
-				'anuzwuB', 'samavftta', 'upajAti', 'vizamavftta', 'jAti')
+				'anuzwuB', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti')
 			verse_times = {k: _section_totals.get(k, 0.0) - _pre[k] for k in all_keys}
 			verse_times['scan'] = sum(verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
 			cat = _meter_label_to_category(V.meter_label)
