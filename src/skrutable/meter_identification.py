@@ -943,6 +943,12 @@ class VerseTester(object):
 		else:
 			score = meter_scores["none found"]
 
+		# Extra penalties for especially weak upajāti results.
+		if len(wbp_lens) == 2:
+			score -= 1  # two pādas excluded instead of one
+		if all(lbl.startswith('ajñātam') for lbl in meter_labels):
+			score -= 1
+
 		imperfect_note = None
 		overall_meter_label = "upajāti %s: %s" % (
 			family,
