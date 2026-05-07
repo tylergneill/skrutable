@@ -130,6 +130,30 @@ Key terms:
 * *jāti*: four quarters with set patterns of total moraic length
 
 
+# scan timing profiling
+
+`skrutable` includes a built-in profiling system for measuring meter identification performance across a corpus. It is disabled by default (`utils._DEBUG_TIMING = False`) and has no runtime cost unless explicitly enabled.
+
+To use it, set `_DEBUG_TIMING` before importing `MeterIdentifier`:
+
+```python
+import skrutable.utils as _utils
+_utils._DEBUG_TIMING = True
+
+from skrutable.meter_identification import MeterIdentifier, flush_profiling_report
+
+MI = MeterIdentifier()
+for verse in my_verses:
+    MI.identify_meter(verse, resplit_option="resplit_lite", resplit_keep_midpoint=True, from_scheme="IAST")  # e.g.
+
+flush_profiling_report()  # prints table to stderr, resets counters
+```
+
+The table breaks down wall-clock time per meter category with columns for each scan sub-phase (`clean`, `transl`, `syl`, `wts`, `mor+g`) and each identification type (`anuṣṭ`, `samav`, `jāti`, etc.), plus perfect/imperfect verse counts per category. Set `utils._DEBUG_TIMING_FILE = True` to also write the table to `profiling_debug.txt` alongside the library source.
+
+If using the front end, `make launch-profiling` (or `./launch.sh --scan-profiling`) enables profiling for the server process without touching any source files.
+
+
 # sandhi and compound splitting
 
 `skrutable` provides a wrapper for applying pre-trained splitting models via separate online servers ([my own splitter_server for the 2018 model](https://2018emnlp-sanskrit-splitter-server.duckdns.org/) and https://dharmamitra.org). A working internet connection is required for this functionality. The wrapper preserves original sentence length and punctuation, and it also helps utilize the Dharmamitra ByT5-Sanskrit model's ability to distinguish compounds from inter-word breaks.

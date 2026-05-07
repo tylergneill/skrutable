@@ -2,6 +2,7 @@ import time
 from functools import wraps
 
 _DEBUG_TIMING = False
+_DEBUG_TIMING_FILE = False
 
 _section_totals = {}  # flat dict of all timing buckets: scan sub-keys, id type keys, wiggle, etc.
 
