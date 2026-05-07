@@ -59,9 +59,9 @@ def flush_profiling_report(write_file=False):
 		return
 	import sys, os
 	scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
-	type_keys = ('anuzwuB', 'samavftta_etc', 'jAti')
+	type_keys = ('anuzwuB', 'samavftta', 'upajAti', 'vizamavftta', 'jAti')
 	type_abbrev = {
-		'anuzwuB': 'anuṣṭ', 'samavftta_etc': 'samav', 'jAti': 'jāti',
+		'anuzwuB': 'anuṣṭ', 'samavftta': 'samav', 'upajAti': 'upajāti', 'vizamavftta': 'vizama', 'jAti': 'jāti',
 	}
 	scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'transl', 'scan_syllabify': 'syl', 'scan_weights': 'wts', 'scan_morae_gana': 'mor+g'}
 	cat_order = ['anuṣṭubh', 'samavṛtta', 'upajāti', 'ardhasamavṛtta', 'viṣamavṛtta', 'jāti', 'na kiṃcid adhyavasitam']
@@ -903,7 +903,7 @@ class VerseTester(object):
 		# test perfect samavṛtta
 		if self.pAdasamatva_count == 4:
 			# definitely checks out, id_score == 9
-			self.evaluate_samavftta(Vrs)
+			timed('samavftta')(self.evaluate_samavftta)(Vrs)
 			return 1 # max score already reached
 
 		# test perfect ardhasamavftta
@@ -919,10 +919,10 @@ class VerseTester(object):
 
 		# test perfect single pāda of samavṛtta
 		if ( self.pAdasamatva_count == 0 and self.resplit_option == "single_pAda"):
-			self.evaluate_samavftta(Vrs)
+			timed('samavftta')(self.evaluate_samavftta)(Vrs)
 
 		# test perfect viṣamavṛtta
-		if self.pAdasamatva_count == 0 and self.is_vizamavftta(Vrs):
+		if self.pAdasamatva_count == 0 and timed('vizamavftta')(self.is_vizamavftta)(Vrs):
 			# will give id_score == 9
 			# label and score already set in is_vizamavftta if test was successful
 			return 1 # max score already reached
@@ -933,14 +933,14 @@ class VerseTester(object):
 		unique_sorted_lens.sort()
 		if 	len(unique_sorted_lens) == 1: # all same length
 			# will give id_score in [8, 7], may tie with above
-			self.evaluate_upajAti(Vrs)
+			timed('upajAti')(self.evaluate_upajAti)(Vrs)
 			if Vrs.identification_score == 8: return 1 # best score compared to below
 			# otherwise, max score not necessarily yet reached, don't return
 
 		# test imperfect samavftta
 		if self.pAdasamatva_count in [2, 3]:
 			# will give id_score in [7, 6], may tie with above
-			self.evaluate_samavftta(Vrs)
+			timed('samavftta')(self.evaluate_samavftta)(Vrs)
 			# max score not necessarily yet reached, don't return
 
 		# test imperfect ardhasamavftta? seems hard
@@ -952,7 +952,7 @@ class VerseTester(object):
 			unique_sorted_lens == [11, 12]
 			): # either not all same length or triṣṭubh-jagatī mix
 			# will give id_score in [6, 5, 4], may tie with above
-			self.evaluate_upajAti(Vrs)
+			timed('upajAti')(self.evaluate_upajAti)(Vrs)
 
 		# return success
 		if Vrs.meter_label != None:
@@ -1297,7 +1297,7 @@ class VerseTester(object):
 			return 1
 
 		# samavftta, upajAti, vizamavftta, ardhasamavftta
-		success_samavftta_etc = timed('samavftta_etc')(self.test_as_samavftta_etc)(Vrs)
+		success_samavftta_etc = self.test_as_samavftta_etc(Vrs)
 		if success_samavftta_etc and Vrs.identification_score >= 8:
 			return 1
 		# i.e., if upajāti or anything imperfect, also continue on to check jāti
@@ -1483,7 +1483,7 @@ class MeterIdentifier(object):
 
 		if _DEBUG_TIMING:
 			_pre_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
-				'anuzwuB', 'samavftta_etc', 'jAti')
+				'anuzwuB', 'samavftta', 'upajAti', 'vizamavftta', 'jAti')
 			_pre = {k: _section_totals.get(k, 0.0) for k in _pre_keys}
 
 		self.VerseTester = VT = VerseTester()
@@ -1568,7 +1568,7 @@ class MeterIdentifier(object):
 
 		if _DEBUG_TIMING:
 			all_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
-				'anuzwuB', 'samavftta_etc', 'jAti')
+				'anuzwuB', 'samavftta', 'upajAti', 'vizamavftta', 'jAti')
 			verse_times = {k: _section_totals.get(k, 0.0) - _pre[k] for k in all_keys}
 			verse_times['scan'] = sum(verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
 			cat = _meter_label_to_category(V.meter_label)
