@@ -1,6 +1,7 @@
 from skrutable.scansion import Scanner as Sc
 from skrutable import meter_patterns
 from skrutable.config import load_config_dict_from_json_file
+from skrutable.utils import _DEBUG_TIMING, _section_totals, timed
 import re
 from copy import copy
 from dataclasses import dataclass
@@ -13,6 +14,120 @@ default_resplit_option = config["default_resplit_option"]  # e.g. "none"
 default_resplit_keep_midpoint = config["default_resplit_keep_midpoint"]  # e.g. True
 disable_non_trizwuB_upajAti = config["disable_non_trizwuB_upajAti"]  # e.g. True
 meter_scores = config["meter_scores"]  # dict
+
+_category_totals = {}  # { category: { section: float seconds } }, single source of truth
+
+
+_ARDHASAMAVRTTA_NAMES = [
+	'aparavaktra', 'upacitra', 'puṣpitāgrā', 'viyoginī', 'vegavatī',
+	'hariṇaplutā', 'aupacchandasika', 'ajñātārdhasamavṛtta',
+]
+_JATI_SUBCATS = ['āryā', 'gīti', 'upagīti', 'udgīti', 'āryāgīti']
+
+def _meter_label_to_category(label):
+	if not label or 'adhyavasitam' in label:
+		return 'na kiṃcid adhyavasitam'
+	if 'anuṣṭubh' in label or 'anustubh' in label:
+		return 'anuṣṭubh'
+	if 'upajāti' in label:
+		return 'upajāti'
+	if any(label.startswith(n) for n in _ARDHASAMAVRTTA_NAMES):
+		return 'ardhasamavṛtta'
+	if 'ardhasamavṛtta' in label:
+		return 'ardhasamavṛtta'
+	if label.startswith('udgatā'):
+		return 'viṣamavṛtta'
+	if any(label.startswith(s) for s in _JATI_SUBCATS):
+		return 'jāti'
+	if 'jāti' in label or 'vaitālīya' in label or 'mātrā' in label:
+		return 'jāti'
+	return 'samavṛtta'
+
+
+def _verse_is_perfect(V):
+	"""True iff V.is_perfect was set True at identification time."""
+	return getattr(V, 'is_perfect', False)
+
+
+def flush_profiling_report(write_file=False):
+	"""Print the accumulated profiling table to stderr, then reset all counters.
+
+	Pass write_file=True to also write the table to profiling_debug.txt alongside the library source.
+	Safe to call even when _DEBUG_TIMING is False (no-op).
+	"""
+	if not _DEBUG_TIMING or not _category_totals:
+		return
+	import sys, os
+	scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
+	type_keys = ('anuzwuB', 'samavftta_etc', 'jAti')
+	type_abbrev = {
+		'anuzwuB': 'anuṣṭ', 'samavftta_etc': 'samav', 'jAti': 'jāti',
+	}
+	scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'transl', 'scan_syllabify': 'syl', 'scan_weights': 'wts', 'scan_morae_gana': 'mor+g'}
+	cat_order = ['anuṣṭubh', 'samavṛtta', 'upajāti', 'ardhasamavṛtta', 'viṣamavṛtta', 'jāti', 'na kiṃcid adhyavasitam']
+	hdr_scan_abbrevs = [scan_abbrev[k] for k in scan_keys]
+	hdr_type_abbrevs = [type_abbrev[k] for k in type_keys]
+	val_w = len('0.00s')
+	col_cat_w = max(len(c) for c in cat_order + ['category']) + 2
+	sub_w = max(len('scan∑'), len('types∑'), len('total'), val_w) + 2
+	scan_col_ws = [max(len(a), val_w) + 1 for a in hdr_scan_abbrevs]
+	type_col_ws = [max(len(a), val_w) + 1 for a in hdr_type_abbrevs]
+	all_counts = [b.get('_count', 0) for b in _category_totals.values()]
+	count_w = max(len(str(max(all_counts))) if all_counts else 1, len('perf'), len('impf')) + 1
+
+	def fmt_row(scan_vals, type_vals):
+		return ('  '.join(v.rjust(w) for v, w in zip(scan_vals, scan_col_ws))
+			+ '  ' + '  '.join(v.rjust(w) for v, w in zip(type_vals, type_col_ws)))
+
+	n_verses = sum(b.get('_count', 0) for b in _category_totals.values())
+	wiggle_count = _section_totals.get('wiggle_count', 0)
+	lines = [f'\n=== {n_verses} verses / {wiggle_count} resplit candidates ===']
+	hdr = ('  ' + 'category'.ljust(col_cat_w)
+		+ 'perf'.rjust(count_w) + 'impf'.rjust(count_w)
+		+ 'total'.rjust(sub_w) + 'scan∑'.rjust(sub_w) + 'types∑'.rjust(sub_w)
+		+ '  ' + fmt_row(hdr_scan_abbrevs, hdr_type_abbrevs))
+	sep_w = col_cat_w + count_w * 2 + sub_w * 3 + 2 + sum(w + 2 for w in scan_col_ws) - 2 + 2 + sum(w + 2 for w in type_col_ws) - 2
+	sep = '  ' + '-' * sep_w
+	lines += [hdr, sep]
+	total_perfect = 0
+	total_imperfect = 0
+	for cat in cat_order:
+		bucket = _category_totals.get(cat)
+		if not bucket:
+			continue
+		cat_scan = sum(bucket.get(k, 0.0) for k in scan_keys)
+		cat_types = sum(bucket.get(k, 0.0) for k in type_keys)
+		scan_vals = [f'{bucket.get(k, 0.0):.2f}s' for k in scan_keys]
+		type_vals = [f'{bucket.get(k, 0.0):.2f}s' for k in type_keys]
+		n_perf = bucket.get('_perfect_count', 0)
+		n_impf = bucket.get('_count', 0) - n_perf
+		total_perfect += n_perf
+		total_imperfect += n_impf
+		lines.append('  ' + cat.ljust(col_cat_w)
+			+ str(n_perf).rjust(count_w) + str(n_impf).rjust(count_w)
+			+ f'{cat_scan + cat_types:.2f}s'.rjust(sub_w)
+			+ f'{cat_scan:.2f}s'.rjust(sub_w)
+			+ f'{cat_types:.2f}s'.rjust(sub_w)
+			+ '  ' + fmt_row(scan_vals, type_vals))
+	lines.append(sep)
+	total_scan = sum(sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order) for k in scan_keys)
+	total_types = sum(sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order) for k in type_keys)
+	total_scan_vals = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s' for k in scan_keys]
+	total_type_vals = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s' for k in type_keys]
+	lines.append('  ' + 'TOTAL'.ljust(col_cat_w)
+		+ str(total_perfect).rjust(count_w) + str(total_imperfect).rjust(count_w)
+		+ f'{total_scan + total_types:.2f}s'.rjust(sub_w)
+		+ f'{total_scan:.2f}s'.rjust(sub_w)
+		+ f'{total_types:.2f}s'.rjust(sub_w)
+		+ '  ' + fmt_row(total_scan_vals, total_type_vals))
+	block = '\n'.join(lines) + '\n'
+	if write_file:
+		timing_path = os.path.join(os.path.dirname(__file__), 'profiling_debug.txt')
+		with open(timing_path, 'w', encoding='utf-8') as _f:
+			_f.write(block)
+	print(block, file=sys.stderr, flush=True)
+	_category_totals.clear()
+	_section_totals.clear()
 
 
 @dataclass
@@ -193,7 +308,7 @@ class VerseTester(object):
 		self.identification_attempt_count = 0
 		self._anuzwuB_half_cache = {}  # cleared per wiggle_identify run
 
-	def combine_results(self, Vrs, new_label, new_score):
+	def combine_results(self, Vrs, new_label, new_score, new_is_perfect=False):
 		old_label = Vrs.meter_label or ''
 		old_score = Vrs.identification_score
 
@@ -207,6 +322,7 @@ class VerseTester(object):
 			# override previous
 			Vrs.meter_label = new_label
 			Vrs.identification_score = new_score
+			Vrs.is_perfect = new_is_perfect
 
 		elif new_score == old_score:
 			# tie, concatenate as old + new
@@ -326,12 +442,14 @@ class VerseTester(object):
 			if ardham_eva_result.perfect():
 				Vrs.meter_label = f"anuṣṭubh (ardham eva: {ardham_eva_result.perfect_id_label})"
 				Vrs.identification_score = meter_scores["anuṣṭubh, half, single half perfect)"]
+				Vrs.is_perfect = True
 				Vrs.diagnostic = ardham_eva_result
 				return ardham_eva_result
 			elif ardham_eva_result.imperfect():
 				label_str = '; '.join(f"{k}: {v}" for k, v in ardham_eva_result.imperfect_label_sanskrit.items())
 				Vrs.meter_label = f"anuṣṭubh (ardham eva: {label_str})"
 				Vrs.identification_score = meter_scores["anuṣṭubh, half, single half imperfect)"]
+				Vrs.is_perfect = False
 				Vrs.diagnostic = ardham_eva_result
 				return ardham_eva_result
 			else:
@@ -346,6 +464,7 @@ class VerseTester(object):
 		if pAdas_ab_result.perfect() and pAdas_cd_result.perfect():
 			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {pAdas_cd_result.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves perfect)"]
+			Vrs.is_perfect = True
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
 
@@ -355,12 +474,14 @@ class VerseTester(object):
 			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {pAdas_cd_result.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
+			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
 		elif pAdas_ab_result.perfect() and pAdas_cd_result.imperfect():
 			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
+			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_cd_result
 
@@ -371,6 +492,7 @@ class VerseTester(object):
 			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves imperfect)"]
+			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
 
@@ -380,12 +502,14 @@ class VerseTester(object):
 			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
 			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {ab_str}; 3,4: {pAdas_cd_result.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
+			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_cd_result
 		elif pAdas_ab_result.perfect() and pAdas_cd_result.length_error():
 			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: ?? {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
+			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
 
@@ -396,6 +520,7 @@ class VerseTester(object):
 			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
 			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {ab_str}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
+			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_cd_result
 		elif pAdas_ab_result.imperfect() and pAdas_cd_result.length_error():
@@ -403,6 +528,7 @@ class VerseTester(object):
 			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: ?? {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
+			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
 
@@ -538,7 +664,7 @@ class VerseTester(object):
 
 		# score arbitration: may tie with pre-existing result (e.g., upajāti)
 		old_score = Vrs.identification_score
-		self.combine_results(Vrs, new_label=meter_label, new_score=score)
+		self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect=imperfect_note is None)
 		if score >= old_score:
 			Vrs.diagnostic = diagnostic
 
@@ -547,6 +673,7 @@ class VerseTester(object):
 	def evaluate_ardhasamavftta(self, Vrs):
 		# sufficient pAdasamatva already assured, now just evaluate
 		Vrs.identification_score = meter_scores["ardhasamavṛtta, perfect"]
+		Vrs.is_perfect = True
 
 		wbp = Vrs.syllable_weights.split('\n') # weights by pāda
 
@@ -575,6 +702,7 @@ class VerseTester(object):
 			meter_label = "ajñātārdhasamavṛtta" # i.e., might need to add to meter_patterns
 			meter_label += ' [%s, %s]' % (odd_g_to_id, even_g_to_id)
 			Vrs.identification_score = meter_scores["ardhasamavṛtta, perfect, unknown"]
+			Vrs.is_perfect = True  # "perfect, unknown" means pattern unknown, not imperfect
 
 		Vrs.meter_label = meter_label
 		Vrs.diagnostic = Diagnostic(perfect_id_label=meter_label)
@@ -729,7 +857,11 @@ class VerseTester(object):
 
 		# score arbitration: may tie with pre-existing result (e.g., samavṛtta)
 		old_score = Vrs.identification_score
-		self.combine_results(Vrs, overall_meter_label, score)
+		is_perf = (score in (meter_scores["upajāti, perfect"],
+		                     meter_scores["upajāti, triṣṭubh-jagatī-saṃkara, perfect"],
+		                     meter_scores["upajāti, non-triṣṭubh, perfect"])
+		           and 'ajñātam' not in overall_meter_label)
+		self.combine_results(Vrs, overall_meter_label, score, new_is_perfect=is_perf)
 		if score >= old_score:
 			Vrs.diagnostic = diagnostic
 
@@ -742,6 +874,7 @@ class VerseTester(object):
 		for (a, b, c, d) in meter_patterns.vizamavftta_by_4_tuple:
 			if (gs_to_id[0],gs_to_id[1],gs_to_id[2],gs_to_id[3]) == (a, b, c, d):
 				Vrs.identification_score = meter_scores["viṣamavṛtta, perfect"]
+				Vrs.is_perfect = True
 				Vrs.meter_label = meter_patterns.vizamavftta_by_4_tuple[(a, b, c, d)]
 				Vrs.diagnostic = Diagnostic(perfect_id_label=Vrs.meter_label)
 				return True
@@ -889,6 +1022,7 @@ class VerseTester(object):
 							suffix = '; '.join(f"ardha {i+1}: {v}" for i, v in enumerate(sa_vals))
 						Vrs.meter_label = jati_label + f" ({suffix})"
 						Vrs.identification_score = likely_score
+						Vrs.is_perfect = False
 						Vrs.diagnostic = Diagnostic(
 							imperfect_label_sanskrit=per_pada_sanskrit or None,
 							imperfect_label_english=per_pada_english or None,
@@ -1064,6 +1198,7 @@ class VerseTester(object):
 				if jati_score >= Vrs.identification_score:
 					Vrs.meter_label = jati_label + f" ({imperfect_label_sa})"
 					Vrs.identification_score = jati_score
+					Vrs.is_perfect = False
 					Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
 					Vrs.diagnostic = Diagnostic(
 						imperfect_label_sanskrit=label_sa_by_pada or None,
@@ -1116,6 +1251,7 @@ class VerseTester(object):
 			if score >= Vrs.identification_score:
 				Vrs.meter_label = new_label
 				Vrs.identification_score = score
+				Vrs.is_perfect = score == meter_scores["jāti, perfect"]
 				Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
 				Vrs.diagnostic = diagnostic
 			return 1
@@ -1156,25 +1292,23 @@ class VerseTester(object):
 		self.identification_attempt_count += 1
 
 		# anuzwuB
-
-		anuzwuB_diagnostic = self.test_as_anuzwuB(Vrs) # Diagnostic if successful, None if not
-		if anuzwuB_diagnostic and Vrs.identification_score == meter_scores["max score"]:
+		success_anuzwuB = timed('anuzwuB')(self.test_as_anuzwuB)(Vrs)
+		if success_anuzwuB and Vrs.identification_score == meter_scores["max score"]:
 			return 1
 
 		# samavftta, upajAti, vizamavftta, ardhasamavftta
-
-		success_samavftta_etc = self.test_as_samavftta_etc(Vrs)
-		if success_samavftta_etc and Vrs.identification_score >= 8: return 1
+		success_samavftta_etc = timed('samavftta_etc')(self.test_as_samavftta_etc)(Vrs)
+		if success_samavftta_etc and Vrs.identification_score >= 8:
+			return 1
 		# i.e., if upajāti or anything imperfect, also continue on to check jāti
 
 		# problem: how to change above handling for rare case
 		# where ardhasamavftta is also jAti?
 
 		# jāti
+		success_jAti = timed('jAti')(self.test_as_jAti)(Vrs)
 
-		success_jAti = self.test_as_jAti(Vrs)
-
-		if anuzwuB_diagnostic or success_samavftta_etc or success_jAti:
+		if success_anuzwuB or success_samavftta_etc or success_jAti:
 			return 1
 		else:
 			return 0
@@ -1260,13 +1394,17 @@ class MeterIdentifier(object):
 
 						temp_V = copy(Vrs)
 						temp_V.text_syllabified = new_text_syllabified
-						temp_V.syllable_weights = S.scan_syllable_weights(
+
+						if _DEBUG_TIMING:
+							_section_totals['wiggle_count'] = _section_totals.get('wiggle_count', 0) + 1
+
+						temp_V.syllable_weights = timed('scan_weights')(S.scan_syllable_weights)(
 							temp_V.text_syllabified)
-						temp_V.morae_per_line = S.count_morae(
+						temp_V.morae_per_line = timed('scan_morae_gana')(S.count_morae)(
 							temp_V.syllable_weights)
-						temp_V.gaRa_abbreviations = '\n'.join(
-						[ S.gaRa_abbreviate(line) for line in temp_V.syllable_weights.split('\n') ]
-						)
+						temp_V.gaRa_abbreviations = timed('scan_morae_gana')(
+							lambda: '\n'.join([ S.gaRa_abbreviate(line) for line in temp_V.syllable_weights.split('\n') ])
+						)()
 
 						success = VrsTster.attempt_identification(temp_V)
 
@@ -1342,6 +1480,11 @@ class MeterIdentifier(object):
 
 		# gets back mostly populated Verse object
 		V = S.scan(rw_str, from_scheme=from_scheme)
+
+		if _DEBUG_TIMING:
+			_pre_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
+				'anuzwuB', 'samavftta_etc', 'jAti')
+			_pre = {k: _section_totals.get(k, 0.0) for k in _pre_keys}
 
 		self.VerseTester = VT = VerseTester()
 		self.VerseTester.resplit_option = resplit_option
@@ -1422,5 +1565,18 @@ class MeterIdentifier(object):
 			# No identification succeeded; return a legible failure label.
 			V.meter_label = 'na kiṃcid adhyavasitam'
 			V.identification_score = meter_scores["none found"]
+
+		if _DEBUG_TIMING:
+			all_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
+				'anuzwuB', 'samavftta_etc', 'jAti')
+			verse_times = {k: _section_totals.get(k, 0.0) - _pre[k] for k in all_keys}
+			verse_times['scan'] = sum(verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
+			cat = _meter_label_to_category(V.meter_label)
+			bucket = _category_totals.setdefault(cat, {})
+			for k, v in verse_times.items():
+				bucket[k] = bucket.get(k, 0.0) + v
+			bucket['_count'] = bucket.get('_count', 0) + 1
+			if _verse_is_perfect(V):
+				bucket['_perfect_count'] = bucket.get('_perfect_count', 0) + 1
 
 		return V
