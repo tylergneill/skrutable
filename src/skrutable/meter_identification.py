@@ -1644,9 +1644,9 @@ class MeterIdentifier(object):
 						if _DEBUG_TIMING:
 							_section_totals['wiggle_count'] = _section_totals.get('wiggle_count', 0) + 1
 
-						temp_V.syllable_weights = S.scan_syllable_weights(
+						temp_V.syllable_weights = timed('scan_weights')(S.scan_syllable_weights)(
 							temp_V.text_syllabified)
-						temp_V.morae_per_line = S.count_morae(
+						temp_V.morae_per_line = timed('scan_morae_gana')(S.count_morae)(
 							temp_V.syllable_weights)
 						temp_V.gaRa_abbreviations = timed('scan_morae_gana')(
 							lambda: '\n'.join([ S.gaRa_abbreviate(line) for line in temp_V.syllable_weights.split('\n') ])
