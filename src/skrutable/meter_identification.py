@@ -157,6 +157,15 @@ class Diagnostic:
 ARDHASAMAVFTTA_EDIT_DISTANCE_THRESHOLD = 2
 VIZAMAVFTTA_EDIT_DISTANCE_THRESHOLD = 2
 
+# Precompute vizamavṛtta canonical weight strings once (avoid per-call gaṇa→weight conversion)
+_gaRa_to_weights_map = {v: k for k, v in meter_patterns.gaRas_by_weights.items()}
+def _gaRa_str_to_weights(s):
+	return ''.join(_gaRa_to_weights_map.get(ch, ch) for ch in s)
+_vizamavftta_precomputed = [
+	(gaRas, [_gaRa_str_to_weights(g) for g in gaRas], label)
+	for gaRas, label in meter_patterns.vizamavftta_by_4_tuple.items()
+]
+
 
 def _levenshtein_align(observed, canonical):
 	"""Return (distance, problem_indices) comparing observed lg string to canonical,
@@ -1026,14 +1035,8 @@ class VerseTester(object):
 		gaRa = Vrs.gaRa_abbreviations
 		morae = Vrs.morae_per_line
 
-		_weights_by_gaRa = {v: k for k, v in meter_patterns.gaRas_by_weights.items()}
-
-		def _gaRa_to_weights(gaRa_str):
-			return ''.join(_weights_by_gaRa.get(ch, ch) for ch in gaRa_str)
-
 		if perfect_only:
-			for canonicals, meter_label in meter_patterns.vizamavftta_by_4_tuple.items():
-				canonical_weights = [_gaRa_to_weights(c) for c in canonicals]
+			for canonicals, canonical_weights, meter_label in _vizamavftta_precomputed:
 
 				# Perfect match via gaṇa abbreviations
 				if all(gs_to_id[i] == canonicals[i] for i in range(4)):
@@ -1519,7 +1522,7 @@ class VerseTester(object):
 		if success_anuzwuB and Vrs.identification_score == meter_scores["max score"]:
 			return 1
 
-		# samavftta, upajAti, vizamavftta, ardhasamavftta
+		# samavftta, upajAti, vizamavftta
 		_inner_keys = ('samavftta', 'upajAti', 'vizamavftta')
 		_pre_inner = {k: _section_totals.get(k, 0.0) for k in _inner_keys} if _DEBUG_TIMING else None
 		success_samavftta_etc = timed('samavftta_etc')(self.test_as_samavftta_etc)(Vrs)
