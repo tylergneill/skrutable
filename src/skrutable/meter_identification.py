@@ -1478,13 +1478,13 @@ class MeterIdentifier(object):
 
 		self.Scanner = S = Sc()
 
-		# gets back mostly populated Verse object
-		V = S.scan(rw_str, from_scheme=from_scheme)
-
 		if _DEBUG_TIMING:
 			_pre_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
 				'anuzwuB', 'samavftta', 'upajAti', 'vizamavftta', 'jAti')
 			_pre = {k: _section_totals.get(k, 0.0) for k in _pre_keys}
+
+		# gets back mostly populated Verse object
+		V = S.scan(rw_str, from_scheme=from_scheme)
 
 		self.VerseTester = VT = VerseTester()
 		self.VerseTester.resplit_option = resplit_option
