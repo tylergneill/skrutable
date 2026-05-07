@@ -59,9 +59,9 @@ def flush_profiling_report(write_file=False):
 		return
 	import sys, os
 	scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
-	type_keys = ('anuzwuB', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti')
+	type_keys = ('anuzwuB', 'samavftta_etc', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti')
 	type_abbrev = {
-		'anuzwuB': 'anuṣṭ', 'samavftta': 'samav', 'upajAti': 'upajāti',
+		'anuzwuB': 'anuṣṭ', 'samavftta_etc': 'vftta↑', 'samavftta': 'samav', 'upajAti': 'upajāti',
 		'ardhasamavftta': 'ardha', 'vizamavftta': 'vizama', 'jAti': 'jāti',
 	}
 	scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'transl', 'scan_syllabify': 'syl', 'scan_weights': 'wts', 'scan_morae_gana': 'mor+g'}
@@ -1298,7 +1298,12 @@ class VerseTester(object):
 			return 1
 
 		# samavftta, upajAti, vizamavftta, ardhasamavftta
-		success_samavftta_etc = self.test_as_samavftta_etc(Vrs)
+		_inner_keys = ('samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta')
+		_pre_inner = {k: _section_totals.get(k, 0.0) for k in _inner_keys} if _DEBUG_TIMING else None
+		success_samavftta_etc = timed('samavftta_etc')(self.test_as_samavftta_etc)(Vrs)
+		if _DEBUG_TIMING:
+			inner_delta = sum(_section_totals.get(k, 0.0) - _pre_inner[k] for k in _inner_keys)
+			_section_totals['samavftta_etc'] -= inner_delta
 		if success_samavftta_etc and Vrs.identification_score >= 8:
 			return 1
 		# i.e., if upajāti or anything imperfect, also continue on to check jāti
@@ -1481,7 +1486,7 @@ class MeterIdentifier(object):
 
 		if _DEBUG_TIMING:
 			_pre_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
-				'anuzwuB', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti')
+				'anuzwuB', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti', 'samavftta_etc')
 			_pre = {k: _section_totals.get(k, 0.0) for k in _pre_keys}
 
 		# gets back mostly populated Verse object
@@ -1569,7 +1574,7 @@ class MeterIdentifier(object):
 
 		if _DEBUG_TIMING:
 			all_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
-				'anuzwuB', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti')
+				'anuzwuB', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti', 'samavftta_etc')
 			verse_times = {k: _section_totals.get(k, 0.0) - _pre[k] for k in all_keys}
 			verse_times['scan'] = sum(verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
 			cat = _meter_label_to_category(V.meter_label)
