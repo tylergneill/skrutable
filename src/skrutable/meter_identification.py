@@ -3,6 +3,7 @@ from skrutable import meter_patterns
 from skrutable.config import load_config_dict_from_json_file
 from skrutable.utils import _DEBUG_TIMING, _section_totals, timed
 import re
+import time as _time
 from copy import copy
 from dataclasses import dataclass
 from typing import Optional
@@ -59,10 +60,12 @@ def flush_profiling_report(write_file=False):
 		return
 	import sys, os
 	scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
-	type_keys = ('anuzwuB', 'samavftta_etc', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti')
+	type_keys = ('anuzwuB', 'samavftta_etc', 'samavftta', 'upajAti', 'ardhasamavftta_perfect', 'vizamavftta', 'jAti', 'lev_samavftta', 'lev_ardha', 'lev_vizama')
 	type_abbrev = {
 		'anuzwuB': 'anuṣṭ', 'samavftta_etc': 'vftta↑', 'samavftta': 'samav', 'upajAti': 'upajāti',
-		'ardhasamavftta': 'ardha', 'vizamavftta': 'vizama', 'jAti': 'jāti',
+		'ardhasamavftta_perfect': 'ardha✓', 'vizamavftta': 'vizama',
+		'jAti': 'jāti',
+		'lev_samavftta': 'lev✗sama', 'lev_ardha': 'lev✗ardh', 'lev_vizama': 'lev✗visa',
 	}
 	scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'transl', 'scan_syllabify': 'syl', 'scan_weights': 'wts', 'scan_morae_gana': 'mor+g'}
 	cat_order = ['anuṣṭubh', 'samavṛtta', 'upajāti', 'ardhasamavṛtta', 'viṣamavṛtta', 'jāti', 'na kiṃcid adhyavasitam']
@@ -735,7 +738,7 @@ class VerseTester(object):
 
 		# score arbitration: may tie with pre-existing result (e.g., upajāti)
 		old_score = Vrs.identification_score
-		self.combine_results(Vrs, new_label=meter_label, new_score=score)
+		self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect=imperfect_note is None and not has_any_error)
 		if score >= old_score:
 			Vrs.diagnostic = diagnostic
 
@@ -775,7 +778,7 @@ class VerseTester(object):
 				):
 					score = meter_scores["ardhasamavṛtta, perfect"]
 					old_score = Vrs.identification_score
-					self.combine_results(Vrs, new_label=meter_label, new_score=score)
+					self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect=True)
 					if score >= old_score:
 						Vrs.diagnostic = Diagnostic(perfect_id_label=meter_label)
 					self._ardha_stash = []  # perfect found; no need for imperfect pass
@@ -1005,7 +1008,7 @@ class VerseTester(object):
 
 		# score arbitration: may tie with pre-existing result (e.g., samavṛtta)
 		old_score = Vrs.identification_score
-		self.combine_results(Vrs, overall_meter_label, score)
+		self.combine_results(Vrs, overall_meter_label, score, new_is_perfect=imperfect_note is None and not per_pada_english)
 		if score >= old_score:
 			Vrs.diagnostic = diagnostic
 
@@ -1517,7 +1520,7 @@ class VerseTester(object):
 			return 1
 
 		# samavftta, upajAti, vizamavftta, ardhasamavftta
-		_inner_keys = ('samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta')
+		_inner_keys = ('samavftta', 'upajAti', 'vizamavftta')
 		_pre_inner = {k: _section_totals.get(k, 0.0) for k in _inner_keys} if _DEBUG_TIMING else None
 		success_samavftta_etc = timed('samavftta_etc')(self.test_as_samavftta_etc)(Vrs)
 		if _DEBUG_TIMING:
@@ -1536,7 +1539,7 @@ class VerseTester(object):
 			all(9 <= l <= 15 for l in wbp_lens_ardha[:4])
 		)
 		if _ardha_viable:
-			self.evaluate_ardhasamavftta(Vrs, perfect_only=True)
+			timed('ardhasamavftta_perfect')(self.evaluate_ardhasamavftta)(Vrs, perfect_only=True)
 		if _ardha_viable and Vrs.identification_score >= meter_scores["ardhasamavṛtta, perfect"]:
 			return 1
 
@@ -1547,7 +1550,7 @@ class VerseTester(object):
 
 		# imperfect pass: deferred Levenshtein annotation for samavftta length errors.
 		if self._samavftta_has_length_error:
-			self.evaluate_samavftta(Vrs)  # re-runs with full Levenshtein, upgrades diagnostic
+			timed('lev_samavftta')(self.evaluate_samavftta)(Vrs)
 
 		if success_anuzwuB or success_samavftta_etc or success_jAti or Vrs.identification_score >= meter_scores["ardhasamavṛtta, perfect"]:
 			return 1
@@ -1645,9 +1648,9 @@ class MeterIdentifier(object):
 							temp_V.text_syllabified)
 						temp_V.morae_per_line = S.count_morae(
 							temp_V.syllable_weights)
-						temp_V.gaRa_abbreviations = '\n'.join(
-							[S.gaRa_abbreviate(line) for line in temp_V.syllable_weights.split('\n')]
-						)
+						temp_V.gaRa_abbreviations = timed('scan_morae_gana')(
+							lambda: '\n'.join([ S.gaRa_abbreviate(line) for line in temp_V.syllable_weights.split('\n') ])
+						)()
 
 						success = VrsTster.attempt_identification(temp_V)
 
@@ -1723,7 +1726,8 @@ class MeterIdentifier(object):
 
 		if _DEBUG_TIMING:
 			_pre_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
-				'anuzwuB', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti', 'samavftta_etc')
+				'anuzwuB', 'samavftta', 'upajAti', 'vizamavftta',
+				'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_ardha', 'lev_vizama', 'samavftta_etc')
 			_pre = {k: _section_totals.get(k, 0.0) for k in _pre_keys}
 
 		# gets back mostly populated Verse object
@@ -1740,10 +1744,10 @@ class MeterIdentifier(object):
 			success = VT.attempt_identification(V)
 			# Post-identification: deferred imperfect ardhasamavṛtta pass over stash.
 			if VT._ardha_stash and meter_scores["ardhasamavṛtta, imperfect"] > V.identification_score:
-				VT.evaluate_ardhasamavftta(V)
+				timed('lev_ardha')(VT.evaluate_ardhasamavftta)(V)
 			# Post-identification: deferred imperfect viṣamavṛtta pass over stash.
 			if VT._vizama_stash and meter_scores["viṣamavṛtta, imperfect"] > V.identification_score:
-				VT.is_vizamavftta(V)
+				timed('lev_vizama')(VT.is_vizamavftta)(V)
 
 		elif resplit_option in ['resplit_max', 'resplit_lite']:
 
@@ -1808,6 +1812,7 @@ class MeterIdentifier(object):
 				)
 
 			# Post-wiggle: deferred imperfect ardhasamavṛtta pass over accumulated stash.
+			_lev_ardha_t0 = _time.perf_counter() if _DEBUG_TIMING else None
 			ardha_stash = VT._ardha_stash
 			if ardha_stash:
 				best_current_score = (
@@ -1869,8 +1874,11 @@ class MeterIdentifier(object):
 								problem_syllables=problem_syllables or None,
 							)
 							self.Verses_found.append(ardha_Vrs)
+			if _DEBUG_TIMING:
+				_section_totals['lev_ardha'] = _section_totals.get('lev_ardha', 0.0) + _time.perf_counter() - _lev_ardha_t0
 
 			# Post-wiggle: deferred imperfect viṣamavṛtta pass over accumulated stash.
+			_lev_vizama_t0 = _time.perf_counter() if _DEBUG_TIMING else None
 			vizama_stash = VT._vizama_stash
 			if vizama_stash:
 				best_current_score = (
@@ -1933,6 +1941,8 @@ class MeterIdentifier(object):
 								problem_syllables=problem_syllables or None,
 							)
 							self.Verses_found.append(vizama_Vrs)
+			if _DEBUG_TIMING:
+				_section_totals['lev_vizama'] = _section_totals.get('lev_vizama', 0.0) + _time.perf_counter() - _lev_vizama_t0
 
 			# Pick the candidate with the highest identification score.
 			if len(self.Verses_found) > 0:
@@ -1946,7 +1956,8 @@ class MeterIdentifier(object):
 
 		if _DEBUG_TIMING:
 			all_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
-				'anuzwuB', 'samavftta', 'upajAti', 'ardhasamavftta', 'vizamavftta', 'jAti', 'samavftta_etc')
+				'anuzwuB', 'samavftta', 'upajAti', 'vizamavftta',
+				'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_ardha', 'lev_vizama', 'samavftta_etc')
 			verse_times = {k: _section_totals.get(k, 0.0) - _pre[k] for k in all_keys}
 			verse_times['scan'] = sum(verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
 			cat = _meter_label_to_category(V.meter_label)
