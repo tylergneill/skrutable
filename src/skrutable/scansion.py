@@ -259,14 +259,14 @@ class Scanner(object):
 
 		for line in text_lines:
 
-			line_weights = ''
-
 			syllables = line.split(scansion_syllable_separator)
 
 			try:
 				while syllables[-1] == '':
 					syllables.pop(-1) # in case of final separator(s)
 			except IndexError: pass
+
+			line_weights_chars = []
 
 			for n, syllable in enumerate(syllables):
 
@@ -287,15 +287,15 @@ class Scanner(object):
 
 					):
 
-					line_weights += 'g'
-					# line_weights += 'g_'
+					line_weights_chars.append('g')
+					# line_weights_chars.append('g_')
 					# insofar as two 'l's can equal one 'g', could use this alternative for better visual alignment
 
 				else:
 
-					line_weights += 'l'
+					line_weights_chars.append('l')
 
-			weights_by_line.append(line_weights)
+			weights_by_line.append(''.join(line_weights_chars))
 
 		syllable_weights = '\n'.join(weights_by_line) # restore newlines
 		return syllable_weights
