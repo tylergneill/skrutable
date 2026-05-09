@@ -328,21 +328,16 @@ class Scanner(object):
 		Returns string of 'gaRa'-trisyllable abbreviation, e.g. 'nml'.
 		"""
 
-		for c in list(set(syl_wts)):
-			if c not in ['l','g']:
+		for c in set(syl_wts):
+			if c not in {'l', 'g'}:
 				return None
 
-		weights_of_curr_gaRa = ''
-		overall_abbreviation = ''
-
-		for single_weight in syl_wts:
-			weights_of_curr_gaRa += single_weight
-			if len(weights_of_curr_gaRa) == 3:
-				overall_abbreviation += meter_patterns.gaRas_by_weights[weights_of_curr_gaRa]
-				weights_of_curr_gaRa = ''
-
+		n = len(syl_wts) // 3 * 3
+		overall_abbreviation = ''.join(
+			meter_patterns.gaRas_by_weights[syl_wts[i:i+3]] for i in range(0, n, 3)
+		)
 		# leftover lights and heavies (l/g)
-		overall_abbreviation += weights_of_curr_gaRa
+		overall_abbreviation += syl_wts[n:]
 
 		return overall_abbreviation
 
