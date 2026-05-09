@@ -54,11 +54,12 @@ def _verse_is_perfect(V):
 	return getattr(V, 'is_perfect', False)
 
 
-def flush_profiling_report(write_file=False, wall_clock_secs=None):
+def flush_profiling_report(write_file=False, wall_clock_secs=None, parallel_workers=None):
 	"""Print the accumulated profiling table to stderr, then reset all counters.
 
 	Pass write_file=True to also write the table to profiling_debug.txt alongside the library source.
-	Pass wall_clock_secs to append a wall-clock vs table-total speedup line (useful for batch/parallel runs).
+	Pass wall_clock_secs to append a timing footer line.
+	Pass parallel_workers (int) to show worker count and parallelization speedup; omit or pass None for serial runs.
 	Safe to call even when _DEBUG_TIMING is False (no-op).
 	"""
 	if not _DEBUG_TIMING or not _category_totals:
@@ -131,8 +132,11 @@ def flush_profiling_report(write_file=False, wall_clock_secs=None):
 		+ '  ' + fmt_row(total_scan_vals, total_type_vals))
 	if wall_clock_secs is not None:
 		table_total = total_scan + total_types
-		speedup = table_total / wall_clock_secs if wall_clock_secs > 0 else float('inf')
-		lines.append(f'\n  table total: {table_total:.2f}s  |  wall-clock: {wall_clock_secs:.2f}s  |  parallelization speedup: {speedup:.2f}x')
+		if parallel_workers is not None:
+			speedup = table_total / wall_clock_secs if wall_clock_secs > 0 else float('inf')
+			lines.append(f'\n  table total (CPU across {parallel_workers} workers, inflated by overhead): {table_total:.2f}s  |  wall-clock: {wall_clock_secs:.2f}s  |  parallelization speedup: {speedup:.2f}x')
+		else:
+			lines.append(f'\n  table total: {table_total:.2f}s  |  wall-clock: {wall_clock_secs:.2f}s')
 	block = '\n'.join(lines) + '\n'
 	if write_file:
 		timing_path = os.path.join(os.path.dirname(__file__), 'profiling_debug.txt')
