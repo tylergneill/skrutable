@@ -5,8 +5,12 @@ from skrutable.utils import _DEBUG_TIMING, _section_totals, timed
 import re
 import time as _time
 from copy import copy
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from typing import Optional
+
+BATCH_MAX_WORKERS = 3
+BATCH_PARALLEL_THRESHOLD = 100
 
 # load config variables
 config = load_config_dict_from_json_file()
@@ -50,10 +54,11 @@ def _verse_is_perfect(V):
 	return getattr(V, 'is_perfect', False)
 
 
-def flush_profiling_report(write_file=False):
+def flush_profiling_report(write_file=False, wall_clock_secs=None):
 	"""Print the accumulated profiling table to stderr, then reset all counters.
 
 	Pass write_file=True to also write the table to profiling_debug.txt alongside the library source.
+	Pass wall_clock_secs to append a wall-clock vs table-total speedup line (useful for batch/parallel runs).
 	Safe to call even when _DEBUG_TIMING is False (no-op).
 	"""
 	if not _DEBUG_TIMING or not _category_totals:
@@ -124,6 +129,10 @@ def flush_profiling_report(write_file=False):
 		+ f'{total_scan:.2f}s'.rjust(sub_w)
 		+ f'{total_types:.2f}s'.rjust(sub_w)
 		+ '  ' + fmt_row(total_scan_vals, total_type_vals))
+	if wall_clock_secs is not None:
+		table_total = total_scan + total_types
+		speedup = table_total / wall_clock_secs if wall_clock_secs > 0 else float('inf')
+		lines.append(f'\n  table total: {table_total:.2f}s  |  wall-clock: {wall_clock_secs:.2f}s  |  parallelization speedup: {speedup:.2f}x')
 	block = '\n'.join(lines) + '\n'
 	if write_file:
 		timing_path = os.path.join(os.path.dirname(__file__), 'profiling_debug.txt')
@@ -1972,3 +1981,63 @@ class MeterIdentifier(object):
 				bucket['_perfect_count'] = bucket.get('_perfect_count', 0) + 1
 
 		return V
+
+	def identify_meter_batch(self, rw_strs,
+		resplit_option=default_resplit_option,
+		resplit_keep_midpoint=default_resplit_keep_midpoint,
+		from_scheme=None):
+		"""
+		Parallel version of identify_meter() for a list of raw strings.
+
+		Spawns up to BATCH_MAX_WORKERS worker processes, one task per verse.
+		Returns a list of Verse objects in the same order as the input.
+		When _DEBUG_TIMING is on, merges per-verse timing dicts back into
+		the main process's _category_totals so flush_profiling_report() works.
+		Falls back to serial processing for small batches below BATCH_PARALLEL_THRESHOLD.
+		"""
+		if len(rw_strs) < BATCH_PARALLEL_THRESHOLD:
+			return [self.identify_meter(s, resplit_option=resplit_option,
+				resplit_keep_midpoint=resplit_keep_midpoint, from_scheme=from_scheme)
+				for s in rw_strs]
+
+		args = [(s, resplit_option, resplit_keep_midpoint, from_scheme, _DEBUG_TIMING) for s in rw_strs]
+		with ProcessPoolExecutor(max_workers=BATCH_MAX_WORKERS) as executor:
+			results = list(executor.map(_identify_meter_worker, args))
+
+		if _DEBUG_TIMING:
+			for V, verse_times, cat in results:
+				bucket = _category_totals.setdefault(cat, {})
+				for k, v in verse_times.items():
+					bucket[k] = bucket.get(k, 0.0) + v
+				bucket['_count'] = bucket.get('_count', 0) + 1
+				if _verse_is_perfect(V):
+					bucket['_perfect_count'] = bucket.get('_perfect_count', 0) + 1
+			return [V for V, _, _ in results]
+
+		return results
+
+
+def _identify_meter_worker(args):
+	"""Module-level worker function (must be picklable). One verse per call."""
+	rw_str, resplit_option, resplit_keep_midpoint, from_scheme, debug_timing = args
+	if debug_timing:
+		import skrutable.utils as _utils
+		_utils._DEBUG_TIMING = True
+	MI = MeterIdentifier()
+	all_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
+		'anuzwuB', 'samavftta', 'upajAti', 'vizamavftta',
+		'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_ardha', 'lev_vizama', 'samavftta_etc')
+	if debug_timing:
+		pre = {k: _section_totals.get(k, 0.0) for k in all_keys}
+	V = MI.identify_meter(
+		rw_str,
+		resplit_option=resplit_option,
+		resplit_keep_midpoint=resplit_keep_midpoint,
+		from_scheme=from_scheme,
+	)
+	if debug_timing:
+		verse_times = {k: _section_totals.get(k, 0.0) - pre[k] for k in all_keys}
+		verse_times['scan'] = sum(verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
+		cat = _meter_label_to_category(V.meter_label)
+		return V, verse_times, cat
+	return V
