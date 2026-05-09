@@ -210,15 +210,15 @@ class Scanner(object):
 			# place scansion_syllable_separator after vowels
 			for letter in line:
 
-				# exception: do treat M and H as explicit syllable coda
-				if letter in ['M', 'H']:
-					if line_syllables[-1] == scansion_syllable_separator:
+				if letter in ('M', 'H'):
+					# M and H are explicit syllable codas: strip any trailing separator, append, re-add separator
+					if line_syllables and line_syllables[-1] == scansion_syllable_separator:
 						line_syllables = line_syllables[:-1]
-
-				line_syllables += letter
-
-				if letter in phonemes.SLP_vowels + ['M', 'H']:
-					line_syllables += scansion_syllable_separator
+					line_syllables += letter + scansion_syllable_separator
+				elif letter in phonemes.SLP_vowels_set:
+					line_syllables += letter + scansion_syllable_separator
+				else:
+					line_syllables += letter
 
 			# e.g. 'ya.dA.ya.dA.hi.Da.rma.sya.glA.ni.rBa.va.ti.BA.ra.ta.'
 			# BUT e.g. 'a.Byu.tTA.na.ma.Da.rma.sya.ta.dA.tmA.na.Msf.jA.mya.ha.m'

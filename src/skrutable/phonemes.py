@@ -33,6 +33,7 @@ For transliteration, 'consonant' means 'needs virāma if non-vowel follows' (no 
 SLP_consonants_for_scansion = SLP_consonants
 """For scansion, 'consonant' means 'contributes to heaviness of previous vowel' (yes M H)"""
 
+SLP_vowels_set = set(SLP_vowels)
 SLP_long_vowels_set = set(SLP_long_vowels)
 SLP_consonants_for_scansion_set = set(SLP_consonants_for_scansion)
 
