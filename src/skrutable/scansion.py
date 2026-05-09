@@ -6,6 +6,9 @@ from skrutable.config import load_config_dict_from_json_file
 from skrutable.utils import timed
 import re
 
+_re_ws_around_newline = re.compile(r'[ \t]*\n[ \t]*')
+_re_multi_newline = re.compile(r'\n+')
+
 # load config variables
 config = load_config_dict_from_json_file()
 scansion_syllable_separator = config["scansion_syllable_separator"] # e.g. " "
@@ -160,8 +163,8 @@ class Scanner(object):
 		# filter out disallowed characters (numbers, irrelevant punctuation, etc.)
 		# pāda separator chars are preserved so they can be converted to \n below
 		pAda_sep_chars = set(c for sep in additional_pAda_separators for c in sep)
-		for c in list(set(cntnts)):
-			if c not in phonemes.character_set[scheme_in] and c not in pAda_sep_chars:
+		for c in set(cntnts):
+			if c not in phonemes.character_set_lookup[scheme_in] and c not in pAda_sep_chars:
 				cntnts = cntnts.replace(c, '')
 
 		# replace all pāda separator strings with newline
@@ -169,8 +172,8 @@ class Scanner(object):
 			cntnts = cntnts.replace(sep, '\n')
 
 		# strip horizontal whitespace around newlines, dedupe, strip leading/trailing
-		cntnts = re.sub(r'[ \t]*\n[ \t]*', '\n', cntnts)
-		cntnts = re.sub(r'\n+', '\n', cntnts)
+		cntnts = _re_ws_around_newline.sub('\n', cntnts)
+		cntnts = _re_multi_newline.sub('\n', cntnts)
 		cntnts = cntnts.strip()
 
 		return cntnts
@@ -207,15 +210,15 @@ class Scanner(object):
 			# place scansion_syllable_separator after vowels
 			for letter in line:
 
-				# exception: do treat M and H as explicit syllable coda
-				if letter in ['M', 'H']:
-					if line_syllables[-1] == scansion_syllable_separator:
+				if letter in ('M', 'H'):
+					# M and H are explicit syllable codas: strip any trailing separator, append, re-add separator
+					if line_syllables and line_syllables[-1] == scansion_syllable_separator:
 						line_syllables = line_syllables[:-1]
-
-				line_syllables += letter
-
-				if letter in phonemes.SLP_vowels + ['M', 'H']:
-					line_syllables += scansion_syllable_separator
+					line_syllables += letter + scansion_syllable_separator
+				elif letter in phonemes.SLP_vowels_set:
+					line_syllables += letter + scansion_syllable_separator
+				else:
+					line_syllables += letter
 
 			# e.g. 'ya.dA.ya.dA.hi.Da.rma.sya.glA.ni.rBa.va.ti.BA.ra.ta.'
 			# BUT e.g. 'a.Byu.tTA.na.ma.Da.rma.sya.ta.dA.tmA.na.Msf.jA.mya.ha.m'
@@ -256,8 +259,6 @@ class Scanner(object):
 
 		for line in text_lines:
 
-			line_weights = ''
-
 			syllables = line.split(scansion_syllable_separator)
 
 			try:
@@ -265,34 +266,37 @@ class Scanner(object):
 					syllables.pop(-1) # in case of final separator(s)
 			except IndexError: pass
 
+			line_weights_chars = []
+
 			for n, syllable in enumerate(syllables):
 
 				if (
 					# heavy by nature
-					syllable[-1] in phonemes.SLP_long_vowels + ['M', 'H']
+					syllable[-1] in phonemes.SLP_long_vowels_set or syllable[-1] in ('M', 'H')
 
 					or
 
 					# heavy by position:
 					# consonant closes syllable or next syllable begins with a cluster
-					syllable[-1] in (phonemes.SLP_consonants_for_scansion)
+					syllable[-1] in phonemes.SLP_consonants_for_scansion_set
 					or
 					n <= (len(syllables)-2)
 					and len(syllables[n+1]) > 1
-					and syllables[n+1][0] in (phonemes.SLP_consonants_for_scansion)
-					and syllables[n+1][1] in (phonemes.SLP_consonants_for_scansion)
+					and syllables[n+1][0] in phonemes.SLP_consonants_for_scansion_set
+					and syllables[n+1][1] in phonemes.SLP_consonants_for_scansion_set
+
 
 					):
 
-					line_weights += 'g'
-					# line_weights += 'g_'
+					line_weights_chars.append('g')
+					# line_weights_chars.append('g_')
 					# insofar as two 'l's can equal one 'g', could use this alternative for better visual alignment
 
 				else:
 
-					line_weights += 'l'
+					line_weights_chars.append('l')
 
-			weights_by_line.append(line_weights)
+			weights_by_line.append(''.join(line_weights_chars))
 
 		syllable_weights = '\n'.join(weights_by_line) # restore newlines
 		return syllable_weights
@@ -325,21 +329,16 @@ class Scanner(object):
 		Returns string of 'gaRa'-trisyllable abbreviation, e.g. 'nml'.
 		"""
 
-		for c in list(set(syl_wts)):
-			if c not in ['l','g']:
+		for c in set(syl_wts):
+			if c not in {'l', 'g'}:
 				return None
 
-		weights_of_curr_gaRa = ''
-		overall_abbreviation = ''
-
-		for single_weight in syl_wts:
-			weights_of_curr_gaRa += single_weight
-			if len(weights_of_curr_gaRa) == 3:
-				overall_abbreviation += meter_patterns.gaRas_by_weights[weights_of_curr_gaRa]
-				weights_of_curr_gaRa = ''
-
+		n = len(syl_wts) // 3 * 3
+		overall_abbreviation = ''.join(
+			meter_patterns.gaRas_by_weights[syl_wts[i:i+3]] for i in range(0, n, 3)
+		)
 		# leftover lights and heavies (l/g)
-		overall_abbreviation += weights_of_curr_gaRa
+		overall_abbreviation += syl_wts[n:]
 
 		return overall_abbreviation
 
