@@ -9,7 +9,7 @@ from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from typing import Optional
 
-BATCH_MAX_WORKERS = 5
+BATCH_MAX_WORKERS = 6
 BATCH_PARALLEL_THRESHOLD = 100
 
 # load config variables
@@ -2006,6 +2006,7 @@ class MeterIdentifier(object):
 
 		if _DEBUG_TIMING:
 			for V, verse_times, cat in results:
+				_section_totals['wiggle_count'] = _section_totals.get('wiggle_count', 0) + verse_times.pop('wiggle_count', 0)
 				bucket = _category_totals.setdefault(cat, {})
 				for k, v in verse_times.items():
 					bucket[k] = bucket.get(k, 0.0) + v
@@ -2023,12 +2024,15 @@ def _identify_meter_worker(args):
 	if debug_timing:
 		import skrutable.utils as _utils
 		_utils._DEBUG_TIMING = True
+		import skrutable.meter_identification as _mi
+		_mi._DEBUG_TIMING = True
 	MI = MeterIdentifier()
 	all_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
 		'anuzwuB', 'samavftta', 'upajAti', 'vizamavftta',
 		'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_ardha', 'lev_vizama', 'samavftta_etc')
 	if debug_timing:
 		pre = {k: _section_totals.get(k, 0.0) for k in all_keys}
+		pre_wiggle = _section_totals.get('wiggle_count', 0)
 	V = MI.identify_meter(
 		rw_str,
 		resplit_option=resplit_option,
@@ -2038,6 +2042,7 @@ def _identify_meter_worker(args):
 	if debug_timing:
 		verse_times = {k: _section_totals.get(k, 0.0) - pre[k] for k in all_keys}
 		verse_times['scan'] = sum(verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
+		verse_times['wiggle_count'] = _section_totals.get('wiggle_count', 0) - pre_wiggle
 		cat = _meter_label_to_category(V.meter_label)
 		return V, verse_times, cat
 	return V
