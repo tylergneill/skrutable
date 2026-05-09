@@ -134,7 +134,7 @@ def flush_profiling_report(write_file=False, wall_clock_secs=None, parallel_work
 		table_total = total_scan + total_types
 		if parallel_workers is not None:
 			speedup = table_total / wall_clock_secs if wall_clock_secs > 0 else float('inf')
-			lines.append(f'\n  table total (CPU across {parallel_workers} workers, inflated by overhead): {table_total:.2f}s  |  wall-clock: {wall_clock_secs:.2f}s  |  parallelization speedup: {speedup:.2f}x')
+			lines.append(f'\n  table total (CPU across {parallel_workers} workers, inflated by overhead): {table_total:.2f}s  |  wall-clock: {wall_clock_secs:.2f}s  |  apparent parallelization speedup: {speedup:.2f}x')
 		else:
 			lines.append(f'\n  table total: {table_total:.2f}s  |  wall-clock: {wall_clock_secs:.2f}s')
 	block = '\n'.join(lines) + '\n'
