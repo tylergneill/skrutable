@@ -9,7 +9,7 @@ from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from typing import Optional
 
-BATCH_MAX_WORKERS = 3
+BATCH_MAX_WORKERS = 5
 BATCH_PARALLEL_THRESHOLD = 100
 
 # load config variables
