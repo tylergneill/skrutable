@@ -111,3 +111,5 @@ to_add = [' ', '\t', '\n']
 for k in character_set.keys():
 	for c in to_add:
 		character_set[k].append(c)
+
+character_set_lookup = {k: set(v) for k, v in character_set.items()}

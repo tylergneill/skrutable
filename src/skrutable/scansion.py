@@ -6,6 +6,9 @@ from skrutable.config import load_config_dict_from_json_file
 from skrutable.utils import timed
 import re
 
+_re_ws_around_newline = re.compile(r'[ \t]*\n[ \t]*')
+_re_multi_newline = re.compile(r'\n+')
+
 # load config variables
 config = load_config_dict_from_json_file()
 scansion_syllable_separator = config["scansion_syllable_separator"] # e.g. " "
@@ -160,8 +163,8 @@ class Scanner(object):
 		# filter out disallowed characters (numbers, irrelevant punctuation, etc.)
 		# pāda separator chars are preserved so they can be converted to \n below
 		pAda_sep_chars = set(c for sep in additional_pAda_separators for c in sep)
-		for c in list(set(cntnts)):
-			if c not in phonemes.character_set[scheme_in] and c not in pAda_sep_chars:
+		for c in set(cntnts):
+			if c not in phonemes.character_set_lookup[scheme_in] and c not in pAda_sep_chars:
 				cntnts = cntnts.replace(c, '')
 
 		# replace all pāda separator strings with newline
@@ -169,8 +172,8 @@ class Scanner(object):
 			cntnts = cntnts.replace(sep, '\n')
 
 		# strip horizontal whitespace around newlines, dedupe, strip leading/trailing
-		cntnts = re.sub(r'[ \t]*\n[ \t]*', '\n', cntnts)
-		cntnts = re.sub(r'\n+', '\n', cntnts)
+		cntnts = _re_ws_around_newline.sub('\n', cntnts)
+		cntnts = _re_multi_newline.sub('\n', cntnts)
 		cntnts = cntnts.strip()
 
 		return cntnts
