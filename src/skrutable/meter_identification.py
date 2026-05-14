@@ -153,6 +153,7 @@ class Diagnostic:
 	imperfect_label_sanskrit: Optional[dict] = None # keyed by pada (1–4 or 'odd'/'even'); Sanskrit only
 	imperfect_label_english: Optional[dict] = None  # keyed by pada (1–4 or 'odd'/'even'); English only
 	problem_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); None if perfect
+	notable_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); green-highlighted "interesting/ok" syllables
 
 	def perfect(self):
 		return self.perfect_id_label is not None
@@ -473,17 +474,23 @@ class VerseTester(object):
 				result = None
 				for weights_pattern, label in meter_patterns.anuzwuB_pAda['odd'].items():
 					if re.match(weights_pattern, odd_pAda_weights):
-						result = Diagnostic(perfect_id_label=label)
+						is_vipula = 'vipulā' in label
+						result = Diagnostic(
+							perfect_id_label=label,
+							notable_syllables={'odd': [4, 5, 6]} if is_vipula else None,
+						)
 						break
 				if result is None:
 					# Odd pāda matched no perfect pattern — try asamīcīna patterns
 					# before falling back to the generic ya-gaṇa violation label.
 					for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['odd'].items():
 						if re.match(weights_pattern, odd_pAda_weights):
+							is_vipula = 'vipulā' in label
 							result = Diagnostic(
 								imperfect_label_sanskrit={'odd': label},
 								imperfect_label_english={'odd': code},
 								problem_syllables={'odd': problem_syls},
+								notable_syllables={'odd': [4, 5, 6]} if is_vipula else None,
 							)
 							break
 				if result is None:
