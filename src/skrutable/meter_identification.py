@@ -153,6 +153,8 @@ class Diagnostic:
 	imperfect_label_sanskrit: Optional[dict] = None # keyed by pada (1–4 or 'odd'/'even'); Sanskrit only
 	imperfect_label_english: Optional[dict] = None  # keyed by pada (1–4 or 'odd'/'even'); English only
 	problem_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); None if perfect
+	notable_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); green-highlighted "interesting/ok" syllables
+	notable_label: Optional[dict] = None            # keyed by pada (1–4 or 'odd'/'even'); label for the notable feature (same string for skt/eng)
 
 	def perfect(self):
 		return self.perfect_id_label is not None
@@ -473,17 +475,28 @@ class VerseTester(object):
 				result = None
 				for weights_pattern, label in meter_patterns.anuzwuB_pAda['odd'].items():
 					if re.match(weights_pattern, odd_pAda_weights):
-						result = Diagnostic(perfect_id_label=label)
+						is_vipula = 'vipulā' in label
+						result = Diagnostic(
+							perfect_id_label=label,
+							notable_syllables={'odd': [4, 5, 6]} if is_vipula else None,
+							notable_label={'odd': label} if is_vipula else None,
+						)
 						break
 				if result is None:
 					# Odd pāda matched no perfect pattern — try asamīcīna patterns
 					# before falling back to the generic ya-gaṇa violation label.
 					for weights_pattern, (label, problem_syls, code) in meter_patterns.anuzwuB_pAda_asamIcIna['odd'].items():
 						if re.match(weights_pattern, odd_pAda_weights):
+							is_vipula = 'vipulā' in label
+							# extract vipulā name from label like "asamīcīnā, ma-vipulāyāḥ pūrvam raḥ syāt"
+							vipula_match = re.search(r'\w+-vipulā', label)
+							vipula_name = vipula_match.group(0) if vipula_match else None
 							result = Diagnostic(
 								imperfect_label_sanskrit={'odd': label},
 								imperfect_label_english={'odd': code},
 								problem_syllables={'odd': problem_syls},
+								notable_syllables={'odd': [4, 5, 6]} if is_vipula else None,
+								notable_label={'odd': vipula_name} if vipula_name else None,
 							)
 							break
 				if result is None:
@@ -528,7 +541,7 @@ class VerseTester(object):
 				Vrs.diagnostic = ardham_eva_result
 				return ardham_eva_result
 			elif ardham_eva_result.imperfect():
-				label_str = '; '.join(f"{k}: {v}" for k, v in ardham_eva_result.imperfect_label_sanskrit.items())
+				label_str = '; '.join(ardham_eva_result.imperfect_label_sanskrit.values())
 				Vrs.meter_label = f"anuṣṭubh (ardham eva: {label_str})"
 				Vrs.identification_score = meter_scores["anuṣṭubh, half, single half imperfect)"]
 				Vrs.is_perfect = False
@@ -553,14 +566,14 @@ class VerseTester(object):
 		# one half imperfect
 
 		elif pAdas_ab_result.imperfect() and pAdas_cd_result.perfect():
-			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
+			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {pAdas_cd_result.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
 		elif pAdas_ab_result.perfect() and pAdas_cd_result.imperfect():
-			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
+			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			Vrs.is_perfect = False
@@ -570,8 +583,8 @@ class VerseTester(object):
 		# both halves imperfect
 
 		elif pAdas_ab_result.imperfect() and pAdas_cd_result.imperfect():
-			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
-			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
+			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
+			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves imperfect)"]
 			Vrs.is_perfect = False
@@ -581,14 +594,14 @@ class VerseTester(object):
 		# one half perfect, one length error
 
 		elif pAdas_ab_result.length_error() and pAdas_cd_result.perfect():
-			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
+			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {ab_str}; 3,4: {pAdas_cd_result.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
 			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_cd_result
 		elif pAdas_ab_result.perfect() and pAdas_cd_result.length_error():
-			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
+			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: ?? {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
 			Vrs.is_perfect = False
@@ -598,16 +611,16 @@ class VerseTester(object):
 		# one half imperfect, one length error
 
 		elif pAdas_ab_result.length_error() and pAdas_cd_result.imperfect():
-			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
-			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
+			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
+			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {ab_str}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
 			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_cd_result
 		elif pAdas_ab_result.imperfect() and pAdas_cd_result.length_error():
-			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
-			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
+			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
+			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: ?? {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
 			Vrs.is_perfect = False
