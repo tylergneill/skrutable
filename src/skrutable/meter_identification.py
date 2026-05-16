@@ -541,7 +541,7 @@ class VerseTester(object):
 				Vrs.diagnostic = ardham_eva_result
 				return ardham_eva_result
 			elif ardham_eva_result.imperfect():
-				label_str = '; '.join(f"{k}: {v}" for k, v in ardham_eva_result.imperfect_label_sanskrit.items())
+				label_str = '; '.join(ardham_eva_result.imperfect_label_sanskrit.values())
 				Vrs.meter_label = f"anuṣṭubh (ardham eva: {label_str})"
 				Vrs.identification_score = meter_scores["anuṣṭubh, half, single half imperfect)"]
 				Vrs.is_perfect = False
@@ -566,14 +566,14 @@ class VerseTester(object):
 		# one half imperfect
 
 		elif pAdas_ab_result.imperfect() and pAdas_cd_result.perfect():
-			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
+			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {pAdas_cd_result.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
 		elif pAdas_ab_result.perfect() and pAdas_cd_result.imperfect():
-			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
+			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			Vrs.is_perfect = False
@@ -583,8 +583,8 @@ class VerseTester(object):
 		# both halves imperfect
 
 		elif pAdas_ab_result.imperfect() and pAdas_cd_result.imperfect():
-			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
-			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
+			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
+			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves imperfect)"]
 			Vrs.is_perfect = False
@@ -594,14 +594,14 @@ class VerseTester(object):
 		# one half perfect, one length error
 
 		elif pAdas_ab_result.length_error() and pAdas_cd_result.perfect():
-			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
+			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {ab_str}; 3,4: {pAdas_cd_result.perfect_id_label})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
 			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_cd_result
 		elif pAdas_ab_result.perfect() and pAdas_cd_result.length_error():
-			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
+			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: ?? {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one length error)"]
 			Vrs.is_perfect = False
@@ -611,16 +611,16 @@ class VerseTester(object):
 		# one half imperfect, one length error
 
 		elif pAdas_ab_result.length_error() and pAdas_cd_result.imperfect():
-			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
-			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
+			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
+			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: ?? {ab_str}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
 			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_cd_result
 		elif pAdas_ab_result.imperfect() and pAdas_cd_result.length_error():
-			ab_str = '; '.join(f"{k}: {v}" for k, v in pAdas_ab_result.imperfect_label_sanskrit.items())
-			cd_str = '; '.join(f"{k}: {v}" for k, v in pAdas_cd_result.imperfect_label_sanskrit.items())
+			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
+			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
 			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: ?? {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half imperfect, one length error)"]
 			Vrs.is_perfect = False
