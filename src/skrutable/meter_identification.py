@@ -958,14 +958,13 @@ class VerseTester(object):
 
 			meter_labels.append(meter_label)
 
-		unique_meter_labels = list(set(meter_labels)) # de-dupe
+		unique_meter_labels = sorted(set(meter_labels)) # de-dupe, stable order
 		combined_meter_labels = ', '.join(unique_meter_labels)
 
 		# Assign score based on how complete and homogeneous the match is.
 		family = meter_patterns.samavftta_family_names[wbp_lens[0]] if wbp_lens[0] < 27 else 'daṇḍaka'
-		unique_meter_labels_copy = unique_meter_labels; unique_meter_labels_copy.sort()
 		if (family == "triṣṭubh" and
-			unique_meter_labels_copy == ['indravajrā [11: ttjgg]', 'upendravajrā [11: jtjgg]']
+			unique_meter_labels == ['indravajrā [11: ttjgg]', 'upendravajrā [11: jtjgg]']
 			):
 			family = '' # clearer not to specify in this case
 
