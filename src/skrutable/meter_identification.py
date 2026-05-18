@@ -986,8 +986,9 @@ class VerseTester(object):
 		# Extra penalties for especially weak upajāti results.
 		if len(wbp_lens) == 2:
 			score -= 1  # two pādas excluded instead of one
-		if all(lbl.startswith('ajñātam') for lbl in meter_labels):
-			score -= 1
+		ajnatam_count = sum(1 for lbl in meter_labels if lbl.startswith('ajñātam'))
+		if ajnatam_count > len(meter_labels) / 2:
+			score -= 3
 
 		imperfect_note = None
 		overall_meter_label = "upajāti %s: %s" % (
