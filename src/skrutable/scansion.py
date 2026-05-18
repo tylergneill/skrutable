@@ -42,6 +42,50 @@ class Verse(object):
 		self.diagnostic = None			# Diagnostic or dict of Diagnostics, set by meter_identification
 		self.alternatives = []			# list of {'meter_label': str, 'diagnostic': ...} for atha-vā ties
 
+	def get_word_initial_syllables(self):
+		"""
+		Returns a list of absolute syllable indices (0-based, across the whole verse)
+		that are word-initial.
+
+		Walks through words in text_SLP and consumes syllables from text_syllabified,
+		accumulating a character buffer until it matches the current word. If the buffer
+		exactly equals the word, the next word starts a fresh syllable and is word-initial.
+		If the buffer overshoots, the excess characters are leftover — the next word's
+		first syllable is already partially claimed, so it is not word-initial.
+		"""
+		words = re.split('[ \n]', self.text_SLP)
+		syllables = self.text_syllabified.split()
+
+		word_initial_syllable_numbers = []
+		syl_idx = 0
+		curr_word_buffer = ''
+		leftover = ''
+
+		for word in words:
+
+			if leftover == '':
+				word_initial_syllable_numbers.append(syl_idx)
+			else:
+				curr_word_buffer += leftover
+				leftover = ''
+
+			while len(curr_word_buffer) < len(word):
+
+				curr_word_buffer += syllables[syl_idx]
+				syl_idx += 1
+				if syl_idx == len(syllables):
+					break
+
+				if len(curr_word_buffer) == len(word):
+					curr_word_buffer = ''
+					break
+				elif len(curr_word_buffer) > len(word):
+					leftover = curr_word_buffer[len(word):]
+					curr_word_buffer = ''
+					break
+
+		return word_initial_syllable_numbers
+
 	def summarize(self,
 		show_weights=True, show_morae=True, show_gaRas=True, # part_A
 		show_alignment=True, # part_B
