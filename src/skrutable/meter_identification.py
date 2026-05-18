@@ -1257,21 +1257,27 @@ class VerseTester(object):
 					if likely_score > Vrs.identification_score:
 						per_pada_sanskrit = {}
 						per_pada_english = {}
-						# Attribute ardha-level mora error to the ardha-final (even) pāda.
+						# Attribute ardha-level mora error to the even pāda key, but label by ardha.
 						ardha_morae_pairs = [
-							(m1, std_ardha[0], 2),
-							(m2, std_ardha[1], 4),
+							(m1, std_ardha[0], 1, ardha1_w, 2),
+							(m2, std_ardha[1], 2, ardha2_w, 4),
 						]
-						for actual, expected, even_pada in ardha_morae_pairs:
-							hyper = actual > expected
-							per_pada_sanskrit[even_pada] = 'adhikamātrā' if hyper else 'ūnamātrā'
-							per_pada_english[even_pada] = f"ardha mora count off from expected {expected}"
+						for actual, expected, ardha_num, ardha_w, even_pada in ardha_morae_pairs:
+							anceps_ok = actual == expected - 1 and ardha_w[-1:] == 'l'
+							if actual != expected and not anceps_ok:
+								hyper = actual > expected
+								per_pada_sanskrit[even_pada] = f"ardha {ardha_num}: " + ('adhikamātrā' if hyper else 'ūnamātrā')
+								per_pada_english[even_pada] = f"ardha {ardha_num} mora count off from expected {expected}"
 						# Build meter_label suffix from the per-ardha directions.
-						sa_vals = list(per_pada_sanskrit.values())
-						if len(set(sa_vals)) == 1:
-							suffix = sa_vals[0]
+						ardha_labels = [
+							(ardha_num, per_pada_sanskrit[even_pada])
+							for ardha_num, even_pada in [(1, 2), (2, 4)]
+							if even_pada in per_pada_sanskrit
+						]
+						if not ardha_labels:
+							suffix = 'asamīcīnā'
 						else:
-							suffix = '; '.join(f"ardha {i+1}: {v}" for i, v in enumerate(sa_vals))
+							suffix = '; '.join(v for _, v in ardha_labels)
 						Vrs.meter_label = jati_label + f" ({suffix})"
 						Vrs.identification_score = likely_score
 						Vrs.is_perfect = False
