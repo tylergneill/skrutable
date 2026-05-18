@@ -6,7 +6,7 @@ from skrutable.meter_identification import VerseTester
 from skrutable.config import load_config_dict_from_json_file
 
 config = load_config_dict_from_json_file()
-disable_non_trizwuB_upajAti = config["disable_non_trizwuB_upajAti"]
+allow_only_trizwuB_and_jagatI_upajAti = config["allow_only_trizwuB_and_jagatI_upajAti"]
 meter_scores = config["meter_scores"] # dict
 
 def test_test_as_anuzwuB():
@@ -197,7 +197,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
 	expected_output = meter_scores["upajāti, imperfect"]
-	if not disable_non_trizwuB_upajAti:
+	if not allow_only_trizwuB_and_jagatI_upajAti:
 		assert output == expected_output
 
 def test_test_as_samavftta_etc_kolAhale():
@@ -631,7 +631,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	VT = VerseTester()
 	VT.count_pAdasamatva(V)
 	VT.evaluate_upajAti(V)
-	if not disable_non_trizwuB_upajAti:
+	if not allow_only_trizwuB_and_jagatI_upajAti:
 		d = V.diagnostic
 		assert d.imperfect()
 		assert d.imperfect_label_english[1] == 'hypometric'

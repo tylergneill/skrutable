@@ -7,7 +7,7 @@
 "additional_pAda_separators" : ["\t", ";", ",", "/", "|", "।"],
 "default_resplit_option" : "resplit_lite",
 "default_resplit_keep_midpoint" : false,
-"disable_non_trizwuB_upajAti" : true,
+"allow_only_trizwuB_and_jagatI_upajAti" : true,
 "meter_scores" :	{
 	"max score" : 9,
 	"anuṣṭubh, full, both halves perfect)" : 9,
@@ -18,7 +18,7 @@
 	"anuṣṭubh, half, single half perfect)" : 9,
 	"anuṣṭubh, half, single half imperfect)": 5,
 	"samavṛtta, perfect" : 9,
-	"samavṛtta, imperfect (3)" : 6,
+	"samavṛtta, imperfect (3)" : 7,
 	"samavṛtta, imperfect (2)" : 5,
 	"samavṛtta, quarter, perfect" : 8,
 	"ardhasamavṛtta, perfect" : 9,

@@ -17,7 +17,7 @@ config = load_config_dict_from_json_file()
 scansion_syllable_separator = config["scansion_syllable_separator"]  # e.g. " "
 default_resplit_option = config["default_resplit_option"]  # e.g. "none"
 default_resplit_keep_midpoint = config["default_resplit_keep_midpoint"]  # e.g. True
-disable_non_trizwuB_upajAti = config["disable_non_trizwuB_upajAti"]  # e.g. True
+allow_only_trizwuB_and_jagatI_upajAti = config["allow_only_trizwuB_and_jagatI_upajAti"]  # e.g. True
 meter_scores = config["meter_scores"]  # dict
 
 _category_totals = {}  # { category: { section: float seconds } }, single source of truth
@@ -410,6 +410,10 @@ class VerseTester(object):
 
 		elif new_score == old_score:
 			# tie, concatenate as old + new
+			if Vrs.meter_label is None:
+				Vrs.meter_label = new_label
+				Vrs.is_perfect = new_is_perfect
+			else:
 				Vrs.meter_label += " atha vā " + new_label
 			# do not change score
 
@@ -908,6 +912,8 @@ class VerseTester(object):
 			# For non-triṣṭubh-jagatī mixes: drop pādas of non-majority length so
 			# the identifier works on the largest consistent set.
 			most_freq_pAda_len = max( set(wbp_lens), key=wbp_lens.count )
+			if allow_only_trizwuB_and_jagatI_upajAti and most_freq_pAda_len not in (11, 12):
+				return
 			to_exclude = []
 			for i, weights in enumerate(wbp):
 				if len(weights) != most_freq_pAda_len:
@@ -928,11 +934,8 @@ class VerseTester(object):
 				unique_sorted_lens != [11, 12]
 			): # not perfect, less than 4 being analyzed
 			potential_score -= 2
-		if 	( potential_score < Vrs.identification_score
-			# not going to beat pre-existing result (e.g. 7 from imperfect samavftta)
-			) or ( disable_non_trizwuB_upajAti
-				and potential_score < meter_scores["upajāti, imperfect"]
-			):
+		if potential_score < Vrs.identification_score:
+			# not going to beat pre-existing result (e.g. 7 from imperfect samavṛtta)
 			return
 
 		# Identify each remaining pāda individually and collect labels.
