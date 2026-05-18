@@ -1278,12 +1278,35 @@ class VerseTester(object):
 							suffix = 'asamīcīnā'
 						else:
 							suffix = '; '.join(v for _, v in ardha_labels)
+						# Attempt gaṇa decomposition on off ardhas to pinpoint the broken gaṇa.
+						g8_morae = 4 if jAti_name == 'āryāgīti' else 2
+						problem_syllables = {}
+						for actual, expected, ardha_num, ardha_w, even_pada in ardha_morae_pairs:
+							anceps_ok = actual == expected - 1 and ardha_w[-1:] == 'l'
+							if actual == expected or anceps_ok:
+								continue
+							g6 = g6_ardha1 if ardha_num == 1 else g6_ardha2
+							ganas = _decompose_into_mAtragaNas(ardha_w, g6, g8_morae)
+							err = _validate_jAti_gaNas(ganas, g6, jAti_name, ardha_num)
+							if err:
+								_, bad_syls = err
+								# map ardha-level offsets to pāda-level
+								pada_a = ardha_num * 2 - 1
+								pada_b = ardha_num * 2
+								pada_a_len = len(w_p[pada_a - 1]) if len(w_p) >= 4 else 0
+								a_syls = [i for i in bad_syls if i < pada_a_len]
+								b_syls = [i - pada_a_len for i in bad_syls if i >= pada_a_len]
+								if a_syls: problem_syllables[pada_a] = a_syls
+								if b_syls: problem_syllables[pada_b] = b_syls
+								if not a_syls and not b_syls:
+									problem_syllables[pada_b] = bad_syls
 						Vrs.meter_label = jati_label + f" ({suffix})"
 						Vrs.identification_score = likely_score
 						Vrs.is_perfect = False
 						Vrs.diagnostic = Diagnostic(
 							imperfect_label_sanskrit=per_pada_sanskrit or None,
 							imperfect_label_english=per_pada_english or None,
+							problem_syllables=problem_syllables or None,
 						)
 				continue
 
