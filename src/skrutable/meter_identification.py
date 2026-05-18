@@ -1252,7 +1252,7 @@ class VerseTester(object):
 				close1 = abs(eff1 - std_ardha[0]) <= 1
 				close2 = abs(eff2 - std_ardha[1]) <= 1
 				if close1 and close2:
-					jati_label = jAti_name + " (%s)" % quarter_label
+					jati_label = jAti_name
 					likely_score = meter_scores["jāti, likely"]
 					if likely_score > Vrs.identification_score:
 						per_pada_sanskrit = {}
@@ -1266,7 +1266,7 @@ class VerseTester(object):
 							anceps_ok = actual == expected - 1 and ardha_w[-1:] == 'l'
 							if actual != expected and not anceps_ok:
 								hyper = actual > expected
-								per_pada_sanskrit[even_pada] = f"ardha {ardha_num}: " + ('adhikamātrā' if hyper else 'ūnamātrā')
+								per_pada_sanskrit[even_pada] = f"ardha {ardha_num}: " + ('adhikamātrā' if hyper else 'ūnamātrā') + f", {expected}→{actual}"
 								per_pada_english[even_pada] = f"ardha {ardha_num} mora count off from expected {expected}"
 						# Build meter_label suffix from the per-ardha directions.
 						ardha_labels = [
@@ -1442,7 +1442,7 @@ class VerseTester(object):
 				parts = [s for s in [ardha1_str, ardha2_str] if s]
 				imperfect_label_sa = '; '.join(parts) if parts else _gana_error_sanskrit((err1 or err2)[0])
 
-				jati_label = jAti_name + " (%s)" % quarter_label
+				jati_label = jAti_name
 				jati_score = meter_scores["jāti, imperfect"]
 				# penalise pāda mora mismatches so that resplit attempts with better
 				# pāda alignment score higher and win arbitration in combine_results
@@ -1466,7 +1466,7 @@ class VerseTester(object):
 				return 1
 
 			# Gaṇa rules passed — check whether pāda-level morae also match.
-			jati_label = jAti_name + " (%s)" % quarter_label
+			jati_label = jAti_name
 			def quarters_ok(actual, expected, weights):
 				if len(actual) < 4 or len(weights) < 4:
 					return False
