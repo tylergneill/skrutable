@@ -1,5 +1,6 @@
 from skrutable.scansion import Scanner as Sc
 from skrutable import meter_patterns
+from skrutable.phonemes import SLP_consonants_for_scansion_set
 from skrutable.config import load_config_dict_from_json_file
 from skrutable.utils import _DEBUG_TIMING, _section_totals, timed
 import re
@@ -12,6 +13,9 @@ from typing import Optional
 
 BATCH_MAX_WORKERS = 5
 BATCH_PARALLEL_THRESHOLD = 100
+
+KRAMA_LABEL_SKT = 'padādau [puraḥsthita-saṃyogena] syāl laghutā [...] guroḥ (Vṛttaratn. 10)'
+KRAMA_LABEL_ENG = 'word-initial pr/br/kr/hr/kṣ can count as simple consonant (Vṛttaratn. 10)'
 
 # load config variables
 config = load_config_dict_from_json_file()
@@ -97,8 +101,7 @@ def flush_profiling_report(write_file=False, wall_clock_secs=None, parallel_work
 
 	n_verses = sum(b.get('_count', 0) for b in _category_totals.values())
 	wiggle_count = _section_totals.get('wiggle_count', 0)
-	ardhatraya_gate_count = _section_totals.get('ardhatraya_gate_count', 0)
-	lines = [f'\n=== {n_verses} verses / {wiggle_count} resplit candidates / {ardhatraya_gate_count} ardhatraya gate hits ===']
+	lines = [f'\n=== {n_verses} verses / {wiggle_count} resplit candidates ===']
 	hdr = ('  ' + 'category'.ljust(col_cat_w)
 		+ 'perf'.rjust(count_w) + 'impf'.rjust(count_w)
 		+ 'total'.rjust(sub_w) + 'scan∑'.rjust(sub_w) + 'types∑'.rjust(sub_w)
@@ -761,6 +764,7 @@ class VerseTester(object):
 				Vrs.diagnostic = _diag
 			return
 
+		krama_notable = {}
 		for pada_num, w in enumerate(wbp[:4], start=1):
 			if w == canonical:
 				pass  # no entry → perfect for this pada
@@ -781,12 +785,20 @@ class VerseTester(object):
 					problem_syllables[pada_num] = bad
 					per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
 					per_pada_english[pada_num] = f'does not match expected gaṇa pattern {canonical_pattern}'
+					self.set_problem_diagnostic(Vrs, pada_num, w, canonical, bad,
+                                                problem_syllables, per_pada_sanskrit, per_pada_english,
+                                                canonical_pattern, krama_notable)
 
 		has_any_error = bool(problem_syllables) or bool(per_pada_english)
 
 		if imperfect_note is None and not has_any_error:
-			# all four pādas match perfectly
-			diagnostic = Diagnostic(perfect_id_label=meter_label)
+			# all four pādas match perfectly (possibly with kramasaṃyoga licence)
+			diagnostic = Diagnostic(
+				perfect_id_label=meter_label,
+				notable_syllables=krama_notable or None,
+				notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
+				notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
+			)
 		elif imperfect_note is None:
 			# correct pāda count but some pādas have length or pattern errors
 			diagnostic = Diagnostic(
@@ -794,16 +806,34 @@ class VerseTester(object):
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
+				notable_syllables=krama_notable or None,
+				notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
+				notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
 			)
 		else:
 			# fewer than 4 matching pādas; append per-pāda notes to the meter_label
 			length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items()]
 			if length_notes:
 				meter_label += " (%s)" % "; ".join(length_notes)
+			if krama_notable:
+				krama_explained_count = len(krama_notable)
+				new_samatva = self.pAdasamatva_count + krama_explained_count
+				if new_samatva == 4:
+					imperfect_note = None
+					meter_label = meter_label.split(' (')[0]
+					score = meter_scores["samavṛtta, perfect"]
+				elif new_samatva == 3:
+					new_note = "? 3 eva pādāḥ yuktāḥ"
+					meter_label = meter_label.split(' (')[0] + f" ({new_note})"
+					score = meter_scores["samavṛtta, imperfect (3)"]
 			diagnostic = Diagnostic(
+				perfect_id_label=meter_label if imperfect_note is None else None,
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
+				notable_syllables=krama_notable or None,
+				notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
+				notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
 			)
 
 		# score arbitration: may tie with pre-existing result (e.g., upajāti)
@@ -1674,6 +1704,26 @@ class VerseTester(object):
 			return krama_candidates, remaining_bad
 		return None, bad_indices
 
+	def set_problem_diagnostic(self, Vrs, pada_num, pada_weights, canonical, bad_indices,
+	                           problem_syllables, per_pada_sanskrit, per_pada_english,
+	                           canonical_pattern, krama_notable):
+		"""
+		Replaces the bare problem_syllables[pada_num] = bad assignment for same-length pādas.
+		Calls check_kramasaMyoga; if the bad positions are fully explained by kramasaṃyoga,
+		records them in krama_notable instead of problem_syllables.
+		"""
+		notable, remaining_bad = self.check_kramasaMyoga(
+			Vrs, pada_num, pada_weights,
+			{j: canonical[j] for j in bad_indices},
+			bad_indices,
+		)
+		if notable is not None and not remaining_bad:
+			krama_notable[pada_num] = notable
+		else:
+			problem_syllables[pada_num] = bad_indices
+			per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
+			per_pada_english[pada_num] = f'does not match expected gaṇa pattern {canonical_pattern}'
+
 	def attempt_identification(self, Vrs):
 		"""
 		Receives static, populated Verse object on which to attempt identification.
@@ -2240,8 +2290,6 @@ class MeterIdentifier(object):
 				if self.Verses_found else 0
 			)
 			_ardhatraya_gate = best_4pAda_score < meter_scores["max score"] and 44 <= total_syll_count <= 52
-			if _DEBUG_TIMING:
-				_section_totals['ardhatraya_gate_count'] = _section_totals.get('ardhatraya_gate_count', 0) + (1 if _ardhatraya_gate else 0)
 			if _ardhatraya_gate:
 				ardhatraya_found = timed('ardhatraya')(self.wiggle_identify_ardhatraya)(
 					V, syllable_list, VT,
