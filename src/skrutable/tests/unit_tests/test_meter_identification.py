@@ -499,7 +499,7 @@ def test_anuzwuB_hypermetric_ab_imperfect_cd():
 	MI = MeterIdentifier()
 	input_string = "ikṣvākuvaśaprabhavo rāmo nāma janaiḥ śrutataḥ / niyatamā mahāvīryo dyutimān dhṛtimān vaśī //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: ?? adhikākṣarā; 3,4: asamīcīnā, na prathamāt snau)"
+	expected_output = "anuṣṭubh (1,2: ?? even: adhikākṣarā; 3,4: odd: asamīcīnā, na prathamāt snau)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 4
 
@@ -507,7 +507,7 @@ def test_anuzwuB_hypermetric_ab_perfect_cd():
 	MI = MeterIdentifier()
 	input_string = "śrutvā tūśasano vākyaṃ sa āśramāvasatho janaḥ / niṣkrānto viṣayāt tasya sthānaṃ cakre 'tha bāhyataḥ //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: ?? adhikākṣarā; 3,4: pathyā)"
+	expected_output = "anuṣṭubh (1,2: ?? even: adhikākṣarā; 3,4: pathyā)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 6
 
@@ -515,7 +515,7 @@ def test_anuzwuB_perfect_ab_hypermetric_cd():
 	MI = MeterIdentifier()
 	input_string = "pinākāstraṃ ca dayitaṃ śuṣkārdre aśanī tathā / daṇḍāstram atha paiśācaṃ krauñcam astraṃ tathāiva ca //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: na-vipulā; 3,4: ?? adhikākṣarā)"
+	expected_output = "anuṣṭubh (1,2: na-vipulā; 3,4: ?? even: adhikākṣarā)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 6
 
@@ -523,7 +523,7 @@ def test_anuzwuB_hypometric_ab_hypermetric_cd():
 	MI = MeterIdentifier()
 	input_string = "pinākāstra ca dayitaṃ śuṣkārdre aśanī tathā / daṇḍāstram atha paiśācaṃ krauñcam astraṃ tathāiva ca //"
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
-	expected_output = "anuṣṭubh (1,2: asamīcīnā, na-vipulāyāḥ pūrvam guruḥ syāt; 3,4: ?? adhikākṣarā)"
+	expected_output = "anuṣṭubh (1,2: odd: asamīcīnā, na-vipulāyāḥ pūrvam guruḥ syāt; 3,4: ?? even: adhikākṣarā)"
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 4
 
