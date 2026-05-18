@@ -1,5 +1,6 @@
 from skrutable.scansion import Scanner as Sc
 from skrutable import meter_patterns
+from skrutable.phonemes import SLP_consonants_for_scansion_set
 from skrutable.config import load_config_dict_from_json_file
 from skrutable.utils import _DEBUG_TIMING, _section_totals, timed
 import re
@@ -11,6 +12,9 @@ from typing import Optional
 
 BATCH_MAX_WORKERS = 5
 BATCH_PARALLEL_THRESHOLD = 100
+
+KRAMA_LABEL_SKT = 'padādau [puraḥsthita-saṃyogena] syāl laghutā [...] guroḥ (Vṛttaratn. 10)'
+KRAMA_LABEL_ENG = 'word-initial pr/br/kr/hr/kṣ can count as simple consonant (Vṛttaratn. 10)'
 
 # load config variables
 config = load_config_dict_from_json_file()
@@ -154,7 +158,8 @@ class Diagnostic:
 	imperfect_label_english: Optional[dict] = None  # keyed by pada (1–4 or 'odd'/'even'); English only
 	problem_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); None if perfect
 	notable_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); green-highlighted "interesting/ok" syllables
-	notable_label: Optional[dict] = None            # keyed by pada (1–4 or 'odd'/'even'); label for the notable feature (same string for skt/eng)
+	notable_label_sanskrit: Optional[dict] = None  # keyed by pada (1–4 or 'odd'/'even'); Sanskrit label for the notable feature
+	notable_label_english: Optional[dict] = None   # keyed by pada (1–4 or 'odd'/'even'); English label for the notable feature
 
 	def perfect(self):
 		return self.perfect_id_label is not None
@@ -479,7 +484,8 @@ class VerseTester(object):
 						result = Diagnostic(
 							perfect_id_label=label,
 							notable_syllables={'odd': [4, 5, 6]} if is_vipula else None,
-							notable_label={'odd': label} if is_vipula else None,
+							notable_label_sanskrit={'odd': label} if is_vipula else None,
+							notable_label_english={'odd': label} if is_vipula else None,
 						)
 						break
 				if result is None:
@@ -496,7 +502,8 @@ class VerseTester(object):
 								imperfect_label_english={'odd': code},
 								problem_syllables={'odd': problem_syls},
 								notable_syllables={'odd': [4, 5, 6]} if is_vipula else None,
-								notable_label={'odd': vipula_name} if vipula_name else None,
+								notable_label_sanskrit={'odd': vipula_name} if vipula_name else None,
+								notable_label_english={'odd': vipula_name} if vipula_name else None,
 							)
 							break
 				if result is None:
