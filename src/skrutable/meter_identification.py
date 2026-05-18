@@ -1631,6 +1631,49 @@ class VerseTester(object):
 
 		return 0
 
+	_KRAMA_CLUSTERS = {'pr', 'br', 'kr', 'hr', 'kz'}
+
+	def check_kramasaMyoga(self, Vrs, pada_num, pada_weights, expected_at_indices, bad_indices):
+		"""
+		Checks whether bad_indices on a pāda are explained by kramasaṃyoga licence:
+		a heavy syllable before a word-initial pr/br/kr/hr/kṣ cluster may scan light.
+
+		expected_at_indices: dict {j: 'l'|'g'} — expected weight at each bad position.
+		Returns (notable_indices, remaining_bad). If no candidates, returns (None, bad_indices).
+		"""
+		pada_line = Vrs.text_syllabified.split('\n')[pada_num - 1]
+		syllables = [s for s in pada_line.split(scansion_syllable_separator) if s]
+
+		pada_offset = sum(
+			len([s for s in Vrs.text_syllabified.split('\n')[i].split(scansion_syllable_separator) if s])
+			for i in range(pada_num - 1)
+		)
+
+		word_initial_verse = Vrs.get_word_initial_syllables()
+		word_initial = {i - pada_offset for i in word_initial_verse
+		                if pada_offset <= i < pada_offset + len(syllables)}
+
+		krama_candidates = []
+		for j in bad_indices:
+			if pada_weights[j] == 'g' and expected_at_indices.get(j) == 'l' and j + 1 < len(syllables):
+				next_syl = syllables[j + 1]
+				if (
+					(j + 1) in word_initial
+					and len(next_syl) >= 2
+					and next_syl[0] in SLP_consonants_for_scansion_set
+					and next_syl[1] in SLP_consonants_for_scansion_set
+					and next_syl[:2] in self._KRAMA_CLUSTERS
+				):
+					krama_candidates.append(j)
+
+		if not krama_candidates:
+			return None, bad_indices
+
+		remaining_bad = [j for j in bad_indices if j not in krama_candidates]
+		if all(expected_at_indices.get(j) == 'l' for j in krama_candidates):
+			return krama_candidates, remaining_bad
+		return None, bad_indices
+
 	def attempt_identification(self, Vrs):
 		"""
 		Receives static, populated Verse object on which to attempt identification.
