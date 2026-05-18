@@ -1277,15 +1277,33 @@ class VerseTester(object):
 							suffix = 'asamīcīnā'
 						else:
 							suffix = '; '.join(v for _, v in ardha_labels)
-						# Attempt gaṇa decomposition on off ardhas to pinpoint the broken gaṇa.
+						# Decompose all ardhas for gaṇa abbreviations and problem syllable pinpointing.
 						g8_morae = 4 if jAti_name == 'āryāgīti' else 2
+						ardha1_ganas = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae)
+						ardha2_ganas = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae)
+						names = meter_patterns.mAtragaNa_names
+						def _ganas_to_abbrevs(ganas):
+							return ' '.join(names.get(g, g) for g in ganas)
+						def _split_ardha_ganas(ganas, pada_a_syl_count):
+							cur = 0
+							for i, g in enumerate(ganas):
+								if cur >= pada_a_syl_count:
+									return _ganas_to_abbrevs(ganas[:i]), _ganas_to_abbrevs(ganas[i:])
+								cur += len(g)
+							return _ganas_to_abbrevs(ganas), ''
+						if len(w_p) >= 4:
+							p1a, p1b = _split_ardha_ganas(ardha1_ganas, len(w_p[0]))
+							p2a, p2b = _split_ardha_ganas(ardha2_ganas, len(w_p[2]))
+							mAtragaNa_abbrevs = '\n'.join([p1a, p1b, p2a, p2b])
+						else:
+							mAtragaNa_abbrevs = '\n'.join([_ganas_to_abbrevs(ardha1_ganas), _ganas_to_abbrevs(ardha2_ganas)])
 						problem_syllables = {}
 						for actual, expected, ardha_num, ardha_w, even_pada in ardha_morae_pairs:
 							anceps_ok = actual == expected - 1 and ardha_w[-1:] == 'l'
 							if actual == expected or anceps_ok:
 								continue
 							g6 = g6_ardha1 if ardha_num == 1 else g6_ardha2
-							ganas = _decompose_into_mAtragaNas(ardha_w, g6, g8_morae)
+							ganas = ardha1_ganas if ardha_num == 1 else ardha2_ganas
 							err = _validate_jAti_gaNas(ganas, g6, jAti_name, ardha_num)
 							if err:
 								_, bad_syls = err
@@ -1302,6 +1320,7 @@ class VerseTester(object):
 						Vrs.meter_label = jati_label + f" ({suffix})"
 						Vrs.identification_score = likely_score
 						Vrs.is_perfect = False
+						Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
 						Vrs.diagnostic = Diagnostic(
 							imperfect_label_sanskrit=per_pada_sanskrit or None,
 							imperfect_label_english=per_pada_english or None,
