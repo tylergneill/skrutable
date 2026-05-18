@@ -655,6 +655,53 @@ arthaṃ kiṃ tena nāpnoti // 329"""
 	assert 'tṛtīyagaṇaḥ na caturmātraḥ' in result.meter_label
 	assert result.identification_score == meter_scores["jāti, imperfect"] - 1  # pāda 3 mora penalty
 
+def test_samavftta_kramasamyoga_diagnostic():
+	# pāda 1: syllable 6 scans g (before word-initial hr- cluster "hrī")
+	# kramasaṃyoga licence allows it to scan l, restoring śārdūlavikrīḍita perfectly
+	MI = MeterIdentifier()
+	input_string = """nidravyo hriyameti hrīparigataḥ prabhraśyate tejasaḥ
+nistejaḥ paribhūyate paribhavānnirvedamāgacchati
+nirviṇṇaḥ śucameti śokavivaśo buddhyāḥ paribhraśyate
+nirbuddhiḥ kṣayametyaho nidhanatā sarvāpadāmāspadam"""
+	result = MI.identify_meter(input_string, from_scheme='IAST')
+	assert "śārdūlavikrīḍita" in result.meter_label
+	assert "eva pādāḥ" not in result.meter_label
+	d = result.diagnostic
+	assert d.perfect()
+	assert d.problem_syllables is None
+	assert d.notable_syllables == {1: [6]}
+	assert 'Vṛttaratn. 10' in d.notable_label_sanskrit[1]
+	assert 'Vṛttaratn. 10' in d.notable_label_english[1]
+
+def test_ardhasamavftta_kramasamyoga_diagnostic():
+	# pāda 2 ("pruṣpaśayyām"): syllable 8 scans g before word-initial "pr-" cluster
+	# kramasaṃyoga rescues it; puṣpitāgrā identified as perfect with notable_syllables
+	MI = MeterIdentifier()
+	input_string = "acakamata sapallavāṃ dharitrīṃ mṛdusurabhiṃ virahayya pruṣpaśayyām / bhṛśamaratimavāpya tatra cāsyās tava sukhaśītamupaitumaṅkamicchā //"
+	result = MI.identify_meter(input_string, from_scheme='IAST')
+	assert 'puṣpitāgrā' in result.meter_label
+	d = result.diagnostic
+	assert d.perfect()
+	assert d.problem_syllables is None
+	assert d.notable_syllables is not None
+	assert 'Vṛttaratn. 10' in d.notable_label_sanskrit[2]
+	assert 'Vṛttaratn. 10' in d.notable_label_english[2]
+
+def test_anuzwuB_kramasamyoga_even_pada():
+	# pāda 2 ("guṇāḍhyo nāma brāhmaṇaḥ"): position 4 ("ma") scans g by position before
+	# word-initial "brā" (br- cluster) — kramasaṃyoga rescues it so the ardha scores as perfect
+	MI = MeterIdentifier()
+	input_string = "gaṇāvatāro jāto 'yaṃ guṇāḍhyo nāma brāhmaṇaḥ / iti tatkālam udabhūd antarikṣāt sarasvatī //"
+	result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='resplit_lite', resplit_keep_midpoint=True)
+	assert 'anuṣṭubh' in result.meter_label
+	assert result.identification_score == meter_scores["anuṣṭubh, full, both halves perfect)"]
+	d = result.diagnostic
+	assert isinstance(d, dict)
+	assert d['ab'].krama_rescued()
+	assert d['ab'].problem_syllables is None
+	assert d['ab'].notable_syllables == {'even': [4]}
+	assert 'Vṛttaratn. 10' in d['ab'].notable_label_sanskrit['even']
+
 def test_ardhatraya_anuzwuB_none():
 	MI = MeterIdentifier()
 	input_string = """yadA yadA hi Darmasya

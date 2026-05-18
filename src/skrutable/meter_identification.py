@@ -170,6 +170,12 @@ class Diagnostic:
 	def perfect(self):
 		return self.perfect_id_label is not None
 
+	def krama_rescued(self):
+		"""True if all original problems were explained by kramasaṃyoga (no remaining problems, no imperfect label)."""
+		return (self.perfect_id_label is None
+		        and self.imperfect_label_sanskrit is None
+		        and self.notable_syllables is not None)
+
 	def length_error(self):
 		return (
 			self.imperfect_label_english is not None and
@@ -549,6 +555,75 @@ class VerseTester(object):
 		self._anuzwuB_half_cache[cache_key] = result
 		return result
 
+	def _apply_krama_to_anuzwuB_half(self, result, Vrs, odd_pada_num, even_pada_num):
+		"""
+		Post-cache krama rescue for one anuṣṭubh ardha.
+		For each half-key with problem_syllables, attempts check_kramasaMyoga using
+		the known expected weights for that position. If krama fully explains the
+		problems, returns a new Diagnostic with those syllables moved to notable_syllables.
+		"""
+		if result is None or not result.problem_syllables:
+			return result
+
+		new_problem = dict(result.problem_syllables)
+		new_notable = dict(result.notable_syllables) if result.notable_syllables else {}
+		new_nls = dict(result.notable_label_sanskrit) if result.notable_label_sanskrit else {}
+		new_nle = dict(result.notable_label_english) if result.notable_label_english else {}
+		new_ils = dict(result.imperfect_label_sanskrit) if result.imperfect_label_sanskrit else {}
+		new_ile = dict(result.imperfect_label_english) if result.imperfect_label_english else {}
+		changed = False
+
+		wbp = Vrs.syllable_weights.split('\n')
+		four_line = len(wbp) >= 4
+		for half_key, pada_num, expected_at_indices in [
+			('even', even_pada_num, {4: 'l', 5: 'g', 6: 'l'}),
+			('odd',  odd_pada_num,  {4: 'l', 5: 'l', 6: 'g'}),
+		]:
+			prob = new_problem.get(half_key)
+			if not prob:
+				continue
+			if four_line:
+				line_num = pada_num - 1
+				syl_offset = 0
+			else:
+				line_num = (pada_num - 1) // 2
+				syl_offset = 0 if half_key == 'odd' else 8
+			full_line_weights = wbp[line_num]
+			pada_weights = full_line_weights[syl_offset:syl_offset + 8]
+			if len(pada_weights) != 8:
+				continue
+			# Filter to positions that are actually wrong given real weights
+			actual_bad = [j for j in prob if j < len(pada_weights) and
+			              pada_weights[j] != expected_at_indices.get(j, pada_weights[j])]
+			if not actual_bad:
+				continue
+			expected = {j: expected_at_indices[j] for j in actual_bad}
+			notable, remaining = self.check_kramasaMyoga(
+				Vrs, pada_num, pada_weights, expected, actual_bad,
+				line_num=line_num, syl_offset=syl_offset,
+			)
+			if notable is not None and not remaining:
+				del new_problem[half_key]
+				new_notable[half_key] = notable
+				new_nls[half_key] = KRAMA_LABEL_SKT
+				new_nle[half_key] = KRAMA_LABEL_ENG
+				new_ils.pop(half_key, None)
+				new_ile.pop(half_key, None)
+				changed = True
+
+		if not changed:
+			return result
+
+		return Diagnostic(
+			perfect_id_label=result.perfect_id_label if not new_ils else None,
+			imperfect_label_sanskrit=new_ils or None,
+			imperfect_label_english=new_ile or None,
+			problem_syllables=new_problem or None,
+			notable_syllables=new_notable or None,
+			notable_label_sanskrit=new_nls or None,
+			notable_label_english=new_nle or None,
+		)
+
 	def test_as_anuzwuB(self, Vrs):
 	# >> def test_as_zloka(self, Vrs):
 		"""
@@ -567,7 +642,9 @@ class VerseTester(object):
 
 		# test each half independently
 		pAdas_ab_result = self.test_as_anuzwuB_half(w_p[0], w_p[1])
+		pAdas_ab_result = self._apply_krama_to_anuzwuB_half(pAdas_ab_result, Vrs, odd_pada_num=1, even_pada_num=2)
 		pAdas_cd_result = self.test_as_anuzwuB_half(w_p[2], w_p[3])
+		pAdas_cd_result = self._apply_krama_to_anuzwuB_half(pAdas_cd_result, Vrs, odd_pada_num=3, even_pada_num=4)
 
 		# if per-pāda split produced nothing, retry treating each ardha as a single unit
 		if pAdas_ab_result is None and pAdas_cd_result is None:
@@ -594,10 +671,15 @@ class VerseTester(object):
 		if pAdas_ab_result is None or pAdas_cd_result is None:
 			return None
 
-		# both halves perfect
+		def _half_label(r):
+			if r.perfect():
+				return r.perfect_id_label
+			return 'pathyā [kramasaṃyoga]'
 
-		if pAdas_ab_result.perfect() and pAdas_cd_result.perfect():
-			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {pAdas_cd_result.perfect_id_label})"
+		# both halves perfect (or krama-rescued)
+
+		if (pAdas_ab_result.perfect() or pAdas_ab_result.krama_rescued()) and (pAdas_cd_result.perfect() or pAdas_cd_result.krama_rescued()):
+			Vrs.meter_label = f"anuṣṭubh (1,2: {_half_label(pAdas_ab_result)}; 3,4: {_half_label(pAdas_cd_result)})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves perfect)"]
 			Vrs.is_perfect = True
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
@@ -605,16 +687,16 @@ class VerseTester(object):
 
 		# one half imperfect
 
-		elif pAdas_ab_result.imperfect() and pAdas_cd_result.perfect():
+		elif pAdas_ab_result.imperfect() and (pAdas_cd_result.perfect() or pAdas_cd_result.krama_rescued()):
 			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
-			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {pAdas_cd_result.perfect_id_label})"
+			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {_half_label(pAdas_cd_result)})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
-		elif pAdas_ab_result.perfect() and pAdas_cd_result.imperfect():
+		elif (pAdas_ab_result.perfect() or pAdas_ab_result.krama_rescued()) and pAdas_cd_result.imperfect():
 			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
-			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {cd_str})"
+			Vrs.meter_label = f"anuṣṭubh (1,2: {_half_label(pAdas_ab_result)}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
@@ -1721,25 +1803,36 @@ class VerseTester(object):
 
 	_KRAMA_CLUSTERS = {'pr', 'br', 'kr', 'hr', 'kz'}
 
-	def check_kramasaMyoga(self, Vrs, pada_num, pada_weights, expected_at_indices, bad_indices):
+	def check_kramasaMyoga(self, Vrs, pada_num, pada_weights, expected_at_indices, bad_indices,
+	                       line_num=None, syl_offset=0):
 		"""
 		Checks whether bad_indices on a pāda are explained by kramasaṃyoga licence:
 		a heavy syllable before a word-initial pr/br/kr/hr/kṣ cluster may scan light.
 
 		expected_at_indices: dict {j: 'l'|'g'} — expected weight at each bad position.
 		Returns (notable_indices, remaining_bad). If no candidates, returns (None, bad_indices).
-		"""
-		pada_line = Vrs.text_syllabified.split('\n')[pada_num - 1]
-		syllables = [s for s in pada_line.split(scansion_syllable_separator) if s]
 
-		pada_offset = sum(
-			len([s for s in Vrs.text_syllabified.split('\n')[i].split(scansion_syllable_separator) if s])
-			for i in range(pada_num - 1)
+		line_num: which line of text_syllabified to use (default: pada_num - 1).
+		syl_offset: syllable offset within that line where this pāda starts (default: 0).
+		  Used by anuṣṭubh where two pādas share one text line.
+		"""
+		if line_num is None:
+			line_num = pada_num - 1
+		pada_line = Vrs.text_syllabified.split('\n')[line_num]
+		all_line_syllables = [s for s in pada_line.split(scansion_syllable_separator) if s]
+		syllables = all_line_syllables[syl_offset:syl_offset + len(pada_weights)]
+
+		# absolute offset of this pāda's first syllable within the whole verse
+		verse_lines = Vrs.text_syllabified.split('\n')
+		line_abs_offset = sum(
+			len([s for s in verse_lines[i].split(scansion_syllable_separator) if s])
+			for i in range(line_num)
 		)
+		pada_abs_offset = line_abs_offset + syl_offset
 
 		word_initial_verse = Vrs.get_word_initial_syllables()
-		word_initial = {i - pada_offset for i in word_initial_verse
-		                if pada_offset <= i < pada_offset + len(syllables)}
+		word_initial = {i - pada_abs_offset for i in word_initial_verse
+		                if pada_abs_offset <= i < pada_abs_offset + len(syllables)}
 
 		krama_candidates = []
 		for j in bad_indices:
