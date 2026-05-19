@@ -968,7 +968,7 @@ class VerseTester(object):
 			family = '' # clearer not to specify in this case
 
 		if unique_sorted_lens == [11, 12]:
-			family = "triṣṭubh-jagatī-saṃkara?" # overwrite
+			family = "triṣṭubh + jagatī" # overwrite
 
 		score = meter_scores["upajāti, perfect"]
 		if 11 not in wbp_lens:
@@ -1895,7 +1895,7 @@ class MeterIdentifier(object):
 								best_total_dist = total_dist
 								best_entry = (_stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_gaRa, _stash_morae)
 					if best_entry is not None:
-						ardha_score = meter_scores["ardhasamavṛtta, imperfect"] - (best_total_dist - 1)
+						ardha_score = meter_scores["ardhasamavṛtta, imperfect"] - (best_total_dist - meter_scores["levenshtein distance penalty"])
 						if ardha_score > best_current_score:
 							best_stash_wbp, best_label, best_odd_can, best_even_can, best_stash_tsyl, best_stash_gaRa, best_stash_morae = best_entry
 							problem_syllables = {}
@@ -1961,7 +1961,7 @@ class MeterIdentifier(object):
 								best_total_dist = total_dist
 								best_entry = (_wbp, _label, _canonicals, _tsyl, _gaRa, _morae)
 					if best_entry is not None:
-						vizama_score = meter_scores["viṣamavṛtta, imperfect"] - (best_total_dist - 1)
+						vizama_score = meter_scores["viṣamavṛtta, imperfect"] - (best_total_dist - meter_scores["levenshtein distance penalty"])
 						if vizama_score > best_current_score:
 							best_wbp, best_label, best_canonicals, best_tsyl, best_gaRa, best_morae = best_entry
 							problem_syllables = {}
