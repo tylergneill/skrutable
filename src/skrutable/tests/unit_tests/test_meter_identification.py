@@ -178,7 +178,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	other_output = V.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(other_output) + '\n\n')
-	expected_output = meter_scores["upajāti, perfect"]
+	expected_output = meter_scores["upajāti, perfect"] - meter_scores["upajāti, penalty, per ajñātam pāda"]
 	assert output == expected_output
 
 def test_evaluate_upajAti_kolAha():
@@ -196,7 +196,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 	other_output = V.meter_label
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = meter_scores["upajāti, imperfect"]
+	expected_output = meter_scores["upajāti, perfect"] - meter_scores["upajāti, penalty, per missing pāda"]
 	if not allow_only_trizwuB_and_jagatI_upajAti:
 		assert output == expected_output
 
@@ -217,7 +217,7 @@ mOnaM viDeyaM satataM suDIBiH"""
 
 def test_test_as_samavftta_etc_sampUrRakumBo_3():
 	S = Scanner()
-	# note "kumbha" instead of "kumbho", makes "upajāti, perfect" instead of indravajrā
+	# note "kumbha" instead of "kumbho": pāda 1 is tBjgg (ajñātam), 3 of 4 agree → samavṛtta imperfect wins
 	input_string = """sampūrṇakumbha na karoti śabdam
 ardho ghaṭo ghoṣamupaiti nūnam
 vidvānkulīno na karoti garvaṃ
@@ -228,7 +228,7 @@ jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = meter_scores["upajāti, perfect"]
+	expected_output = meter_scores["samavṛtta, imperfect (3)"]
 	assert output == expected_output
 
 def test_test_as_samavftta_etc_kudeSam_3():
@@ -527,8 +527,9 @@ def test_anuzwuB_hypometric_ab_hypermetric_cd():
 	assert object_result.meter_label == expected_output
 	assert object_result.identification_score == 4
 
-def test_vaMSasTa_imperfect_not_upajAti():
+def test_vaMSasTa_imperfect_upajAti_samkara():
 	MI = MeterIdentifier()
+	# pāda 3 is 11 syllables (upendravajrā), rest are 12 (vaṃśastha) → triṣṭubh-jagatī-saṃkara
 	input_string = """tatas tu nīlo vijayī mahābalaḥ; praśasyamānaḥ svakṛtena karmaṇā / sametya rāmeṇa salakṣmaṇena; prahṛṣṭarūpas tu babhūva yūthapaḥ // 6.046.051""" # R
 	# print()
 	object_result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='none')
@@ -536,7 +537,7 @@ def test_vaMSasTa_imperfect_not_upajAti():
 	truncated_output = object_result.meter_label[:9]
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
-	expected_output = "vaṃśastha"
+	expected_output = "upajāti t"
 	assert truncated_output == expected_output
 
 def test_identify_meter_jAti_resplit_lite():

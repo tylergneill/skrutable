@@ -707,9 +707,8 @@ class VerseTester(object):
 			meter_label += " (%s)" % imperfect_note
 			score = meter_scores["samavṛtta, quarter, perfect"]
 
-		# experimental penalty, can later incorporate into config meter_scores
 		if "ajñātasamavṛtta" in meter_label:
-			score -= 2
+			score -= meter_scores["samavṛtta, penalty, ajñātasamavṛtta"]
 
 		# Build per-pāda diagnostic: length errors (Levenshtein), then pattern errors.
 		# In perfect_only mode, skip Levenshtein — just register the result and return.
@@ -926,14 +925,11 @@ class VerseTester(object):
 
 		# Calculate maximum achievable score before doing any pattern work,
 		# and bail early if we can't beat the current best.
+		missing_pAdas = max(0, 4 - len(wbp_lens)) if unique_sorted_lens != [11, 12] else 0
 		potential_score = meter_scores["upajāti, perfect"]
-		if 11 not in wbp_lens: # no triṣṭubh (could be mixed with jagatī)
-			potential_score -= 1
-		if 	(
-				len(wbp_lens) != 4 and
-				unique_sorted_lens != [11, 12]
-			): # not perfect, less than 4 being analyzed
-			potential_score -= 2
+		if 11 not in wbp_lens: # no triṣṭubh (jagatī or jagatī-dominant mix)
+			potential_score -= meter_scores["upajāti, penalty, jagati"]
+		potential_score -= missing_pAdas * meter_scores["upajāti, penalty, per missing pāda"]
 		if potential_score < Vrs.identification_score:
 			# not going to beat pre-existing result (e.g. 7 from imperfect samavṛtta)
 			return
@@ -971,26 +967,15 @@ class VerseTester(object):
 			):
 			family = '' # clearer not to specify in this case
 
-		if len(wbp_lens) == 4 and unique_sorted_lens == [11]: # triṣṭubh
-			score = meter_scores["upajāti, perfect"]
-		elif unique_sorted_lens == [11, 12]:
-			score = meter_scores["upajāti, triṣṭubh-jagatī-saṃkara, perfect"]
+		if unique_sorted_lens == [11, 12]:
 			family = "triṣṭubh-jagatī-saṃkara?" # overwrite
-		elif len(wbp_lens) == 4 and 11 not in unique_sorted_lens:
-			score = meter_scores["upajāti, non-triṣṭubh, perfect"]
-		elif len(wbp_lens) in [2,3] and wbp_lens.count(11) == len(wbp_lens): # triṣṭubh
-			score = meter_scores["upajāti, imperfect"]
-		elif len(wbp_lens) in [2,3] and 11 not in wbp_lens:
-			score = meter_scores["upajāti, non-triṣṭubh, imperfect"]
-		else:
-			score = meter_scores["none found"]
 
-		# Extra penalties for especially weak upajāti results.
-		if len(wbp_lens) == 2:
-			score -= 1  # two pādas excluded instead of one
+		score = meter_scores["upajāti, perfect"]
+		if 11 not in wbp_lens:
+			score -= meter_scores["upajāti, penalty, jagati"]
+		score -= missing_pAdas * meter_scores["upajāti, penalty, per missing pāda"]
 		ajnatam_count = sum(1 for lbl in meter_labels if lbl.startswith('ajñātam'))
-		if ajnatam_count > len(meter_labels) / 2:
-			score -= 3
+		score -= ajnatam_count * meter_scores["upajāti, penalty, per ajñātam pāda"]
 
 		imperfect_note = None
 		overall_meter_label = "upajāti %s: %s" % (
@@ -1496,7 +1481,7 @@ class VerseTester(object):
 						anceps_ok = (is_ardha_final and actual == expected - 1
 									 and w_p[pi] and w_p[pi][-1] == 'l')
 						if actual != expected and not anceps_ok:
-							jati_score -= 1
+							jati_score -= meter_scores["jāti, penalty, per mora-mismatched pāda"]
 				if jati_score >= Vrs.identification_score:
 					Vrs.meter_label = jati_label + f" ({imperfect_label_sa})"
 					Vrs.identification_score = jati_score
@@ -1577,11 +1562,9 @@ class VerseTester(object):
 				(currently not supported but planned: 9 ardhasamavftta perfect)
 				(currently not supported: 5 ardhasamavftta imperfect)
 				9 samavftta perfect
-				8 upajAti perfect trizwuB
+				8 upajAti perfect (4 pAdas, triṣṭubh/jagatī/mix)
 				7 samavftta imperfect (2-3 lines match)
-				7 upajAti perfect non-trizwuB
-				6 upajAti imperfect trizwuB
-				5 upajAti imperfect non-trizwuB
+				6 upajAti imperfect (2-3 pAdas)
 			jAti
 				8 jAti perfect
 				(currently not supported but planned: 5 jAti imperfect)
