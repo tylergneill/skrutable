@@ -710,6 +710,8 @@ class VerseTester(object):
 		if "ajñātasamavṛtta" in meter_label:
 			score -= meter_scores["samavṛtta, penalty, ajñātasamavṛtta"]
 
+		bare_meter_label = meter_label  # forward-pass label before per-pāda length notes
+
 		# Build per-pāda diagnostic: length errors (Levenshtein), then pattern errors.
 		# In perfect_only mode, skip Levenshtein — just register the result and return.
 		problem_syllables = {}
@@ -776,9 +778,14 @@ class VerseTester(object):
 
 		# score arbitration: may tie with pre-existing result (e.g., upajāti)
 		old_score = Vrs.identification_score
-		self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect=imperfect_note is None and not has_any_error)
-		if score >= old_score:
+		if self._samavftta_has_length_error and Vrs.meter_label == bare_meter_label:
+			# Replace the forward-pass placeholder with the fully-annotated label.
+			Vrs.meter_label = meter_label
 			Vrs.diagnostic = diagnostic
+		else:
+			self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect=imperfect_note is None and not has_any_error)
+			if score >= old_score:
+				Vrs.diagnostic = diagnostic
 
 
 	def evaluate_ardhasamavftta(self, Vrs, perfect_only=False):
