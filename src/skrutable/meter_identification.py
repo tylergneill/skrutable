@@ -681,7 +681,7 @@ class VerseTester(object):
 
 		# get index of most frequent pāda type
 		wbp_sans_final = [ w[:-1] for w in wbp ] # omit final anceps from consideration
-		most_freq_pAda = max( set(wbp_sans_final), key=wbp_sans_final.count )
+		most_freq_pAda = max( sorted(set(wbp_sans_final)), key=wbp_sans_final.count )
 		i = wbp_sans_final.index(most_freq_pAda)
 
 		w_to_id = wbp[i] # weights to id, including final anceps
@@ -963,7 +963,7 @@ class VerseTester(object):
 		if unique_sorted_lens != [11, 12]:
 			# For non-triṣṭubh-jagatī mixes: drop pādas of non-majority length so
 			# the identifier works on the largest consistent set.
-			most_freq_pAda_len = max( set(wbp_lens), key=wbp_lens.count )
+			most_freq_pAda_len = max( sorted(set(wbp_lens)), key=wbp_lens.count )
 			if allow_only_trizwuB_and_jagatI_upajAti and most_freq_pAda_len not in (11, 12):
 				return
 			to_exclude = []
