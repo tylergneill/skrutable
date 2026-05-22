@@ -181,6 +181,19 @@ _vizamavftta_precomputed = [
 	for gaRas, label in meter_patterns.vizamavftta_by_4_tuple.items()
 ]
 
+# Precomputed upajāti candidate patterns by length, for future deferred Levenshtein use:
+# (canonical_gaRa_str, canonical_weights_str, meter_name, gaRa_regex_str)
+_upajAti_patterns_by_length = {}
+for _L, _patterns in meter_patterns.samavfttas_by_family_and_gaRa.items():
+	if not _patterns:
+		continue
+	_entries = []
+	for _gaRa_pattern, _meter_name in _patterns.items():
+		_canonical_gaRa = meter_patterns.choose_heavy_gaRa_pattern(_gaRa_pattern)
+		_canonical_weights = _gaRa_str_to_weights(_canonical_gaRa)
+		_entries.append((_canonical_gaRa, _canonical_weights, _meter_name, _gaRa_pattern))
+	_upajAti_patterns_by_length[_L] = _entries
+
 
 def _levenshtein_align(observed, canonical):
 	"""Return (distance, problem_indices) comparing observed lg string to canonical,
@@ -898,6 +911,39 @@ class VerseTester(object):
 			)
 
 
+	def _upajAti_match_pada_exact(self, pada_len, gaRa_str):
+		"""Exact regex attribution for one upajāti pāda against its own length's patterns.
+
+		Returns (meter_label, is_ajnata) where meter_label is the formatted label string
+		and is_ajnata is True if no pattern matched.
+		"""
+		for gaRa_pattern in meter_patterns.samavfttas_by_family_and_gaRa[pada_len].keys():
+			if re.match(re.compile(gaRa_pattern), gaRa_str):
+				meter_label = meter_patterns.samavfttas_by_family_and_gaRa[pada_len][gaRa_pattern]
+				meter_label += ' [%d: %s]' % (
+					pada_len,
+					meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
+				)
+				return meter_label, False
+		meter_label = 'ajñātam [%d: %s]' % (pada_len, gaRa_str)
+		return meter_label, True
+
+	def _synthesize_upajAti_label(self, meter_labels, wbp_lens, unique_sorted_lens):
+		"""Build (overall_meter_label, family) from per-pāda meter_labels."""
+		unique_meter_labels = sorted(set(meter_labels))
+		combined_meter_labels = ', '.join(unique_meter_labels)
+
+		family = meter_patterns.samavftta_family_names[wbp_lens[0]] if wbp_lens[0] < 27 else 'daṇḍaka'
+		if (family == 'triṣṭubh' and
+			unique_meter_labels == ['indravajrā [11: ttjgg]', 'upendravajrā [11: jtjgg]']
+		):
+			family = ''
+		if unique_sorted_lens == [11, 12]:
+			family = 'triṣṭubh + jagatī'
+
+		overall_meter_label = 'upajāti %s: %s' % (family, combined_meter_labels)
+		return overall_meter_label, family
+
 	def evaluate_upajAti(self, Vrs):
 		# sufficient length similarity already assured, now just evaluate
 
@@ -944,38 +990,12 @@ class VerseTester(object):
 		# Identify each remaining pāda individually and collect labels.
 		meter_labels = []
 		for i, g_to_id in enumerate(gs_to_id):
-
-			for gaRa_pattern in meter_patterns.samavfttas_by_family_and_gaRa[wbp_lens[i]].keys():
-
-				regex = re.compile(gaRa_pattern)
-
-				if re.match(regex, g_to_id):
-
-					meter_label = meter_patterns.samavfttas_by_family_and_gaRa[wbp_lens[i]][gaRa_pattern]
-					meter_label += ' [%d: %s]' % (
-						wbp_lens[i],
-						meter_patterns.choose_heavy_gaRa_pattern(gaRa_pattern)
-					)
-					break
-
-			else:
-				meter_label = "ajñātam" # i.e., might need to add to meter_patterns
-				meter_label += ' [%d: %s]' % ( wbp_lens[i], g_to_id )
-
+			meter_label, _ = self._upajAti_match_pada_exact(wbp_lens[i], g_to_id)
 			meter_labels.append(meter_label)
 
-		unique_meter_labels = sorted(set(meter_labels)) # de-dupe, stable order
-		combined_meter_labels = ', '.join(unique_meter_labels)
-
-		# Assign score based on how complete and homogeneous the match is.
-		family = meter_patterns.samavftta_family_names[wbp_lens[0]] if wbp_lens[0] < 27 else 'daṇḍaka'
-		if (family == "triṣṭubh" and
-			unique_meter_labels == ['indravajrā [11: ttjgg]', 'upendravajrā [11: jtjgg]']
-			):
-			family = '' # clearer not to specify in this case
-
-		if unique_sorted_lens == [11, 12]:
-			family = "triṣṭubh + jagatī" # overwrite
+		overall_meter_label, family = self._synthesize_upajAti_label(
+			meter_labels, wbp_lens, unique_sorted_lens
+		)
 
 		score = meter_scores["upajāti, perfect"]
 		if 11 not in wbp_lens:
@@ -985,11 +1005,6 @@ class VerseTester(object):
 		score -= ajnatam_count * meter_scores["upajāti, penalty, per ajñātam pāda"]
 
 		imperfect_note = None
-		overall_meter_label = "upajāti %s: %s" % (
-			family,
-			combined_meter_labels
-			)
-
 		if 	(
 				len(wbp_lens) != 4 and
 				unique_sorted_lens != [11, 12]
