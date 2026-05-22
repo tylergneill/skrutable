@@ -208,7 +208,7 @@ parasparaM saMvadatAM KalAnAM
 mOnaM viDeyaM satataM suDIBiH"""
 	V = S.scan(input_string, from_scheme='SLP')
 	VT = VerseTester()
-	VT.test_as_samavftta_etc(V)
+	VT.attempt_identification(V)
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
@@ -224,7 +224,7 @@ vidvānkulīno na karoti garvaṃ
 jalpanti mūḍhāstu guṇairvihīnāḥ"""
 	V = S.scan(input_string, from_scheme='IAST')
 	VT = VerseTester()
-	VT.test_as_samavftta_etc(V)
+	VT.attempt_identification(V)
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')
@@ -240,7 +240,7 @@ kugehinIM prApya kuto gfhe suKam
 kuSizyamaDyApayataH kuto yaSaH"""
 	V = S.scan(input_string, from_scheme='SLP')
 	VT = VerseTester()
-	VT.test_as_samavftta_etc(V)
+	VT.attempt_identification(V)
 	output = V.identification_score
 	curr_func = inspect.stack()[0][3]
 	# print("\n\n%s OUTPUT:\n" % curr_func + str(output) + '\n\n')

@@ -1140,72 +1140,6 @@ class VerseTester(object):
 			)
 		return True
 
-	def test_as_samavftta_etc(self, Vrs):
-
-		wbp = Vrs.syllable_weights.split('\n') # weights by pāda
-		wbp_lens = [ len(line) for line in wbp ]
-
-		# make sure either full four pādas or one and single-pāda mode
-		if 	len(wbp) >= 4 or (
-			len(wbp) == 1 and self.resplit_option == "single_pAda"
-		):
-			pass
-		else:
-			return 0
-
-		self.count_pAdasamatva(Vrs) # [0,2,3,4]
-
-		# test in following order to prioritize left-right presentation of ties
-		# ties managed in self.combine_results()
-
-		# test perfect samavṛtta
-		if self.pAdasamatva_count == 4:
-			# definitely checks out, id_score == 9
-			timed('samavftta')(self.evaluate_samavftta)(Vrs)
-			return 1 # max score already reached
-
-
-
-		# test perfect single pāda of samavṛtta
-		if ( self.pAdasamatva_count == 0 and self.resplit_option == "single_pAda"):
-			timed('samavftta')(self.evaluate_samavftta)(Vrs)
-
-		# test perfect viṣamavṛtta (Levenshtein for imperfect deferred to imperfect pass)
-		if self.pAdasamatva_count == 0 and timed('vizamavftta')(self.is_vizamavftta)(Vrs, perfect_only=True):
-			# will give id_score == 9
-			# label and score already set in is_vizamavftta if test was successful
-			return 1 # max score already reached
-
-		# test perfect upajāti
-
-		unique_sorted_lens = list(set(wbp_lens))
-		unique_sorted_lens.sort()
-		if 	len(unique_sorted_lens) == 1: # all same length
-			# will give id_score in [8, 7], may tie with above
-			timed('upajAti')(self.evaluate_upajAti)(Vrs)
-			if Vrs.identification_score == 8: return 1 # best score compared to below
-			# otherwise, max score not necessarily yet reached, don't return
-
-		# test imperfect samavftta (Levenshtein for length errors deferred to imperfect pass)
-		if self.pAdasamatva_count in [2, 3]:
-			# will give id_score in [7, 6], may tie with above
-			timed('samavftta')(self.evaluate_samavftta)(Vrs, perfect_only=True)
-			# max score not necessarily yet reached, don't return
-
-		# test imperfect upajāti
-		if (
-			len( list(set(wbp_lens)) ) in [2, 3] or
-			unique_sorted_lens == [11, 12]
-			): # either not all same length or triṣṭubh-jagatī mix
-			# will give id_score in [6, 5, 4], may tie with above
-			timed('upajAti')(self.evaluate_upajAti)(Vrs)
-
-		# return success
-		if Vrs.meter_label != None:
-			return 1
-		else:
-			return 0
-
 	def test_as_jAti(self, Vrs):
 		"""
 		Determines whether verse is of jāti (mātrāvṛtta) type.
@@ -1589,13 +1523,61 @@ class VerseTester(object):
 		if success_anuzwuB and Vrs.identification_score == meter_scores["max score"]:
 			return 1
 
-		# samavftta, upajAti, vizamavftta
-		_inner_keys = ('samavftta', 'upajAti', 'vizamavftta')
-		_pre_inner = {k: _section_totals.get(k, 0.0) for k in _inner_keys} if _DEBUG_TIMING else None
-		success_samavftta_etc = timed('samavftta_etc')(self.test_as_samavftta_etc)(Vrs)
+		# samavṛtta / upajāti / viṣamavṛtta. The `samavftta_etc` bucket captures
+		# dispatcher overhead (count_pAdasamatva + gate evaluation) by bracketing
+		# the whole block and subtracting the inner timed buckets.
+		_etc_t0 = _time.perf_counter() if _DEBUG_TIMING else None
+		_etc_inner_keys = ('samavftta', 'upajAti', 'vizamavftta')
+		_pre_etc_inner = (
+			{k: _section_totals.get(k, 0.0) for k in _etc_inner_keys}
+			if _DEBUG_TIMING else None
+		)
+		wbp_lens = [len(line) for line in Vrs.syllable_weights.split('\n')]
+		success_samavftta_etc = 0
+		if len(wbp_lens) >= 4 or (len(wbp_lens) == 1 and self.resplit_option == "single_pAda"):
+			self.count_pAdasamatva(Vrs)  # populates self.pAdasamatva_count in [0,2,3,4]
+
+			# perfect samavṛtta
+			if self.pAdasamatva_count == 4:
+				timed('samavftta')(self.evaluate_samavftta)(Vrs)
+				success_samavftta_etc = 1
+			else:
+				# single-pāda samavṛtta (perfect)
+				if self.pAdasamatva_count == 0 and self.resplit_option == "single_pAda":
+					timed('samavftta')(self.evaluate_samavftta)(Vrs)
+
+				# perfect viṣamavṛtta (Levenshtein for imperfect deferred below)
+				if self.pAdasamatva_count == 0 and timed('vizamavftta')(self.is_vizamavftta)(Vrs, perfect_only=True):
+					success_samavftta_etc = 1
+
+				# perfect upajāti: all pādas same length
+				unique_sorted_lens = sorted(set(wbp_lens[:4]))
+				if len(unique_sorted_lens) == 1:
+					timed('upajAti')(self.evaluate_upajAti)(Vrs)
+					if Vrs.identification_score == 8:
+						success_samavftta_etc = 1
+
+				# imperfect samavṛtta (Levenshtein for length errors deferred below)
+				if self.pAdasamatva_count in [2, 3]:
+					timed('samavftta')(self.evaluate_samavftta)(Vrs, perfect_only=True)
+
+				# imperfect upajāti: mixed lengths — after samavṛtta so its score
+				# can trigger the potential_score bail inside evaluate_upajAti
+				if len(unique_sorted_lens) in [2, 3] or unique_sorted_lens == [11, 12]:
+					timed('upajAti')(self.evaluate_upajAti)(Vrs)
+
+				if Vrs.meter_label is not None:
+					success_samavftta_etc = 1
+
 		if _DEBUG_TIMING:
-			inner_delta = sum(_section_totals.get(k, 0.0) - _pre_inner[k] for k in _inner_keys)
-			_section_totals['samavftta_etc'] -= inner_delta
+			_etc_elapsed = _time.perf_counter() - _etc_t0
+			_etc_inner_delta = sum(
+				_section_totals.get(k, 0.0) - _pre_etc_inner[k] for k in _etc_inner_keys
+			)
+			_section_totals['samavftta_etc'] = (
+				_section_totals.get('samavftta_etc', 0.0) + _etc_elapsed - _etc_inner_delta
+			)
+
 		if success_samavftta_etc and Vrs.identification_score >= 8:
 			return 1
 		# i.e., if upajāti or anything imperfect, also continue on to check jāti
