@@ -936,15 +936,19 @@ class VerseTester(object):
 		meter_label = 'ajñātam [%d: %s]' % (pada_len, gaRa_str)
 		return meter_label, True
 
-	def _synthesize_upajAti_label(self, meter_labels, wbp_lens, unique_sorted_lens):
+	def _synthesize_upajAti_label(self, meter_labels, wbp_lens, unique_sorted_lens, family_lengths):
 		"""Build (overall_meter_label, family) from per-pāda meter_labels."""
 		unique_meter_labels = sorted(set(meter_labels))
 		combined_meter_labels = ', '.join(unique_meter_labels)
 
-		family = meter_patterns.samavftta_family_names[wbp_lens[0]] if wbp_lens[0] < 27 else 'daṇḍaka'
-		if (family == 'triṣṭubh' and
-			unique_meter_labels == ['indravajrā [11: ttjgg]', 'upendravajrā [11: jtjgg]']
-		):
+		# Pick family name from family_lengths: prefer 11, then 12, then smallest.
+		family_len = 11 if 11 in family_lengths else (12 if 12 in family_lengths else min(family_lengths))
+		family = meter_patterns.samavftta_family_names[family_len] if family_len < 27 else 'daṇḍaka'
+		_indra_upendra_labels = {
+			'indravajrā [11: ttjgg]', 'upendravajrā [11: jtjgg]',
+			'indravajrā / upendravajrā [11: ttjgg / jtjgg]',
+		}
+		if family == 'triṣṭubh' and all(lbl in _indra_upendra_labels for lbl in unique_meter_labels):
 			family = ''
 		if unique_sorted_lens == [11, 12]:
 			family = 'triṣṭubh + jagatī'
@@ -1032,6 +1036,7 @@ class VerseTester(object):
 		any_ajnata = False
 		any_exact = False
 		vikrta_count = 0
+		vikrta_info = {}  # pada_index (0-based) → (orig_len, canonical_len, problem_indices)
 		for i, g_to_id in enumerate(gs_to_id):
 			if wbp_lens[i] in family_lengths:
 				meter_label, is_ajnata = self._upajAti_match_pada_exact(wbp_lens[i], g_to_id)
@@ -1046,6 +1051,7 @@ class VerseTester(object):
 						meter_name, canonical_gaRa, canonical_weights, problem_indices, dist = lev_result
 						meter_label = '%s [%d: %s]' % (meter_name, len(canonical_weights), canonical_gaRa)
 						vikrta_count += 1
+						vikrta_info[i] = (wbp_lens[i], len(canonical_weights), problem_indices)
 			else:
 				any_exact = True
 			meter_labels.append(meter_label)
@@ -1056,7 +1062,7 @@ class VerseTester(object):
 			self._upajAti_needs_lev = True
 
 		overall_meter_label, family = self._synthesize_upajAti_label(
-			meter_labels, wbp_lens, unique_sorted_lens
+			meter_labels, wbp_lens, unique_sorted_lens, family_lengths
 		)
 
 		score = meter_scores["upajāti, perfect"]
@@ -1078,15 +1084,36 @@ class VerseTester(object):
 		per_pada_sanskrit = {}
 		per_pada_english = {}
 		for pada_num in range(1, 5):
-			lbl = meter_labels[pada_num - 1] if pada_num - 1 < len(meter_labels) else None
+			i = pada_num - 1
+			lbl = meter_labels[i] if i < len(meter_labels) else None
 			if lbl and lbl.startswith('ajñātam'):
-				orig_len = wbp_lens[pada_num - 1]
-				family_len = most_freq_pAda_len
+				orig_len = wbp_lens[i]
 				syls = list(range(orig_len))
 				problem_syllables[pada_num] = syls
-				hyper = orig_len > family_len
+				hyper = orig_len > most_freq_pAda_len
 				per_pada_sanskrit[pada_num] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
 				per_pada_english[pada_num] = 'hypermetric' if hyper else 'hypometric'
+			elif i in vikrta_info:
+				orig_len, canonical_len, problem_indices = vikrta_info[i]
+				if orig_len != canonical_len:
+					# length-deviant vikṛta: flag as hyper/hypometric
+					hyper = orig_len > canonical_len
+					per_pada_sanskrit[pada_num] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
+					per_pada_english[pada_num] = 'hypermetric' if hyper else 'hypometric'
+					problem_syllables[pada_num] = list(range(orig_len))
+				elif problem_indices:
+					# same-length vikṛta: flag the specific mismatched positions
+					per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
+					per_pada_english[pada_num] = 'vikrtavrtta'
+					problem_syllables[pada_num] = list(problem_indices)
+
+		# Append per-pāda imperfect notes to label, matching samavṛtta style.
+		length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items()]
+		if imperfect_note is not None:
+			note_str = imperfect_note + ("; " + "; ".join(length_notes) if length_notes else "")
+			overall_meter_label = overall_meter_label.replace(f"({imperfect_note})", f"({note_str})")
+		elif length_notes:
+			overall_meter_label += " (%s)" % "; ".join(length_notes)
 
 		if not per_pada_english and imperfect_note is None:
 			diagnostic = Diagnostic(perfect_id_label=overall_meter_label)
@@ -1098,21 +1125,26 @@ class VerseTester(object):
 				problem_syllables=problem_syllables or None,
 			)
 		else:
-			length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items()]
-			if length_notes:
-				full_imperfect_str = imperfect_note + "; " + "; ".join(length_notes)
-				overall_meter_label = overall_meter_label.replace(f"({imperfect_note})", f"({full_imperfect_str})")
 			diagnostic = Diagnostic(
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
 			)
 
-		# score arbitration: may tie with pre-existing result (e.g., samavṛtta)
+		# score arbitration: may tie with pre-existing result (e.g., samavṛtta).
+		# Deferred pass overwrites the forward-pass placeholder directly (same
+		# identification refined, not a new competitor).
 		old_score = Vrs.identification_score
-		self.combine_results(Vrs, overall_meter_label, score, new_is_perfect=imperfect_note is None and not per_pada_english)
-		if score >= old_score:
+		is_perfect = imperfect_note is None and not per_pada_english
+		if not perfect_only and Vrs.meter_label is not None and Vrs.meter_label.startswith('upajāti'):
+			Vrs.meter_label = overall_meter_label
+			Vrs.identification_score = score
+			Vrs.is_perfect = is_perfect
 			Vrs.diagnostic = diagnostic
+		else:
+			self.combine_results(Vrs, overall_meter_label, score, new_is_perfect=is_perfect)
+			if score >= old_score:
+				Vrs.diagnostic = diagnostic
 
 
 	def is_vizamavftta(self, Vrs, perfect_only=False):
