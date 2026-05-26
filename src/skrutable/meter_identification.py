@@ -694,12 +694,10 @@ class VerseTester(object):
 		imperfect_note = None
 
 		if self.pAdasamatva_count == 3:
-			imperfect_note = "? 3 eva pādāḥ yuktāḥ"
-			meter_label += " (%s)" % imperfect_note
+			imperfect_note = True
 			score = meter_scores["samavṛtta, imperfect (3)"]
 		elif self.pAdasamatva_count == 2:
-			imperfect_note = "? 2 eva pādāḥ yuktāḥ"
-			meter_label += " (%s)" % imperfect_note
+			imperfect_note = True
 			score = meter_scores["samavṛtta, imperfect (2)"]
 		elif self.pAdasamatva_count == 0:
 			imperfect_note = "1 eva pādaḥ"
@@ -762,12 +760,10 @@ class VerseTester(object):
 				problem_syllables=problem_syllables or None,
 			)
 		else:
-			# fewer than 4 matching pādas; append any length notes to the meter_label
-			length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items() if v in ('adhikākṣarā', 'ūnākṣarā')]
-			full_imperfect_str = imperfect_note
+			# fewer than 4 matching pādas; append per-pāda notes to the meter_label
+			length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items()]
 			if length_notes:
-				full_imperfect_str += "; " + "; ".join(length_notes)
-				meter_label = meter_label.replace(f"({imperfect_note})", f"({full_imperfect_str})")
+				meter_label += " (%s)" % "; ".join(length_notes)
 			diagnostic = Diagnostic(
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
@@ -776,7 +772,7 @@ class VerseTester(object):
 
 		# score arbitration: may tie with pre-existing result (e.g., upajāti)
 		old_score = Vrs.identification_score
-		self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect=imperfect_note is None and not has_any_error)
+		self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect=not imperfect_note and not has_any_error)
 		if score >= old_score:
 			Vrs.diagnostic = diagnostic
 
@@ -992,18 +988,11 @@ class VerseTester(object):
 		if all(lbl.startswith('ajñātam') for lbl in meter_labels):
 			score -= 1
 
-		imperfect_note = None
+		imperfect_note = len(wbp_lens) != 4 and unique_sorted_lens != [11, 12]
 		overall_meter_label = "upajāti %s: %s" % (
 			family,
 			combined_meter_labels
 			)
-
-		if 	(
-				len(wbp_lens) != 4 and
-				unique_sorted_lens != [11, 12]
-			): # not perfect and also not triṣṭubh-jagatī-saṃkara
-			imperfect_note = "? %d eva pādāḥ yuktāḥ" % len(wbp_lens)
-			overall_meter_label += " (%s)" % imperfect_note
 
 		# Build diagnostic: excluded pādas are flagged as hyper/hypometric relative
 		# to the majority length; included pādas contribute no error entry.
@@ -1021,11 +1010,14 @@ class VerseTester(object):
 					per_pada_sanskrit[pada_num] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
 					per_pada_english[pada_num] = 'hypermetric' if hyper else 'hypometric'
 
-		if imperfect_note is None and not per_pada_english:
-			# all four pādas included and none flagged
+		# Append per-pāda imperfect notes to label.
+		length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items()]
+		if length_notes:
+			overall_meter_label += " (%s)" % "; ".join(length_notes)
+
+		if not per_pada_english and not imperfect_note:
 			diagnostic = Diagnostic(perfect_id_label=overall_meter_label)
-		elif imperfect_note is None:
-			# all four pādas included but some have length errors
+		elif not imperfect_note:
 			diagnostic = Diagnostic(
 				perfect_id_label=overall_meter_label,
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
@@ -1033,11 +1025,6 @@ class VerseTester(object):
 				problem_syllables=problem_syllables or None,
 			)
 		else:
-			# fewer than 4 pādas included; append length notes to the meter_label
-			length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items()]
-			if length_notes:
-				full_imperfect_str = imperfect_note + "; " + "; ".join(length_notes)
-				overall_meter_label = overall_meter_label.replace(f"({imperfect_note})", f"({full_imperfect_str})")
 			diagnostic = Diagnostic(
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
@@ -1046,7 +1033,8 @@ class VerseTester(object):
 
 		# score arbitration: may tie with pre-existing result (e.g., samavṛtta)
 		old_score = Vrs.identification_score
-		self.combine_results(Vrs, overall_meter_label, score, new_is_perfect=imperfect_note is None and not per_pada_english)
+		is_perfect = not imperfect_note and not per_pada_english
+		self.combine_results(Vrs, overall_meter_label, score, new_is_perfect=is_perfect)
 		if score >= old_score:
 			Vrs.diagnostic = diagnostic
 
