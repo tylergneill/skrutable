@@ -1611,6 +1611,8 @@ class MeterIdentifier(object):
 		"""
 
 		iter_list = [start_pos]
+		if resplit_option == 'none':
+			return iter_list
 		if resplit_option == 'resplit_max':
 			distance_multiplier = 0.50 # wiggle as far as 50% of part_len
 		elif resplit_option == 'resplit_lite':
@@ -1766,7 +1768,7 @@ class MeterIdentifier(object):
 		self.VerseTester.resplit_option = resplit_option
 		self.VerseTester.resplit_keep_midpoint = resplit_keep_midpoint
 
-		if resplit_option in ['none', 'single_pAda'] or V.text_cleaned == '':
+		if resplit_option == 'single_pAda' or V.text_cleaned == '':
 			# No resplitting: test the verse exactly as scanned.
 			VT._ardha_stash = []
 			VT._vizama_stash = []
@@ -1778,7 +1780,7 @@ class MeterIdentifier(object):
 			if VT._vizama_stash and meter_scores["viṣamavṛtta, imperfect"] > V.identification_score:
 				timed('lev_vizama')(VT.is_vizamavftta)(V)
 
-		elif resplit_option in ['resplit_max', 'resplit_lite']:
+		elif resplit_option in ['none', 'resplit_max', 'resplit_lite']:
 
 			# Capture any user-provided pāda breaks (newlines surviving scansion cleaning).
 			newline_indices = [
@@ -1804,14 +1806,14 @@ class MeterIdentifier(object):
 				)
 
 			if len(newline_indices) == 3:
-				if resplit_option == 'resplit_lite':
+				if resplit_option in ('none', 'resplit_lite'):
 					# all three breaks provided — override all three
 					pAda_brs['ab'], pAda_brs['bc'], pAda_brs['cd'] = (
 						V.text_syllabified[:newline_indices[i]].count(
 							scansion_syllable_separator
 							) for i in [0, 1, 2]
 						)
-				elif	(
+				elif (
 							resplit_option == 'resplit_max' and
 							self.VerseTester.resplit_keep_midpoint
 						):
@@ -1820,15 +1822,15 @@ class MeterIdentifier(object):
 						scansion_syllable_separator)
 
 			elif len(newline_indices) == 1:
-				if 	(
-						resplit_option == 'resplit_lite'
+				if (
+						resplit_option in ('none', 'resplit_lite')
 					) or (
 						resplit_option == 'resplit_max' and
 						self.VerseTester.resplit_keep_midpoint
 					):
 					# single break provided — treat as bc, wiggle the rest
 					pAda_brs['bc'] = V.text_syllabified[:newline_indices[0]].count(
-					scansion_syllable_separator)
+						scansion_syllable_separator)
 
 			else:
 				# unusable number of user-provided pāda breaks — use length-based seeds
