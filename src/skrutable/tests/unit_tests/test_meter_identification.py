@@ -654,6 +654,25 @@ arthaṃ kiṃ tena nāpnoti // 329"""
 	assert 'tṛtīyagaṇaḥ na caturmātraḥ' in result.meter_label
 	assert result.identification_score == meter_scores["jāti, imperfect"] - 1  # pāda 3 mora penalty
 
+def test_ardhatraya_anuzwuB_none():
+	MI = MeterIdentifier()
+	input_string = """yadA yadA hi Darmasya
+glAnirBavati BArata
+aByutTAnamaDarmasya
+tadAtmAnaM sfjAmyaham
+paritrARaya sADUnAM
+vinASAya ca duzwfRAm"""
+	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='none')
+	assert object_result.meter_label == "anuṣṭubh (1,2: pathyā; 3,4: pathyā; 5,6: pathyā)"
+	assert object_result.identification_score == meter_scores["anuṣṭubh, 1 or 3 halves, all halves perfect)"]
+
+def test_ardhatraya_anuzwuB_resplit_lite():
+	MI = MeterIdentifier()
+	input_string = """yadA yadA hi Darmasya glAnirBavati BArata aByutTAnamaDarmasya tadAtmAnaM sfjAmyaham paritrARaya sADUnAM vinASAya ca duzwfRAm"""
+	object_result = MI.identify_meter(input_string, from_scheme='SLP', resplit_option='resplit_lite')
+	assert object_result.meter_label == "anuṣṭubh (1,2: pathyā; 3,4: pathyā; 5,6: pathyā)"
+	assert object_result.identification_score == meter_scores["anuṣṭubh, 1 or 3 halves, all halves perfect)"]
+
 def test_identify_meter_vizamavftta_perfect():
 	MI = MeterIdentifier()
 	input_string = """bibharāṃbabhūvur apavṛtta
