@@ -32,8 +32,6 @@ _JATI_SUBCATS = ['āryā', 'gīti', 'upagīti', 'udgīti', 'āryāgīti']
 def _meter_label_to_category(label):
 	if not label or 'adhyavasitam' in label:
 		return 'na kiṃcid adhyavasitam'
-	if ('anuṣṭubh' in label or 'anustubh' in label) and '5,6:' in label:
-		return 'anuṣṭubh (ardhatraya)'
 	if 'anuṣṭubh' in label or 'anustubh' in label:
 		return 'anuṣṭubh'
 	if 'upajāti' in label:
@@ -70,13 +68,13 @@ def flush_profiling_report(write_file=False, wall_clock_secs=None, parallel_work
 	scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
 	type_keys = ('anuzwuB', 'ardhatraya', 'samavftta_etc', 'samavftta', 'upajAti', 'ardhasamavftta_perfect', 'vizamavftta', 'jAti', 'lev_samavftta', 'lev_ardha', 'lev_vizama')
 	type_abbrev = {
-		'anuzwuB': 'anuṣṭ', 'ardhatraya': 'ardhat', 'samavftta_etc': 'vftta↑', 'samavftta': 'samav', 'upajAti': 'upajāti',
+		'anuzwuB': 'anuṣṭ', 'ardhatraya': 'anuṣṭ3', 'samavftta_etc': 'vftta↑', 'samavftta': 'samav', 'upajAti': 'upajāti',
 		'ardhasamavftta_perfect': 'ardha✓', 'vizamavftta': 'vizama',
 		'jAti': 'jāti',
 		'lev_samavftta': 'lev✗sama', 'lev_ardha': 'lev✗ardh', 'lev_vizama': 'lev✗visa',
 	}
 	scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'transl', 'scan_syllabify': 'syl', 'scan_weights': 'wts', 'scan_morae_gana': 'mor+g'}
-	cat_order = ['anuṣṭubh', 'anuṣṭubh (ardhatraya)', 'samavṛtta', 'upajāti', 'ardhasamavṛtta', 'viṣamavṛtta', 'jāti', 'na kiṃcid adhyavasitam']
+	cat_order = ['anuṣṭubh', 'samavṛtta', 'upajāti', 'ardhasamavṛtta', 'viṣamavṛtta', 'jāti', 'na kiṃcid adhyavasitam']
 	hdr_scan_abbrevs = [scan_abbrev[k] for k in scan_keys]
 	hdr_type_abbrevs = [type_abbrev[k] for k in type_keys]
 	val_w = len('0.00s')
