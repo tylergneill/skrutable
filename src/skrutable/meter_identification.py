@@ -1615,8 +1615,10 @@ class VerseTester(object):
 		elif n_length_error == 0:
 			if n_imperfect == 3:
 				Vrs.identification_score = meter_scores["anuṣṭubh, 1 or 3 halves, at least one half imperfect)"]
+			elif n_imperfect == 2:
+				Vrs.identification_score = meter_scores["anuṣṭubh, 1 or 3 halves, two imperfect)"]
 			else:
-				Vrs.identification_score = meter_scores["anuṣṭubh, 1 or 3 halves, some perfect some imperfect)"]
+				Vrs.identification_score = meter_scores["anuṣṭubh, 1 or 3 halves, one imperfect)"]
 			Vrs.is_perfect = False
 		elif n_perfect > 0 and n_imperfect == 0:
 			Vrs.identification_score = meter_scores["anuṣṭubh, 1 or 3 halves, some perfect some length error)"]
