@@ -238,7 +238,7 @@ samavfttas_by_family_and_gaRa = {
 	'jtj(r|B)' : 'vaṃśastha',
 	'mmy(y|j)' : 'vaiśvadevī',
 	'rrr(r|B)' : 'sragviṇī',
-
+	'nnm(y|j)' : 'paṭuvṛtta',
 	},
 
 13: {
@@ -313,6 +313,7 @@ samavfttas_by_family_and_gaRa = {
 22: {
 	'mmtnnns(g|l)' : 'haṃsī', # also mmggnnnngg
 	'tByjsrn(g|l)' : 'aśvadhāṭī',
+	'Brnrnrn(g|l)' : 'madraka',
 	},
 
 23: {
