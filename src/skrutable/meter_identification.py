@@ -934,24 +934,45 @@ class VerseTester(object):
 		return meter_label, True
 
 	def _synthesize_upajAti_label(self, meter_labels, wbp_lens, unique_sorted_lens, family_lengths):
-		"""Build (overall_meter_label, family) from per-pāda meter_labels."""
-		unique_meter_labels = sorted(set(meter_labels))
-		combined_meter_labels = ', '.join(unique_meter_labels)
+		"""Build (overall_meter_label, family, notable_label_dict) from per-pāda meter_labels.
+
+		overall_meter_label format: "upajāti triṣṭubh: upendravajrā 1,3; vātormī 2; indravajrā 4"
+		  — subtypes sorted by pāda count desc, then first-occurrence asc; no syllable/gaṇa info.
+		notable_label_dict: {pada_num (1-based): bare_name} for all non-ajñātam pādas.
+		"""
+		# Extract bare subtype name (strip " [len: gaṇas]" suffix).
+		def _bare_name(lbl):
+			return lbl.split(' [')[0]
+
+		# Build notable_label_dict and group pāda numbers by bare name.
+		notable_label_dict = {}
+		name_to_padas = {}  # bare_name → [1-based pada nums], in order
+		for i, lbl in enumerate(meter_labels):
+			pada_num = i + 1
+			name = _bare_name(lbl)
+			if not name.startswith('ajñātam'):
+				notable_label_dict[pada_num] = name
+			name_to_padas.setdefault(name, []).append(pada_num)
+
+		# Sort groups: count desc, then first occurrence asc.
+		sorted_groups = sorted(
+			name_to_padas.items(),
+			key=lambda kv: (-len(kv[1]), kv[1][0])
+		)
+		combined_parts = [
+			'%s %s' % (name, ','.join(str(p) for p in padas))
+			for name, padas in sorted_groups
+		]
+		combined_meter_labels = '; '.join(combined_parts)
 
 		# Pick family name from family_lengths: prefer 11, then 12, then smallest.
 		family_len = 11 if 11 in family_lengths else (12 if 12 in family_lengths else min(family_lengths))
 		family = meter_patterns.samavftta_family_names[family_len] if family_len < 27 else 'daṇḍaka'
-		_indra_upendra_labels = {
-			'indravajrā [11: ttjgg]', 'upendravajrā [11: jtjgg]',
-			'indravajrā / upendravajrā [11: ttjgg / jtjgg]',
-		}
-		if family == 'triṣṭubh' and all(lbl in _indra_upendra_labels for lbl in unique_meter_labels):
-			family = ''
 		if unique_sorted_lens == [11, 12]:
 			family = 'triṣṭubh + jagatī'
 
 		overall_meter_label = 'upajāti %s: %s' % (family, combined_meter_labels)
-		return overall_meter_label, family
+		return overall_meter_label, family, notable_label_dict
 
 	def _upajAti_levenshtein_attribute_pada(self, pada_weights, family_lengths):
 		"""Deferred-pass Levenshtein attribution for one upajāti pāda.
@@ -1058,7 +1079,7 @@ class VerseTester(object):
 		if perfect_only and any_ajnata and any_exact:
 			self._upajAti_needs_lev = True
 
-		overall_meter_label, family = self._synthesize_upajAti_label(
+		overall_meter_label, family, notable_label_dict = self._synthesize_upajAti_label(
 			meter_labels, wbp_lens, unique_sorted_lens, family_lengths
 		)
 
@@ -1107,19 +1128,24 @@ class VerseTester(object):
 			overall_meter_label += " (%s)" % "; ".join(length_notes)
 
 		if not per_pada_english and not imperfect_note:
-			diagnostic = Diagnostic(perfect_id_label=overall_meter_label)
+			diagnostic = Diagnostic(
+				perfect_id_label=overall_meter_label,
+				notable_label=notable_label_dict or None,
+			)
 		elif not imperfect_note:
 			diagnostic = Diagnostic(
 				perfect_id_label=overall_meter_label,
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
+				notable_label=notable_label_dict or None,
 			)
 		else:
 			diagnostic = Diagnostic(
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
+				notable_label=notable_label_dict or None,
 			)
 
 		# score arbitration: may tie with pre-existing result (e.g., samavṛtta).
