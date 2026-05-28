@@ -398,8 +398,8 @@ class VerseTester(object):
 	Most methods take a populated scansion.Verse object as an argument;
 	test_as_anuzwuB_half() is an exception.
 
-	Primary method attempt_identification returns scansion.Verse object
-	with populated meter_label attribute if identification was successful.
+	Primary method attempt_identification embeds results in the Verse object
+	and returns 1 if identified, 0 if not.
 	"""
 
 	def __init__(self):
@@ -657,9 +657,9 @@ class VerseTester(object):
 
 	def count_pAdasamatva(self, Vrs):
 		"""
-		Accepts four-part (newline-separated) string of light/heavy (l/g) pattern.
+		Accepts Verse object with four-part (newline-separated) syllable_weights.
 		Since testing for samavṛtta, ignores final anceps syllable in each part.
-		Returns integer 0,2,3,4 indicating size of best matching group.
+		Sets self.pAdasamatva_count to 0, 2, 3, or 4 (size of best matching group).
 		"""
 
 		self.pAdasamatva_count = 0
@@ -1588,26 +1588,24 @@ class VerseTester(object):
 		Runs through various possible meter types with respective identification_scores:
 			zloka
 				9 two zloka halves, both perfect
-				8 two zloka halves, one perfect and one imperfect
-				(not currently supported: two zloka halves, both imperfect)
+				7 two zloka halves, one perfect and one imperfect
+				5 two zloka halves, both imperfect
 				9 one zloka half, perfect
-				(not currently supported: one zloka half, imperfect)
 			samavftta, upajAti, vizamavftta, ardhasamavftta
-				9 vizamavftta perfect (trivial, in progress)
+				9 vizamavftta perfect
 				(currently not supported: 5 vizamavftta imperfect)
-				(currently not supported but planned: 9 ardhasamavftta perfect)
-				(currently not supported: 5 ardhasamavftta imperfect)
+				9 ardhasamavftta perfect
+				7 ardhasamavftta imperfect
 				9 samavftta perfect
 				8 upajAti perfect (4 pAdas, triṣṭubh/jagatī/mix)
 				7 samavftta imperfect (2-3 lines match)
 				6 upajAti imperfect (2-3 pAdas)
 			jAti
-				8 jAti perfect
-				(currently not supported but planned: 5 jAti imperfect)
+				9 jAti perfect
+				6 jAti imperfect
+				4 jAti likely (±1 mora)
 
 		Embeds identification results as Verse.meter_label and Verse.identification_score.
-		Returns string corresponding to Verse.meter_label. - currently
-		Returns int result 1 if successul and 0 if not. - planned
 		"""
 
 		self.identification_attempt_count += 1
