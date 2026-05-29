@@ -23,6 +23,20 @@ meter_scores = config["meter_scores"]  # dict
 
 _category_totals = {}  # { category: { section: float seconds } }, single source of truth
 
+# Profiling categories and labels
+_SCAN_ABBREV = {
+	'scan_clean': 'clean', 'scan_translit': 'transl', 'scan_syllabify': 'syl',
+	'scan_weights': 'wts', 'scan_morae_gana': 'mor+g',
+}
+_ID_CASCADE_ABBREV = {
+	'anuzwuB': 'anuṣṭ', 'ardhatraya': 'anuṣṭ3', 'samavftta_etc': 'vftta↑', 'samavftta': 'samav', 'upajAti': 'upajāti',
+	'ardhasamavftta_perfect': 'ardha✓', 'vizamavftta': 'vizama',
+	'jAti': 'jāti',
+	'lev_samavftta': 'lev✗sama', 'lev_upajAti': 'lev✗upaj', 'lev_ardha': 'lev✗ardh', 'lev_vizama': 'lev✗visa',
+}
+_SCAN_KEYS = tuple(_SCAN_ABBREV)
+_ID_CASCADE_KEYS = tuple(_ID_CASCADE_ABBREV)
+_TIMING_KEYS = _SCAN_KEYS + _ID_CASCADE_KEYS
 
 _ARDHASAMAVRTTA_NAMES = [
 	'aparavaktra', 'upacitra', 'puṣpitāgrā', 'viyoginī', 'vegavatī',
@@ -66,18 +80,9 @@ def flush_profiling_report(write_file=False, wall_clock_secs=None, parallel_work
 	if not _DEBUG_TIMING or not _category_totals:
 		return
 	import sys, os
-	scan_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana')
-	type_keys = ('anuzwuB', 'ardhatraya', 'samavftta_etc', 'samavftta', 'upajAti', 'ardhasamavftta_perfect', 'vizamavftta', 'jAti', 'lev_samavftta', 'lev_upajAti', 'lev_ardha', 'lev_vizama')
-	type_abbrev = {
-		'anuzwuB': 'anuṣṭ', 'ardhatraya': 'anuṣṭ3', 'samavftta_etc': 'vftta↑', 'samavftta': 'samav', 'upajAti': 'upajāti',
-		'ardhasamavftta_perfect': 'ardha✓', 'vizamavftta': 'vizama',
-		'jAti': 'jāti',
-		'lev_samavftta': 'lev✗sama', 'lev_upajAti': 'lev✗upaj', 'lev_ardha': 'lev✗ardh', 'lev_vizama': 'lev✗visa',
-	}
-	scan_abbrev = {'scan_clean': 'clean', 'scan_translit': 'transl', 'scan_syllabify': 'syl', 'scan_weights': 'wts', 'scan_morae_gana': 'mor+g'}
 	cat_order = ['anuṣṭubh', 'samavṛtta', 'upajāti', 'ardhasamavṛtta', 'viṣamavṛtta', 'jāti', 'na kiṃcid adhyavasitam']
-	hdr_scan_abbrevs = [scan_abbrev[k] for k in scan_keys]
-	hdr_type_abbrevs = [type_abbrev[k] for k in type_keys]
+	hdr_scan_abbrevs = list(_SCAN_ABBREV.values())
+	hdr_type_abbrevs = list(_ID_CASCADE_ABBREV.values())
 	val_w = len('0.00s')
 	col_cat_w = max(len(c) for c in cat_order + ['category']) + 2
 	sub_w = max(len('scan∑'), len('types∑'), len('total'), val_w) + 2
@@ -107,10 +112,10 @@ def flush_profiling_report(write_file=False, wall_clock_secs=None, parallel_work
 		bucket = _category_totals.get(cat)
 		if not bucket:
 			continue
-		cat_scan = sum(bucket.get(k, 0.0) for k in scan_keys)
-		cat_types = sum(bucket.get(k, 0.0) for k in type_keys)
-		scan_vals = [f'{bucket.get(k, 0.0):.2f}s' for k in scan_keys]
-		type_vals = [f'{bucket.get(k, 0.0):.2f}s' for k in type_keys]
+		cat_scan = sum(bucket.get(k, 0.0) for k in _SCAN_KEYS)
+		cat_types = sum(bucket.get(k, 0.0) for k in _ID_CASCADE_KEYS)
+		scan_vals = [f'{bucket.get(k, 0.0):.2f}s' for k in _SCAN_KEYS]
+		type_vals = [f'{bucket.get(k, 0.0):.2f}s' for k in _ID_CASCADE_KEYS]
 		n_perf = bucket.get('_perfect_count', 0)
 		n_impf = bucket.get('_count', 0) - n_perf
 		total_perfect += n_perf
@@ -122,10 +127,10 @@ def flush_profiling_report(write_file=False, wall_clock_secs=None, parallel_work
 			+ f'{cat_types:.2f}s'.rjust(sub_w)
 			+ '  ' + fmt_row(scan_vals, type_vals))
 	lines.append(sep)
-	total_scan = sum(sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order) for k in scan_keys)
-	total_types = sum(sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order) for k in type_keys)
-	total_scan_vals = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s' for k in scan_keys]
-	total_type_vals = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s' for k in type_keys]
+	total_scan = sum(sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order) for k in _SCAN_KEYS)
+	total_types = sum(sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order) for k in _ID_CASCADE_KEYS)
+	total_scan_vals = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s' for k in _SCAN_KEYS]
+	total_type_vals = [f'{sum(_category_totals.get(c, {}).get(k, 0.0) for c in cat_order):.2f}s' for k in _ID_CASCADE_KEYS]
 	lines.append('  ' + 'TOTAL'.ljust(col_cat_w)
 		+ str(total_perfect).rjust(count_w) + str(total_imperfect).rjust(count_w)
 		+ f'{total_scan + total_types:.2f}s'.rjust(sub_w)
@@ -2103,10 +2108,7 @@ class MeterIdentifier(object):
 		self.Scanner = S = Sc()
 
 		if _DEBUG_TIMING:
-			_pre_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
-				'anuzwuB', 'ardhatraya', 'samavftta', 'upajAti', 'vizamavftta',
-				'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_upajAti', 'lev_ardha', 'lev_vizama', 'samavftta_etc')
-			_pre = {k: _section_totals.get(k, 0.0) for k in _pre_keys}
+			_pre = {k: _section_totals.get(k, 0.0) for k in _TIMING_KEYS}
 
 		# gets back mostly populated Verse object
 		V = S.scan(rw_str, from_scheme=from_scheme)
@@ -2348,11 +2350,8 @@ class MeterIdentifier(object):
 			V.identification_score = meter_scores["none found"]
 
 		if _DEBUG_TIMING:
-			all_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
-				'anuzwuB', 'ardhatraya', 'samavftta', 'upajAti', 'vizamavftta',
-				'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_upajAti', 'lev_ardha', 'lev_vizama', 'samavftta_etc')
-			verse_times = {k: _section_totals.get(k, 0.0) - _pre[k] for k in all_keys}
-			verse_times['scan'] = sum(verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
+			verse_times = {k: _section_totals.get(k, 0.0) - _pre[k] for k in _TIMING_KEYS}
+			verse_times['scan'] = sum(verse_times[k] for k in _SCAN_KEYS)
 			cat = _meter_label_to_category(V.meter_label)
 			bucket = _category_totals.setdefault(cat, {})
 			for k, v in verse_times.items():
@@ -2408,11 +2407,8 @@ def _identify_meter_worker(args):
 		import skrutable.meter_identification as _mi
 		_mi._DEBUG_TIMING = True
 	MI = MeterIdentifier()
-	all_keys = ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana',
-		'anuzwuB', 'samavftta', 'upajAti', 'vizamavftta',
-		'ardhasamavftta_perfect', 'jAti', 'lev_samavftta', 'lev_upajAti', 'lev_ardha', 'lev_vizama', 'samavftta_etc')
 	if debug_timing:
-		pre = {k: _section_totals.get(k, 0.0) for k in all_keys}
+		pre = {k: _section_totals.get(k, 0.0) for k in _TIMING_KEYS}
 		pre_wiggle = _section_totals.get('wiggle_count', 0)
 	V = MI.identify_meter(
 		rw_str,
@@ -2421,8 +2417,8 @@ def _identify_meter_worker(args):
 		from_scheme=from_scheme,
 	)
 	if debug_timing:
-		verse_times = {k: _section_totals.get(k, 0.0) - pre[k] for k in all_keys}
-		verse_times['scan'] = sum(verse_times[k] for k in ('scan_clean', 'scan_translit', 'scan_syllabify', 'scan_weights', 'scan_morae_gana'))
+		verse_times = {k: _section_totals.get(k, 0.0) - pre[k] for k in _TIMING_KEYS}
+		verse_times['scan'] = sum(verse_times[k] for k in _SCAN_KEYS)
 		verse_times['wiggle_count'] = _section_totals.get('wiggle_count', 0) - pre_wiggle
 		cat = _meter_label_to_category(V.meter_label)
 		return V, verse_times, cat
