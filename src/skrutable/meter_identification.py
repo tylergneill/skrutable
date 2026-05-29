@@ -157,6 +157,7 @@ class Diagnostic:
 	problem_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); None if perfect
 	notable_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); green-highlighted "interesting/ok" syllables
 	notable_label: Optional[dict] = None            # keyed by pada (1–4 or 'odd'/'even'); label for the notable feature (same string for skt/eng)
+	canonical_gana: Optional[dict] = None           # keyed by pada (1–4); canonical gaṇa char string for Levenshtein-attributed length-deviant pādas
 
 	def perfect(self):
 		return self.perfect_id_label is not None
@@ -1069,7 +1070,7 @@ class VerseTester(object):
 						meter_name, canonical_gaRa, canonical_weights, problem_indices, dist = lev_result
 						meter_label = '%s [%d: %s]' % (meter_name, len(canonical_weights), canonical_gaRa)
 						vikrta_count += 1
-						vikrta_info[i] = (wbp_lens[i], len(canonical_weights), problem_indices)
+						vikrta_info[i] = (wbp_lens[i], len(canonical_weights), problem_indices, canonical_gaRa, dist)
 			else:
 				any_exact = True
 			meter_labels.append(meter_label)
@@ -1098,6 +1099,7 @@ class VerseTester(object):
 		problem_syllables = {}
 		per_pada_sanskrit = {}
 		per_pada_english = {}
+		canonical_gana = {}
 		for pada_num in range(1, 5):
 			i = pada_num - 1
 			lbl = meter_labels[i] if i < len(meter_labels) else None
@@ -1109,13 +1111,19 @@ class VerseTester(object):
 				per_pada_sanskrit[pada_num] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
 				per_pada_english[pada_num] = 'hypermetric' if hyper else 'hypometric'
 			elif i in vikrta_info:
-				orig_len, canonical_len, problem_indices = vikrta_info[i]
+				orig_len, canonical_len, problem_indices, vikrta_canonical_gaRa, vikrta_dist = vikrta_info[i]
 				if orig_len != canonical_len:
 					# length-deviant vikṛta: flag as hyper/hypometric
 					hyper = orig_len > canonical_len
 					per_pada_sanskrit[pada_num] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
 					per_pada_english[pada_num] = 'hypermetric' if hyper else 'hypometric'
-					problem_syllables[pada_num] = list(range(orig_len))
+					# Only pinpoint the gap when dist==1; higher distances mean additional weight
+					# mismatches that make the gap position unreliable.
+					if vikrta_dist == 1 and problem_indices:
+						problem_syllables[pada_num] = list(problem_indices)
+						canonical_gana[pada_num] = vikrta_canonical_gaRa
+					else:
+						problem_syllables[pada_num] = list(range(orig_len))
 				elif problem_indices:
 					# same-length vikṛta: flag the specific mismatched positions
 					per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
@@ -1139,6 +1147,7 @@ class VerseTester(object):
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
 				notable_label=notable_label_dict or None,
+				canonical_gana=canonical_gana or None,
 			)
 		else:
 			diagnostic = Diagnostic(
@@ -1146,6 +1155,7 @@ class VerseTester(object):
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
 				notable_label=notable_label_dict or None,
+				canonical_gana=canonical_gana or None,
 			)
 
 		# score arbitration: may tie with pre-existing result (e.g., samavṛtta).
