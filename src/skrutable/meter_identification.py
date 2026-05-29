@@ -415,7 +415,7 @@ class VerseTester(object):
 		self._samavftta_has_length_error = False  # set during evaluate_samavftta perfect_only pass
 		self._upajAti_needs_lev = False  # set during evaluate_upajAti forward pass
 
-	def combine_results(self, Vrs, new_label, new_score, new_is_perfect=False):
+	def combine_results(self, Vrs, new_label, new_score, new_is_perfect=False, new_diagnostic=None):
 		old_label = Vrs.meter_label or ''
 		old_score = Vrs.identification_score
 
@@ -430,6 +430,7 @@ class VerseTester(object):
 			Vrs.meter_label = new_label
 			Vrs.identification_score = new_score
 			Vrs.is_perfect = new_is_perfect
+			Vrs.alternatives = []
 
 		elif new_score == old_score:
 			# tie, concatenate as old + new
@@ -437,6 +438,10 @@ class VerseTester(object):
 				Vrs.meter_label = new_label
 				Vrs.is_perfect = new_is_perfect
 			else:
+				# stash the first alternative before appending the second
+				if not Vrs.alternatives:
+					Vrs.alternatives = [{'meter_label': old_label, 'diagnostic': Vrs.diagnostic}]
+				Vrs.alternatives.append({'meter_label': new_label, 'diagnostic': new_diagnostic})
 				Vrs.meter_label += " atha vā " + new_label
 			# do not change score
 
@@ -745,9 +750,10 @@ class VerseTester(object):
 			# Defer length-error annotation to the imperfect pass; register result now.
 			self._samavftta_has_length_error = True
 			old_score = Vrs.identification_score
-			self.combine_results(Vrs, new_label=meter_label, new_score=score)
+			_diag = Diagnostic(perfect_id_label=meter_label)
+			self.combine_results(Vrs, new_label=meter_label, new_score=score, new_diagnostic=_diag)
 			if score >= old_score:
-				Vrs.diagnostic = Diagnostic(perfect_id_label=meter_label)
+				Vrs.diagnostic = _diag
 			return
 
 		for pada_num, w in enumerate(wbp[:4], start=1):
@@ -802,7 +808,7 @@ class VerseTester(object):
 			Vrs.meter_label = meter_label
 			Vrs.diagnostic = diagnostic
 		else:
-			self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect=not imperfect_note and not has_any_error)
+			self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect=not imperfect_note and not has_any_error, new_diagnostic=diagnostic)
 			if score >= old_score:
 				Vrs.diagnostic = diagnostic
 
@@ -842,9 +848,10 @@ class VerseTester(object):
 				):
 					score = meter_scores["ardhasamavṛtta, perfect"]
 					old_score = Vrs.identification_score
-					self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect=True)
+					_diag = Diagnostic(perfect_id_label=meter_label)
+					self.combine_results(Vrs, new_label=meter_label, new_score=score, new_is_perfect=True, new_diagnostic=_diag)
 					if score >= old_score:
-						Vrs.diagnostic = Diagnostic(perfect_id_label=meter_label)
+						Vrs.diagnostic = _diag
 					self._ardha_stash = []  # perfect found; no need for imperfect pass
 					return
 				# same length but not perfect — stash without distance computation
@@ -907,14 +914,15 @@ class VerseTester(object):
 		imperfect_label = best_label + f" ({suffix})"
 
 		old_score = Vrs.identification_score
-		self.combine_results(Vrs, new_label=imperfect_label, new_score=score)
+		_diag = Diagnostic(
+			perfect_id_label=imperfect_label,
+			imperfect_label_sanskrit=per_pada_sanskrit or None,
+			imperfect_label_english=per_pada_english or None,
+			problem_syllables=problem_syllables or None,
+		)
+		self.combine_results(Vrs, new_label=imperfect_label, new_score=score, new_diagnostic=_diag)
 		if score >= old_score:
-			Vrs.diagnostic = Diagnostic(
-				perfect_id_label=imperfect_label,
-				imperfect_label_sanskrit=per_pada_sanskrit or None,
-				imperfect_label_english=per_pada_english or None,
-				problem_syllables=problem_syllables or None,
-			)
+			Vrs.diagnostic = _diag
 
 
 	def _upajAti_match_pada_exact(self, pada_len, gaRa_str):
@@ -1169,7 +1177,7 @@ class VerseTester(object):
 			Vrs.is_perfect = is_perfect
 			Vrs.diagnostic = diagnostic
 		else:
-			self.combine_results(Vrs, overall_meter_label, score, new_is_perfect=is_perfect)
+			self.combine_results(Vrs, overall_meter_label, score, new_is_perfect=is_perfect, new_diagnostic=diagnostic)
 			if score >= old_score:
 				Vrs.diagnostic = diagnostic
 
@@ -1261,14 +1269,15 @@ class VerseTester(object):
 		imperfect_label = best_label + f" ({suffix})"
 
 		old_score = Vrs.identification_score
-		self.combine_results(Vrs, new_label=imperfect_label, new_score=score)
+		_diag = Diagnostic(
+			perfect_id_label=imperfect_label,
+			imperfect_label_sanskrit=per_pada_sanskrit or None,
+			imperfect_label_english=per_pada_english or None,
+			problem_syllables=problem_syllables or None,
+		)
+		self.combine_results(Vrs, new_label=imperfect_label, new_score=score, new_diagnostic=_diag)
 		if score >= old_score:
-			Vrs.diagnostic = Diagnostic(
-				perfect_id_label=imperfect_label,
-				imperfect_label_sanskrit=per_pada_sanskrit or None,
-				imperfect_label_english=per_pada_english or None,
-				problem_syllables=problem_syllables or None,
-			)
+			Vrs.diagnostic = _diag
 		return True
 
 	def test_as_jAti(self, Vrs):
