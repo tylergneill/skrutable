@@ -40,6 +40,7 @@ class Verse(object):
 		self.meter_label = None			# string
 		self.identification_score = 0 	# int
 		self.diagnostic = None			# Diagnostic or dict of Diagnostics, set by meter_identification
+		self.alternatives = []			# list of {'meter_label': str, 'diagnostic': ...} for atha-vā ties
 
 	def summarize(self,
 		show_weights=True, show_morae=True, show_gaRas=True, # part_A
