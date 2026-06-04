@@ -687,6 +687,21 @@ def test_ardhasamavftta_kramasamyoga_diagnostic():
 	assert 'Vṛttaratn. 10' in d.notable_label_sanskrit[2]
 	assert 'Vṛttaratn. 10' in d.notable_label_english[2]
 
+def test_upajAti_kramasamyoga_diagnostic():
+	# pāda 1: syllable 5 scans g (before word-initial kr- cluster "krṛtaṃ")
+	# kramasaṃyoga licence allows it to scan l, restoring indravajrā perfectly
+	MI = MeterIdentifier()
+	input_string = """anyo hi nāśnāti krṛtaṃ hi karma sa eva kartā sukhaduḥkhabhāgī /
+yattena kiṃciddhi kṛtaṃ hi karma tadaśnute nāsti kṛtasya nāśaḥ // 1866"""
+	result = MI.identify_meter(input_string, from_scheme='IAST')
+	assert 'upajāti' in result.meter_label
+	assert 'indravajrā' in result.meter_label
+	d = result.diagnostic
+	assert d.perfect()
+	assert d.problem_syllables is None
+	assert d.notable_syllables == {1: [5]}
+	assert 'Vṛttaratn. 10' in d.notable_label_english[1]
+
 def test_anuzwuB_kramasamyoga_even_pada():
 	# pāda 2 ("guṇāḍhyo nāma brāhmaṇaḥ"): position 4 ("ma") scans g by position before
 	# word-initial "brā" (br- cluster) — kramasaṃyoga rescues it so the ardha scores as perfect
