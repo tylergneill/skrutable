@@ -164,7 +164,8 @@ class Diagnostic:
 	imperfect_label_english: Optional[dict] = None  # keyed by pada (1–4 or 'odd'/'even'); English only
 	problem_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); None if perfect
 	notable_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); green-highlighted "interesting/ok" syllables
-	notable_label: Optional[dict] = None            # keyed by pada (1–4 or 'odd'/'even'); label for the notable feature (same string for skt/eng)
+	notable_label_sanskrit: Optional[dict] = None  # keyed by pada (1–4 or 'odd'/'even'); Sanskrit label for the notable feature
+	notable_label_english: Optional[dict] = None   # keyed by pada (1–4 or 'odd'/'even'); English label for the notable feature
 	canonical_gana: Optional[dict] = None           # keyed by pada (1–4); canonical gaṇa char string for Levenshtein-attributed length-deviant pādas
 
 	def perfect(self):
@@ -525,7 +526,8 @@ class VerseTester(object):
 						result = Diagnostic(
 							perfect_id_label=label,
 							notable_syllables={'odd': [4, 5, 6]} if is_vipula else None,
-							notable_label={'odd': label} if is_vipula else None,
+							notable_label_sanskrit={'odd': label} if is_vipula else None,
+							notable_label_english={'odd': label} if is_vipula else None,
 						)
 						break
 				if result is None:
@@ -542,7 +544,8 @@ class VerseTester(object):
 								imperfect_label_english={'odd': code},
 								problem_syllables={'odd': problem_syls},
 								notable_syllables={'odd': [4, 5, 6]} if is_vipula else None,
-								notable_label={'odd': vipula_name} if vipula_name else None,
+								notable_label_sanskrit={'odd': vipula_name} if vipula_name else None,
+								notable_label_english={'odd': vipula_name} if vipula_name else None,
 							)
 							break
 				if result is None:
@@ -864,12 +867,9 @@ class VerseTester(object):
 				# correct length but wrong pattern; final anceps always matches so skip it
 				bad = [j for j in range(len(w) - 1) if w[j] != canonical[j]]
 				if bad:
-					problem_syllables[pada_num] = bad
-					per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
-					per_pada_english[pada_num] = f'does not match expected gaṇa pattern {canonical_pattern}'
 					self.set_problem_diagnostic(Vrs, pada_num, w, canonical, bad,
-                                                problem_syllables, per_pada_sanskrit, per_pada_english,
-                                                canonical_pattern, krama_notable)
+					                            problem_syllables, per_pada_sanskrit, per_pada_english,
+					                            canonical_pattern, krama_notable)
 
 		has_any_error = bool(problem_syllables) or bool(per_pada_english)
 
@@ -1056,9 +1056,6 @@ class VerseTester(object):
 		)
 		self.combine_results(Vrs, new_label=imperfect_label, new_score=score, new_diagnostic=_diag)
 		if score >= old_score:
-<<<<<<< HEAD
-			Vrs.diagnostic = _diag
-=======
 			Vrs.diagnostic = Diagnostic(
 				perfect_id_label=imperfect_label,
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
@@ -1068,7 +1065,6 @@ class VerseTester(object):
 				notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
 				notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
 			)
->>>>>>> 0ce699c (feat: wire kramasaṃyoga rescue into ardhasamavṛtta and viṣamavṛtta)
 
 
 	def _upajAti_match_pada_exact(self, pada_len, gaRa_str):
@@ -1292,7 +1288,8 @@ class VerseTester(object):
 		if not per_pada_english and not imperfect_note:
 			diagnostic = Diagnostic(
 				perfect_id_label=overall_meter_label,
-				notable_label=notable_label_dict or None,
+				notable_label_sanskrit=notable_label_dict or None,
+				notable_label_english=notable_label_dict or None,
 			)
 		elif not imperfect_note:
 			diagnostic = Diagnostic(
@@ -1300,7 +1297,8 @@ class VerseTester(object):
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
-				notable_label=notable_label_dict or None,
+				notable_label_sanskrit=notable_label_dict or None,
+				notable_label_english=notable_label_dict or None,
 				canonical_gana=canonical_gana or None,
 			)
 		else:
@@ -1308,7 +1306,8 @@ class VerseTester(object):
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
-				notable_label=notable_label_dict or None,
+				notable_label_sanskrit=notable_label_dict or None,
+				notable_label_english=notable_label_dict or None,
 				canonical_gana=canonical_gana or None,
 			)
 
@@ -1440,9 +1439,6 @@ class VerseTester(object):
 		)
 		self.combine_results(Vrs, new_label=imperfect_label, new_score=score, new_diagnostic=_diag)
 		if score >= old_score:
-<<<<<<< HEAD
-			Vrs.diagnostic = _diag
-=======
 			Vrs.diagnostic = Diagnostic(
 				perfect_id_label=imperfect_label,
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
@@ -1452,7 +1448,6 @@ class VerseTester(object):
 				notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
 				notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
 			)
->>>>>>> 0ce699c (feat: wire kramasaṃyoga rescue into ardhasamavṛtta and viṣamavṛtta)
 		return True
 
 	def test_as_jAti(self, Vrs):
