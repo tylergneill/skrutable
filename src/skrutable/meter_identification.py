@@ -1205,7 +1205,7 @@ class VerseTester(object):
 		any_ajnata = False
 		any_exact = False
 		vikrta_count = 0
-		vikrta_info = {}  # pada_index (0-based) → (orig_len, canonical_len, problem_indices)
+		vikrta_info = {}  # pada_index (0-based) → (orig_len, canonical_len, problem_indices, canonical_gaRa, dist, canonical_weights)
 		for i, g_to_id in enumerate(gs_to_id):
 			if wbp_lens[i] in family_lengths:
 				meter_label, is_ajnata = self._upajAti_match_pada_exact(wbp_lens[i], g_to_id)
@@ -1220,7 +1220,7 @@ class VerseTester(object):
 						meter_name, canonical_gaRa, canonical_weights, problem_indices, dist = lev_result
 						meter_label = '%s [%d: %s]' % (meter_name, len(canonical_weights), canonical_gaRa)
 						vikrta_count += 1
-						vikrta_info[i] = (wbp_lens[i], len(canonical_weights), problem_indices, canonical_gaRa, dist)
+						vikrta_info[i] = (wbp_lens[i], len(canonical_weights), problem_indices, canonical_gaRa, dist, canonical_weights)
 			else:
 				any_exact = True
 			meter_labels.append(meter_label)
@@ -1250,6 +1250,7 @@ class VerseTester(object):
 		per_pada_sanskrit = {}
 		per_pada_english = {}
 		canonical_gana = {}
+		krama_notable = {}
 		for pada_num in range(1, 5):
 			i = pada_num - 1
 			lbl = meter_labels[i] if i < len(meter_labels) else None
@@ -1261,7 +1262,7 @@ class VerseTester(object):
 				per_pada_sanskrit[pada_num] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
 				per_pada_english[pada_num] = 'hypermetric' if hyper else 'hypometric'
 			elif i in vikrta_info:
-				orig_len, canonical_len, problem_indices, vikrta_canonical_gaRa, vikrta_dist = vikrta_info[i]
+				orig_len, canonical_len, problem_indices, vikrta_canonical_gaRa, vikrta_dist, vikrta_canonical_weights = vikrta_info[i]
 				if orig_len != canonical_len:
 					# length-deviant vikṛta: flag as hyper/hypometric
 					hyper = orig_len > canonical_len
@@ -1275,21 +1276,27 @@ class VerseTester(object):
 					else:
 						problem_syllables[pada_num] = list(range(orig_len))
 				elif problem_indices:
-					# same-length vikṛta: flag the specific mismatched positions
-					per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
-					per_pada_english[pada_num] = 'vikrtavrtta'
-					problem_syllables[pada_num] = list(problem_indices)
+					# same-length vikṛta: attempt krama rescue before flagging as problem
+					self.set_problem_diagnostic(Vrs, pada_num, wbp[i], vikrta_canonical_weights,
+					                            list(problem_indices),
+					                            problem_syllables, per_pada_sanskrit, per_pada_english,
+					                            vikrta_canonical_gaRa, krama_notable)
 
 		# Append per-pāda imperfect notes to label.
 		length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items()]
 		if length_notes:
 			overall_meter_label += " (%s)" % "; ".join(length_notes)
 
+		merged_notable_skt = {**(notable_label_dict or {}), **{p: KRAMA_LABEL_SKT for p in krama_notable}} or None
+		merged_notable_eng = {**(notable_label_dict or {}), **{p: KRAMA_LABEL_ENG for p in krama_notable}} or None
+		merged_notable_syl = {**krama_notable} or None
+
 		if not per_pada_english and not imperfect_note:
 			diagnostic = Diagnostic(
 				perfect_id_label=overall_meter_label,
-				notable_label_sanskrit=notable_label_dict or None,
-				notable_label_english=notable_label_dict or None,
+				notable_syllables=merged_notable_syl,
+				notable_label_sanskrit=merged_notable_skt,
+				notable_label_english=merged_notable_eng,
 			)
 		elif not imperfect_note:
 			diagnostic = Diagnostic(
@@ -1297,8 +1304,9 @@ class VerseTester(object):
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
-				notable_label_sanskrit=notable_label_dict or None,
-				notable_label_english=notable_label_dict or None,
+				notable_syllables=merged_notable_syl,
+				notable_label_sanskrit=merged_notable_skt,
+				notable_label_english=merged_notable_eng,
 				canonical_gana=canonical_gana or None,
 			)
 		else:
@@ -1306,8 +1314,9 @@ class VerseTester(object):
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
-				notable_label_sanskrit=notable_label_dict or None,
-				notable_label_english=notable_label_dict or None,
+				notable_syllables=merged_notable_syl,
+				notable_label_sanskrit=merged_notable_skt,
+				notable_label_english=merged_notable_eng,
 				canonical_gana=canonical_gana or None,
 			)
 
