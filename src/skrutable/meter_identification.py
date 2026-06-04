@@ -585,6 +585,9 @@ class VerseTester(object):
 			prob = new_problem.get(half_key)
 			if not prob:
 				continue
+			eng = new_ile.get(half_key, '')
+			if eng in ('hypermetric', 'hypometric'):
+				continue
 			if four_line:
 				line_num = pada_num - 1
 				syl_offset = 0
