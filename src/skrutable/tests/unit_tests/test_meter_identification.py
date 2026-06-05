@@ -717,6 +717,40 @@ def test_anuzwuB_kramasamyoga_even_pada():
 	assert d['ab'].notable_syllables == {'even': [4]}
 	assert 'Vṛttaratn. 10' in d['ab'].notable_label_sanskrit['even']
 
+def test_jAti_kramasamyoga_resplit_perfect():
+	# pāda 4 syllable 2 ("kri") scans g before word-initial kr- cluster "kriśirasya"
+	# kramasaṃyoga rescues it; with resplit_max+keep_midpoint the wiggle finds the
+	# correct cd split and āryā is identified as perfect with notable_syllables
+	MI = MeterIdentifier()
+	input_string = """aṃśukamiva śītabhayāt saṃstyānatvacchalena himadhavalam /
+ambhobhirapi gṛhītaṃ paśyata kriśirasya māhātmyam // 3"""
+	result = MI.identify_meter(input_string, from_scheme='IAST',
+	                           resplit_option='resplit_max', resplit_keep_midpoint=True)
+	assert result.meter_label == 'āryā'
+	assert result.identification_score == meter_scores["jāti, perfect"]
+	d = result.diagnostic
+	assert d.perfect()
+	assert d.problem_syllables is None
+	assert d.notable_syllables == {4: [2]}
+	assert 'Vṛttaratn. 10' in d.notable_label_english[4]
+
+def test_jAti_kramasamyoga_no_resplit_imperfect():
+	# same verse with wrong pāda split (ambhobhirapi gṛ / hītaṃ paśyata kriśirasya māhātmyam)
+	# krama rescue fires but step (c) fails — identified as āryā imperfect with
+	# pādaviccheda label on pāda 3, score "jāti, imperfect"
+	MI = MeterIdentifier()
+	input_string = """aṃśukamiva śītabhayāt
+saṃstyānatvacchalena himadhavalam /
+ambhobhirapi gṛ
+hītaṃ paśyata kriśirasya māhātmyam // 3"""
+	result = MI.identify_meter(input_string, from_scheme='IAST', resplit_option='none')
+	assert 'āryā' in result.meter_label
+	assert result.identification_score == meter_scores["jāti, imperfect"]
+	d = result.diagnostic
+	assert not d.perfect()
+	assert d.problem_syllables is None
+	assert d.imperfect_label_english == {3: 'pāda split does not match expected mora pattern'}
+
 def test_ardhatraya_anuzwuB_none():
 	MI = MeterIdentifier()
 	input_string = """yadA yadA hi Darmasya
