@@ -1,11 +1,25 @@
-# Diagnostic label audit
+# Diagnostic label overview
+
+Covers both **imperfect** labels (problems with the verse) and **notable** labels (licences or sub-type attributions worth calling out). Both sets share the same key structure on `Diagnostic`: `imperfect_label_sanskrit` / `imperfect_label_english` and `notable_label_sanskrit` / `notable_label_english`, each a dict keyed by pāda number (1–4) or `'odd'`/`'even'` depending on context.
+
+---
+
+## Kramasaṃyoga (notable — all meter types)
+
+Applies whenever a syllable that is expected to be heavy reads light because it precedes a word-initial cluster in {pr, br, kr, hr, kṣ}. Emitted as `notable_label_*` (never `imperfect_label_*`). Key is the pāda number (1–4) for samavṛtta, upajāti, ardhasamavṛtta, viṣamavṛtta, and jāti; for anuṣṭubh it is `'odd'` or `'even'`.
+
+| `notable_label_sanskrit` | `notable_label_english` |
+|---|---|
+| `padādau [puraḥsthita-saṃyogena] syāl laghutā [...] guroḥ (Vṛttaratn. 10)` | `word-initial pr/br/kr/hr/kṣ can count as simple consonant (Vṛttaratn. 10)` |
+
+---
 
 ## Anuṣṭubh — length error
 
 Triggers when exactly one pāda in a half is not 8 syllables. Keyed by `'odd'` or `'even'`. If both pādas in the half are wrong, the result is `None` (bad split, not reported).
 
 | `imperfect_label_sanskrit` | `imperfect_label_english` |
-|---------------------------|--------------------------|
+|---|---|
 | `adhikākṣarā` | `hypermetric` |
 | `ūnākṣarā` | `hypometric` |
 
@@ -14,7 +28,7 @@ Triggers when exactly one pāda in a half is not 8 syllables. Keyed by `'odd'` o
 Triggers when the even pāda fails its general pattern. Keyed by `'even'`. Checked in this order: known asamīcīna patterns, then fallback (see below).
 
 | `imperfect_label_sanskrit` | `imperfect_label_english` |
-|------------------------------------------------------|--------------------------|
+|---|---|
 | `asamīcīnā, na prathamāt snau` | `Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn 2014 anuṣṭubh general rule 2)` |
 | `asamīcīnā, [na ca prathamāt] dvitīyacaturthayo raḥ` | `Syllables 2–3 in even pāda cannot be ra-gaṇa (Piṅgala; Hahn 2014 anuṣṭubh general rule 3)` |
 
@@ -22,69 +36,101 @@ Triggers when the even pāda fails its general pattern. Keyed by `'even'`. Check
 
 Triggers when the even pāda passes but the odd pāda matches no pathyā or vipulā pattern. Keyed by `'odd'`. Checked in this order: known asamīcīna patterns, then fallback (see below).
 
-| `imperfect_label_sanskrit`                  | `imperfect_label_english` |
-|---------------------------------------------|--------------------------|
-| `asamīcīnā, na prathamāt snau`              | `Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn 2014 anuṣṭubh general rule 2)` |
-| `asamīcīnā, ma-vipulāyāḥ pūrvam raḥ syāt`   | `ma-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 3)` |
-| `asamīcīnā, bha-vipulāyāḥ pūrvam raḥ syāt`  | `bha-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 2)` |
+| `imperfect_label_sanskrit` | `imperfect_label_english` |
+|---|---|
+| `asamīcīnā, na prathamāt snau` | `Syllables 2–3 in any pāda cannot both be light (Piṅgala; Hahn 2014 anuṣṭubh general rule 2)` |
+| `asamīcīnā, ma-vipulāyāḥ pūrvam raḥ syāt` | `ma-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 3)` |
+| `asamīcīnā, bha-vipulāyāḥ pūrvam raḥ syāt` | `bha-vipulā must be preceded by ra-gaṇa (Hahn 2014 anuṣṭubh vipulā rule 2)` |
 | `asamīcīnā, na-vipulāyāḥ pūrvam guruḥ syāt` | `na-vipulā must be preceded by heavy syllable (Hahn 2014 anuṣṭubh vipulā rule 1)` |
 | `asamīcīnā, ra-vipulāyāḥ pūrvam guruḥ syāt` | `ra-vipulā must be preceded by heavy syllable (Hahn 2014 anuṣṭubh vipulā rule 4)` |
 
 Note: `bha-vipulā (ma-gaṇa-pūrvikā!)` is a recognized **perfect** sub-variant (not in the asamīcīna table), so it carries no imperfect labels.
+
+## Anuṣṭubh — vipulā sub-type (notable)
+
+When an odd pāda contains a vipulā (perfect or asamīcīna-flagged), the vipulā name is emitted as a notable label keyed `'odd'`. For a perfect vipulā pāda the notable value is the full pattern label; for an asamīcīna match it is the bare vipulā name extracted from the imperfect label (e.g. `ma-vipulā`).
 
 ## Anuṣṭubh — fallback (no pattern matched)
 
 Applies when no known asamīcīna pattern matches. One of these two is always the label of last resort for a half that passes the length check.
 
 | `imperfect_label_sanskrit` | `imperfect_label_english` |
-|--------------------------------------------------------------------|--------------------------|
+|---|---|
 | `asamīcīnā, [caturthāt ...] yujo j` | `Syllables 5–7 in even pāda must be ja-gaṇa (Piṅgala; Hahn 2014 anuṣṭubh general rule 4)` |
 | `asamīcīnā, [vipulāyām asatyām] ya[gaṇaḥ ayujaḥ] caturthāt [syāt]` | `Syllables 5–7 in odd pāda must be ya-gaṇa when no vipulā applies (Piṅgala; Hahn 2014 anuṣṭubh pathyā)` |
+
+---
 
 ## Samavṛtta — per-pāda errors
 
 Keyed by pāda number (1–4). Length errors and pattern errors can co-occur across pādas. `meter_label` appends `(? N eva pādāḥ yuktāḥ)` when fewer than 4 pādas match.
 
 | `imperfect_label_sanskrit` | `imperfect_label_english` |
-|---------------------------|--------------------------|
+|---|---|
 | `adhikākṣarā` | `hypermetric` |
 | `ūnākṣarā` | `hypometric` |
 | `vikṛtavṛtta` | `does not match expected gaṇa pattern {XYZ}` (e.g. `does not match expected gaṇa pattern ttjg`) |
 
-## Upajāti — excluded pādas
+---
+
+## Upajāti — per-pāda sub-type attribution (notable)
+
+Keyed by pāda number (1–4). Set for every pāda that is positively identified (not `ajñātam`). Value is the bare sub-type name (e.g. `indravajrā`, `upendravajrā`).
+
+## Upajāti — excluded pādas (imperfect)
 
 Keyed by pāda number (1–4). Pādas of non-majority length are excluded from identification and flagged here. `meter_label` appends `(? N eva pādāḥ yuktāḥ)` when fewer than 4 pādas are included.
 
 | `imperfect_label_sanskrit` | `imperfect_label_english` |
-|---------------------------|--------------------------|
+|---|---|
 | `adhikākṣarā` | `hypermetric` |
 | `ūnākṣarā` | `hypometric` |
 
+---
+
 ## Ardhasamavṛtta — per-pāda errors
 
-*Placeholder — not yet implemented. Currently only perfect identification is supported.*
+Keyed by pāda number (1–4). Levenshtein-based imperfect pass. Same label vocabulary as samavṛtta, except the `vikṛtavṛtta` English uses the meter name rather than the pattern string.
+
+| `imperfect_label_sanskrit` | `imperfect_label_english` |
+|---|---|
+| `adhikākṣarā` | `hypermetric` |
+| `ūnākṣarā` | `hypometric` |
+| `vikṛtavṛtta` | `does not match expected gaṇa pattern for {meter_name}` |
+
+---
 
 ## Viṣamavṛtta — per-pāda errors
 
-*Placeholder — not yet implemented. Currently only perfect identification is supported.*
+Keyed by pāda number (1–4). Levenshtein-based imperfect pass; identical label vocabulary to ardhasamavṛtta above.
+
+| `imperfect_label_sanskrit` | `imperfect_label_english` |
+|---|---|
+| `adhikākṣarā` | `hypermetric` |
+| `ūnākṣarā` | `hypometric` |
+| `vikṛtavṛtta` | `does not match expected gaṇa pattern for {meter_name}` |
+
+---
 
 ## Jāti — ardha morae off by 1 ("close" guess)
 
-Triggers when ardha morae fail the exact gate but are within 1 of expected on both ardhas (after adjusting for anceps: a light final credits +1 only when the ardha is hypometric; a light final neither hurts nor helps a hypermetric ardha). `meter_label` appends `(adhikamātrā)` or `(ūnamātrā)` when both ardhas err in the same direction, or `(ardha 1: X; ardha 2: Y)` when they differ. The diagnostic label is attached to the ardha-final (even) pāda.
+Triggers when ardha morae fail the exact gate but are within 1 of expected on both ardhas (after adjusting for anceps: a light final credits +1 only when the ardha is hypometric; a light final neither hurts nor helps a hypermetric ardha). The diagnostic label is keyed by the ardha-final (even) pāda number (2 or 4). The `meter_label` suffix is built from the per-ardha Sanskrit strings joined by `'; '`.
 
 | `imperfect_label_sanskrit` | `imperfect_label_english` |
-|---------------------------|--------------------------|
-| `adhikamātrā` | `ardha mora count off from expected N` |
-| `ūnamātrā` | `ardha mora count off from expected N` |
+|---|---|
+| `ardha {N}: adhikamātrā, {expected}→{actual}` | `ardha {N} mora count off from expected {expected}` |
+| `ardha {N}: ūnamātrā, {expected}→{actual}` | `ardha {N} mora count off from expected {expected}` |
+
+e.g. `ardha 1: adhikamātrā, 12→13` / `ardha 1 mora count off from expected 12`
 
 ## Jāti — gaṇa-rule violations
 
 Triggers when ardha morae pass but gaṇa structure is invalid. `meter_label` appends `(<pada#>: <error>)`, or `(<pada#>: <err1>; <pada#>: <err2>)` if both ardhas fail.
 
 | `imperfect_label_sanskrit` | `imperfect_label_english` |
-|---------------------------|--------------------------|
+|---|---|
 | `asamīcīnā, gaṇasaṃkhyā na aṣṭau` | `Ardha does not contain exactly 8 mātrā-gaṇas (Hahn general, definition)` |
-| `asamīcīnā, <ordinal>gaṇaḥ na caturmātraḥ` | `Gaṇa <N> does not have exactly 4 morae (Hahn general, definition)` |
+| `asamīcīnā, {ordinal}gaṇaḥ na caturmātraḥ` | `Gaṇa {N} does not have exactly 4 morae (Hahn general, definition)` |
 | `asamīcīnā, jaḥ ayuggaṇe` | `Odd gaṇa positions (1, 3, 5, 7) must never be ja-gaṇa (Hahn general rule 1)` |
 | `asamīcīnā, ṣaṣṭhagaṇaḥ na jaḥ/khaḥ` | `The 6th gaṇa must be ja or kha in this meter (Hahn general rule 2)*` |
 | `asamīcīnā, ṣaṣṭhagaṇaḥ na laḥ` | `The 6th gaṇa must be a single laghu in this meter (Hahn special rule 2)` |
@@ -98,9 +144,17 @@ Triggers when ardha morae pass but gaṇa structure is invalid. `meter_label` ap
 Triggers when ardha morae pass and gaṇa rules pass, but per-pāda morae don't match. `meter_label` appends `(asamīcīnā, adhikamātrā)` or `(asamīcīnā, ūnamātrā)` when all offending pādas err in the same direction, or `(asamīcīnā, pāda N: X; pāda M: Y)` when they differ.
 
 | `imperfect_label_sanskrit` | `imperfect_label_english` |
-|---------------------------|--------------------------|
-| `adhikamātrā` | `pāda mora count doesn't match expected pattern [a,b,c,d]` (e.g. `pāda mora count doesn't match expected pattern [12, 18, 12, 15]`) |
-| `ūnamātrā` | `pāda mora count doesn't match expected pattern [a,b,c,d]` (e.g. `pāda mora count doesn't match expected pattern [12, 18, 12, 15]`) |
+|---|---|
+| `adhikamātrā` | `pāda mora count doesn't match expected pattern {[a,b,c,d]}` (e.g. `pāda mora count doesn't match expected pattern [12, 18, 12, 15]`) |
+| `ūnamātrā` | `pāda mora count doesn't match expected pattern {[a,b,c,d]}` (e.g. `pāda mora count doesn't match expected pattern [12, 18, 12, 15]`) |
+
+## Jāti — incorrect pāda split after krama rescue (step c)
+
+Triggers during the krama rescue path when pāda-level morae don't match despite ardha rescue succeeding. Keyed by pāda number; diagnostic attached to the first pāda of each failing ardha.
+
+| `imperfect_label_sanskrit` | `imperfect_label_english` |
+|---|---|
+| `asamīcīnapādaviccheda` | `pāda split does not match expected mora pattern` |
 
 ## Jāti — not yet covered
 
