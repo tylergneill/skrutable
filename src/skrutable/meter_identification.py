@@ -1462,6 +1462,56 @@ class VerseTester(object):
 			)
 		return True
 
+	def _attempt_jAti_ardha_krama_rescue(self, Vrs, ardha_w, bad_indices, g6, g8_morae,
+	                                         jAti_name, ardha_num, four_line, w_p):
+		"""
+		Attempt kramasaṃyoga rescue for one jāti ardha.
+		Flips all confirmed krama candidates simultaneously, re-decomposes, re-validates.
+		Returns (rescued, notable_indices) where notable_indices are ardha-level offsets.
+		"""
+		# Only positions where ardha scans g but krama could make it l are candidates.
+		krama_candidates = []
+		for j in bad_indices:
+			if ardha_w[j] != 'g':
+				continue
+			# Map ardha offset j to pāda-level line_num and syl_offset for check_kramasaMyoga.
+			if four_line:
+				if j < len(w_p[ardha_num * 2 - 2]):
+					line_num = ardha_num * 2 - 2
+					syl_offset = 0
+					local_j = j
+				else:
+					line_num = ardha_num * 2 - 1
+					syl_offset = 0
+					local_j = j - len(w_p[ardha_num * 2 - 2])
+				pada_weights = w_p[line_num]
+			else:
+				line_num = ardha_num - 1
+				syl_offset = 0
+				local_j = j
+				pada_weights = ardha_w
+			notable, remaining = self.check_kramasaMyoga(
+				Vrs, ardha_num, pada_weights,
+				{local_j: 'l'}, [local_j],
+				line_num=line_num, syl_offset=syl_offset,
+			)
+			if notable is not None and not remaining:
+				krama_candidates.append(j)
+
+		if not krama_candidates:
+			return False, [], ardha_w
+
+		# Flip all candidates simultaneously and re-validate.
+		ardha_w_fixed = list(ardha_w)
+		for j in krama_candidates:
+			ardha_w_fixed[j] = 'l'
+		ardha_w_fixed = ''.join(ardha_w_fixed)
+		fixed_ganas = _decompose_into_mAtragaNas(ardha_w_fixed, g6, g8_morae)
+		err_fixed = _validate_jAti_gaNas(fixed_ganas, g6, jAti_name, ardha_num)
+		if err_fixed is not None:
+			return False, [], ardha_w
+		return True, krama_candidates, ardha_w_fixed
+
 	def test_as_jAti(self, Vrs):
 		"""
 		Determines whether verse is of jāti (mātrāvṛtta) type.
@@ -1488,6 +1538,13 @@ class VerseTester(object):
 
 		for std_ardha, jAti_name, g6_ardha1, g6_ardha2, quarter_label, quarter_morae in meter_patterns.jAtis_by_ardha_morae:
 
+			def _pada_morae_ok(ardha_w, split, exp_a, exp_b):
+				ma = ardha_w[:split].count('l') + ardha_w[:split].count('g') * 2
+				mb = ardha_w[split:].count('l') + ardha_w[split:].count('g') * 2
+				ok_a = ma == exp_a or (ma == exp_a - 1 and ardha_w[split-1:split] == 'l')
+				ok_b = mb == exp_b or (mb == exp_b - 1 and ardha_w[-1:] == 'l')
+				return ok_a and ok_b
+
 			# ardha-level morae gate: the final syllable is anceps — a light final
 			# may stand for heavy, so one short is acceptable when the last is light.
 			ok1 = m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l')
@@ -1502,6 +1559,117 @@ class VerseTester(object):
 				close1 = abs(eff1 - std_ardha[0]) <= 1
 				close2 = abs(eff2 - std_ardha[1]) <= 1
 				if close1 and close2:
+					# For hypermetric ardhas (1 mora over), attempt krama rescue before
+					# reporting as imperfect. A g→l flip removes 1 mora; if it also passes
+					# gaṇa validation, the ardha is rescued to perfect.
+					g8_morae_pre = 4 if jAti_name == 'āryāgīti' else 2
+					four_line_pre = len(w_p) >= 4
+					pre_rescue1_notable = []
+					pre_rescue2_notable = []
+					ardha1_w_fixed = ardha1_w
+					ardha2_w_fixed = ardha2_w
+					pre_rescued1 = (m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l'))
+					pre_rescued2 = (m2 == std_ardha[1] or (m2 == std_ardha[1] - 1 and ardha2_w[-1] == 'l'))
+					if not pre_rescued1 and m1 > std_ardha[0]:
+						ardha1_ganas_pre = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae_pre)
+						err1_pre = _validate_jAti_gaNas(ardha1_ganas_pre, g6_ardha1, jAti_name, 1)
+						if err1_pre:
+							pre_rescued1, pre_rescue1_notable, ardha1_w_fixed = self._attempt_jAti_ardha_krama_rescue(
+								Vrs, ardha1_w, err1_pre[1], g6_ardha1, g8_morae_pre, jAti_name, 1, four_line_pre, w_p)
+					if not pre_rescued2 and m2 > std_ardha[1]:
+						ardha2_ganas_pre = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae_pre)
+						err2_pre = _validate_jAti_gaNas(ardha2_ganas_pre, g6_ardha2, jAti_name, 2)
+						if err2_pre:
+							pre_rescued2, pre_rescue2_notable, ardha2_w_fixed = self._attempt_jAti_ardha_krama_rescue(
+								Vrs, ardha2_w, err2_pre[1], g6_ardha2, g8_morae_pre, jAti_name, 2, four_line_pre, w_p)
+					if pre_rescued1 and pre_rescued2:
+						# Step (c): check whether this candidate's pāda split matches
+						# quarter_morae for the rescued ardha weights.
+						if four_line_pre:
+							split_ok = (
+								_pada_morae_ok(ardha1_w_fixed, len(w_p[0]), quarter_morae[0], quarter_morae[1]) and
+								_pada_morae_ok(ardha2_w_fixed, len(w_p[2]), quarter_morae[2], quarter_morae[3])
+							)
+						else:
+							split_ok = True
+						if not split_ok:
+							score = meter_scores["jāti, imperfect"]
+							if score >= Vrs.identification_score:
+								# Label on first pāda of each ardha with a bad split.
+								per_pada_sanskrit = {}
+								per_pada_english = {}
+								ardha_pairs = [(1, 2, ardha1_w_fixed, quarter_morae[0], quarter_morae[1]),
+								               (3, 4, ardha2_w_fixed, quarter_morae[2], quarter_morae[3])]
+								for pa, pb, aw, exp_a, exp_b in ardha_pairs:
+									if not _pada_morae_ok(aw, len(w_p[pa - 1]) if four_line_pre else len(aw), exp_a, exp_b):
+										per_pada_sanskrit[pa] = 'asamīcīnapādaviccheda'
+										per_pada_english[pa] = 'pāda split does not match expected mora pattern'
+								ardha_parts = [per_pada_sanskrit[p] for p in sorted(per_pada_sanskrit)]
+								suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in per_pada_sanskrit.items())
+								Vrs.meter_label = jAti_name + f" ({suffix})"
+								Vrs.identification_score = score
+								Vrs.is_perfect = False
+								_names_imp = meter_patterns.mAtragaNa_names
+								_ga_imp = lambda gs: ' '.join(_names_imp.get(g, g) for g in gs)
+								_gf1 = _decompose_into_mAtragaNas(ardha1_w_fixed, g6_ardha1, g8_morae_pre)
+								_gf2 = _decompose_into_mAtragaNas(ardha2_w_fixed, g6_ardha2, g8_morae_pre)
+								if four_line_pre:
+									def _sp_imp(gs, n):
+										cur = 0
+										for i, g in enumerate(gs):
+											if cur >= n: return _ga_imp(gs[:i]), _ga_imp(gs[i:])
+											cur += len(g)
+										return _ga_imp(gs), ''
+									_p1a, _p1b = _sp_imp(_gf1, len(w_p[0]))
+									_p2a, _p2b = _sp_imp(_gf2, len(w_p[2]))
+									Vrs.mAtragaNa_abbreviations = '\n'.join([_p1a, _p1b, _p2a, _p2b])
+								else:
+									Vrs.mAtragaNa_abbreviations = '\n'.join([_ga_imp(_gf1), _ga_imp(_gf2)])
+								Vrs.diagnostic = Diagnostic(
+									imperfect_label_sanskrit=per_pada_sanskrit or None,
+									imperfect_label_english=per_pada_english or None,
+								)
+							return 1
+						notable_syllables = {}
+						pada1_len_pre = len(w_p[0]) if four_line_pre else 0
+						for j in pre_rescue1_notable:
+							pn = 1 if (not four_line_pre or j < pada1_len_pre) else 2
+							lj = j if (not four_line_pre or j < pada1_len_pre) else j - pada1_len_pre
+							notable_syllables.setdefault(pn, []).append(lj)
+						pada3_len_pre = len(w_p[2]) if four_line_pre else 0
+						for j in pre_rescue2_notable:
+							pn = 3 if (not four_line_pre or j < pada3_len_pre) else 4
+							lj = j if (not four_line_pre or j < pada3_len_pre) else j - pada3_len_pre
+							notable_syllables.setdefault(pn, []).append(lj)
+						score = meter_scores["jāti, perfect"]
+						if score >= Vrs.identification_score:
+							Vrs.meter_label = jAti_name
+							Vrs.identification_score = score
+							Vrs.is_perfect = True
+							ardha1_ganas_f = _decompose_into_mAtragaNas(ardha1_w_fixed, g6_ardha1, g8_morae_pre)
+							ardha2_ganas_f = _decompose_into_mAtragaNas(ardha2_w_fixed, g6_ardha2, g8_morae_pre)
+							names_pre = meter_patterns.mAtragaNa_names
+							def _ga(gs): return ' '.join(names_pre.get(g, g) for g in gs)
+							if four_line_pre:
+								def _sp(gs, n):
+									cur = 0
+									for i, g in enumerate(gs):
+										if cur >= n: return _ga(gs[:i]), _ga(gs[i:])
+										cur += len(g)
+									return _ga(gs), ''
+								p1a, p1b = _sp(ardha1_ganas_f, len(w_p[0]))
+								p2a, p2b = _sp(ardha2_ganas_f, len(w_p[2]))
+								Vrs.mAtragaNa_abbreviations = '\n'.join([p1a, p1b, p2a, p2b])
+							else:
+								Vrs.mAtragaNa_abbreviations = '\n'.join([_ga(ardha1_ganas_f), _ga(ardha2_ganas_f)])
+							Vrs.diagnostic = Diagnostic(
+								perfect_id_label=jAti_name,
+								notable_syllables=notable_syllables or None,
+								notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in notable_syllables} if notable_syllables else None,
+								notable_label_english={p: KRAMA_LABEL_ENG for p in notable_syllables} if notable_syllables else None,
+							)
+						continue
+
 					jati_label = jAti_name
 					likely_score = meter_scores["jāti, likely"]
 					if likely_score > Vrs.identification_score:
@@ -1638,6 +1806,92 @@ class VerseTester(object):
 				return ok_a and ok_b
 
 			if err1 or err2:
+				# Attempt kramasaṃyoga rescue before reporting as imperfect.
+				four_line = len(w_p) >= 4
+				krama1_notable = []
+				krama2_notable = []
+				ardha1_w_kr = ardha1_w
+				ardha2_w_kr = ardha2_w
+				rescued1 = not err1
+				rescued2 = not err2
+				if err1:
+					rescued1, krama1_notable, ardha1_w_kr = self._attempt_jAti_ardha_krama_rescue(
+						Vrs, ardha1_w, err1[1], g6_ardha1, g8_morae, jAti_name, 1, four_line, w_p)
+				if err2:
+					rescued2, krama2_notable, ardha2_w_kr = self._attempt_jAti_ardha_krama_rescue(
+						Vrs, ardha2_w, err2[1], g6_ardha2, g8_morae, jAti_name, 2, four_line, w_p)
+
+				if rescued1 and rescued2:
+					# Step (c): check whether this candidate's pāda split matches quarter_morae.
+					if four_line:
+						split_ok = (
+							_pada_morae_ok(ardha1_w_kr, len(w_p[0]), quarter_morae[0], quarter_morae[1]) and
+							_pada_morae_ok(ardha2_w_kr, len(w_p[2]), quarter_morae[2], quarter_morae[3])
+						)
+						if not split_ok:
+							score = meter_scores["jāti, imperfect"]
+							if score >= Vrs.identification_score:
+								per_pada_sanskrit = {}
+								per_pada_english = {}
+								ardha_pairs = [(1, 2, ardha1_w_kr, quarter_morae[0], quarter_morae[1]),
+								               (3, 4, ardha2_w_kr, quarter_morae[2], quarter_morae[3])]
+								for pa, pb, aw, exp_a, exp_b in ardha_pairs:
+									if not _pada_morae_ok(aw, len(w_p[pa - 1]) if four_line else len(aw), exp_a, exp_b):
+										per_pada_sanskrit[pa] = 'asamīcīnapādaviccheda'
+										per_pada_english[pa] = 'pāda split does not match expected mora pattern'
+								suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in per_pada_sanskrit.items())
+								Vrs.meter_label = jAti_name + f" ({suffix})"
+								Vrs.identification_score = score
+								Vrs.is_perfect = False
+								Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
+								Vrs.diagnostic = Diagnostic(
+									imperfect_label_sanskrit=per_pada_sanskrit or None,
+									imperfect_label_english=per_pada_english or None,
+								)
+							return 1
+					# All problems explained by krama — report as perfect with notable syllables.
+					# Map ardha-level notable offsets to pāda-level.
+					notable_syllables = {}
+					pada1_len = len(w_p[0]) if four_line else 0
+					for j in krama1_notable:
+						pada_num = 1 if (not four_line or j < pada1_len) else 2
+						local_j = j if (not four_line or j < pada1_len) else j - pada1_len
+						notable_syllables.setdefault(pada_num, []).append(local_j)
+					pada3_len = len(w_p[2]) if four_line else 0
+					for j in krama2_notable:
+						pada_num = 3 if (not four_line or j < pada3_len) else 4
+						local_j = j if (not four_line or j < pada3_len) else j - pada3_len
+						notable_syllables.setdefault(pada_num, []).append(local_j)
+					score = meter_scores["jāti, perfect"]
+					if score >= Vrs.identification_score:
+						Vrs.meter_label = jAti_name
+						Vrs.identification_score = score
+						Vrs.is_perfect = True
+						# Recompute gaṇa decomposition using krama-flipped ardha weights.
+						ardha1_ganas_kr = _decompose_into_mAtragaNas(ardha1_w_kr, g6_ardha1, g8_morae)
+						ardha2_ganas_kr = _decompose_into_mAtragaNas(ardha2_w_kr, g6_ardha2, g8_morae)
+						names_kr = meter_patterns.mAtragaNa_names
+						def _gak(gs): return ' '.join(names_kr.get(g, g) for g in gs)
+						if four_line:
+							def _spk(gs, n):
+								cur = 0
+								for i, g in enumerate(gs):
+									if cur >= n: return _gak(gs[:i]), _gak(gs[i:])
+									cur += len(g)
+								return _gak(gs), ''
+							p1a, p1b = _spk(ardha1_ganas_kr, len(w_p[0]))
+							p2a, p2b = _spk(ardha2_ganas_kr, len(w_p[2]))
+							Vrs.mAtragaNa_abbreviations = '\n'.join([p1a, p1b, p2a, p2b])
+						else:
+							Vrs.mAtragaNa_abbreviations = '\n'.join([_gak(ardha1_ganas_kr), _gak(ardha2_ganas_kr)])
+						Vrs.diagnostic = Diagnostic(
+							perfect_id_label=jAti_name,
+							notable_syllables=notable_syllables or None,
+							notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in notable_syllables} if notable_syllables else None,
+							notable_label_english={p: KRAMA_LABEL_ENG for p in notable_syllables} if notable_syllables else None,
+						)
+					return 1
+
 				# Gaṇa rules broken — report the specific violation.
 				# TODO: it is an open empirical question whether a pāda mora-count
 				# mismatch (Vrs.morae_per_line vs quarter_morae) ever occurs without
