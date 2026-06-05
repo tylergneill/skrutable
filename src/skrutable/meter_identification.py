@@ -1,6 +1,7 @@
 from skrutable.scansion import Scanner as Sc
 from skrutable import meter_patterns
 from skrutable.phonemes import SLP_consonants_for_scansion_set
+from skrutable.transliteration import Transliterator as _Tr
 from skrutable.config import load_config_dict_from_json_file
 from skrutable.utils import _DEBUG_TIMING, _section_totals, timed
 import re
@@ -16,6 +17,13 @@ BATCH_PARALLEL_THRESHOLD = 100
 
 KRAMA_LABEL_SKT = 'padādau [puraḥsthita-saṃyogena] syāl laghutā [...] guroḥ (Vṛttaratn. 10)'
 KRAMA_LABEL_ENG = 'word-initial pr/br/kr/hr/kṣ can count as simple consonant (Vṛttaratn. 10)'
+
+_slp_to_iast = _Tr(from_scheme='SLP', to_scheme='IAST')
+
+def _krama_tag(notable_dict):
+	"""Build '(xyz kramasaṃyoga)' label from a {j: trigger_syl} dict (SLP values → IAST)."""
+	syls = ', '.join(_slp_to_iast.transliterate(notable_dict[j]) for j in sorted(notable_dict))
+	return f'({syls} kramasaṃyoga)'
 
 # load config variables
 config = load_config_dict_from_json_file()
@@ -680,7 +688,9 @@ class VerseTester(object):
 		def _half_label(r):
 			if r.perfect():
 				return r.perfect_id_label
-			return 'pathyā [kramasaṃyoga]'
+			merged = {j: s for d in r.notable_syllables.values() for j, s in d.items()}
+			syls = ', '.join(_slp_to_iast.transliterate(merged[j]) for j in sorted(merged))
+			return f'pathyā, {syls} kramasaṃyoga'
 
 		# both halves perfect (or krama-rescued)
 
@@ -878,6 +888,9 @@ class VerseTester(object):
 
 		if imperfect_note is None and not has_any_error:
 			# all four pādas match perfectly (possibly with kramasaṃyoga licence)
+			if krama_notable:
+				merged = {j: s for d in krama_notable.values() for j, s in d.items()}
+				meter_label += ' ' + _krama_tag(merged)
 			diagnostic = Diagnostic(
 				perfect_id_label=meter_label,
 				notable_syllables=krama_notable or None,
@@ -905,11 +918,10 @@ class VerseTester(object):
 				new_samatva = self.pAdasamatva_count + krama_explained_count
 				if new_samatva == 4:
 					imperfect_note = None
-					meter_label = meter_label.split(' (')[0]
+					merged = {j: s for d in krama_notable.values() for j, s in d.items()}
+					meter_label = meter_label.split(' (')[0] + ' ' + _krama_tag(merged)
 					score = meter_scores["samavṛtta, perfect"]
 				elif new_samatva == 3:
-					new_note = "? 3 eva pādāḥ yuktāḥ"
-					meter_label = meter_label.split(' (')[0] + f" ({new_note})"
 					score = meter_scores["samavṛtta, imperfect (3)"]
 			diagnostic = Diagnostic(
 				perfect_id_label=meter_label if imperfect_note is None else None,
@@ -1048,7 +1060,8 @@ class VerseTester(object):
 			suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in sa_vals)
 		else:
 			suffix = None
-		imperfect_label = best_label + (f" ({suffix})" if suffix else '')
+		krama_tag = (' ' + _krama_tag({j: s for d in krama_notable.values() for j, s in d.items()})) if krama_notable and not suffix else ''
+		imperfect_label = best_label + krama_tag + (f" ({suffix})" if suffix else '')
 
 		old_score = Vrs.identification_score
 		_diag = Diagnostic(
@@ -1440,7 +1453,8 @@ class VerseTester(object):
 			suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in sa_vals)
 		else:
 			suffix = None
-		imperfect_label = best_label + (f" ({suffix})" if suffix else '')
+		krama_tag = (' ' + _krama_tag({j: s for d in krama_notable.values() for j, s in d.items()})) if krama_notable and not suffix else ''
+		imperfect_label = best_label + krama_tag + (f" ({suffix})" if suffix else '')
 
 		old_score = Vrs.identification_score
 		_diag = Diagnostic(
@@ -2135,7 +2149,7 @@ class VerseTester(object):
 		word_initial = {i - pada_abs_offset for i in word_initial_verse
 		                if pada_abs_offset <= i < pada_abs_offset + len(syllables)}
 
-		krama_candidates = []
+		krama_candidates = {}  # j → trigger syllable text (SLP1)
 		for j in bad_indices:
 			if pada_weights[j] == 'g' and expected_at_indices.get(j) == 'l' and j + 1 < len(syllables):
 				next_syl = syllables[j + 1]
@@ -2146,7 +2160,7 @@ class VerseTester(object):
 					and next_syl[1] in SLP_consonants_for_scansion_set
 					and next_syl[:2] in self._KRAMA_CLUSTERS
 				):
-					krama_candidates.append(j)
+					krama_candidates[j] = next_syl
 
 		if not krama_candidates:
 			return None, bad_indices
@@ -2813,7 +2827,8 @@ class MeterIdentifier(object):
 								suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in sa_vals)
 							else:
 								suffix = None
-							imperfect_label = best_label + (f" ({suffix})" if suffix else '')
+							krama_tag = (' ' + _krama_tag({j: s for d in krama_notable.values() for j, s in d.items()})) if krama_notable and not suffix else ''
+							imperfect_label = best_label + krama_tag + (f" ({suffix})" if suffix else '')
 							ardha_Vrs.gaRa_abbreviations = best_stash_gaRa
 							ardha_Vrs.morae_per_line = best_stash_morae
 							ardha_Vrs.meter_label = imperfect_label
@@ -2895,7 +2910,8 @@ class MeterIdentifier(object):
 								suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in sa_vals)
 							else:
 								suffix = None
-							imperfect_label = best_label + (f" ({suffix})" if suffix else '')
+							krama_tag = (' ' + _krama_tag({j: s for d in krama_notable.values() for j, s in d.items()})) if krama_notable and not suffix else ''
+							imperfect_label = best_label + krama_tag + (f" ({suffix})" if suffix else '')
 							vizama_Vrs.gaRa_abbreviations = best_gaRa
 							vizama_Vrs.morae_per_line = best_morae
 							vizama_Vrs.meter_label = imperfect_label

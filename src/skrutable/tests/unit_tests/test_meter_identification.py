@@ -669,7 +669,7 @@ nirbuddhiḥ kṣayametyaho nidhanatā sarvāpadāmāspadam"""
 	d = result.diagnostic
 	assert d.perfect()
 	assert d.problem_syllables is None
-	assert d.notable_syllables == {1: [6]}
+	assert d.notable_syllables == {1: {6: 'hrI'}}
 	assert 'Vṛttaratn. 10' in d.notable_label_sanskrit[1]
 	assert 'Vṛttaratn. 10' in d.notable_label_english[1]
 
@@ -699,7 +699,7 @@ yattena kiṃciddhi kṛtaṃ hi karma tadaśnute nāsti kṛtasya nāśaḥ // 
 	d = result.diagnostic
 	assert d.perfect()
 	assert d.problem_syllables is None
-	assert d.notable_syllables == {1: [5]}
+	assert d.notable_syllables == {1: {5: 'krf'}}
 	assert 'Vṛttaratn. 10' in d.notable_label_english[1]
 
 def test_anuzwuB_kramasamyoga_even_pada():
@@ -714,7 +714,7 @@ def test_anuzwuB_kramasamyoga_even_pada():
 	assert isinstance(d, dict)
 	assert d['ab'].krama_rescued()
 	assert d['ab'].problem_syllables is None
-	assert d['ab'].notable_syllables == {'even': [4]}
+	assert d['ab'].notable_syllables == {'even': {4: 'brA'}}
 	assert 'Vṛttaratn. 10' in d['ab'].notable_label_sanskrit['even']
 
 def test_jAti_kramasamyoga_resplit_perfect():
