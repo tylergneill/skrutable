@@ -1520,6 +1520,9 @@ class VerseTester(object):
 		Returns 1 if identified, 0 if not.
 		"""
 
+		if not hasattr(self, '_jAti_ardha_cache'):
+			self._jAti_ardha_cache = {}
+
 		w_p = Vrs.syllable_weights.split('\n')
 		if len(w_p) < 2 or not w_p[0] or not w_p[1]:
 			return 0
@@ -1559,29 +1562,44 @@ class VerseTester(object):
 				close1 = abs(eff1 - std_ardha[0]) <= 1
 				close2 = abs(eff2 - std_ardha[1]) <= 1
 				if close1 and close2:
-					# For hypermetric ardhas (1 mora over), attempt krama rescue before
-					# reporting as imperfect. A g→l flip removes 1 mora; if it also passes
-					# gaṇa validation, the ardha is rescued to perfect.
-					g8_morae_pre = 4 if jAti_name == 'āryāgīti' else 2
+					# Use cached step (b) results (decomposition + krama rescue).
+					g8_morae_close = 4 if jAti_name == 'āryāgīti' else 2
 					four_line_pre = len(w_p) >= 4
-					pre_rescue1_notable = []
-					pre_rescue2_notable = []
-					ardha1_w_fixed = ardha1_w
-					ardha2_w_fixed = ardha2_w
-					pre_rescued1 = (m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l'))
-					pre_rescued2 = (m2 == std_ardha[1] or (m2 == std_ardha[1] - 1 and ardha2_w[-1] == 'l'))
-					if not pre_rescued1 and m1 > std_ardha[0]:
-						ardha1_ganas_pre = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae_pre)
-						err1_pre = _validate_jAti_gaNas(ardha1_ganas_pre, g6_ardha1, jAti_name, 1)
-						if err1_pre:
-							pre_rescued1, pre_rescue1_notable, ardha1_w_fixed = self._attempt_jAti_ardha_krama_rescue(
-								Vrs, ardha1_w, err1_pre[1], g6_ardha1, g8_morae_pre, jAti_name, 1, four_line_pre, w_p)
-					if not pre_rescued2 and m2 > std_ardha[1]:
-						ardha2_ganas_pre = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae_pre)
-						err2_pre = _validate_jAti_gaNas(ardha2_ganas_pre, g6_ardha2, jAti_name, 2)
-						if err2_pre:
-							pre_rescued2, pre_rescue2_notable, ardha2_w_fixed = self._attempt_jAti_ardha_krama_rescue(
-								Vrs, ardha2_w, err2_pre[1], g6_ardha2, g8_morae_pre, jAti_name, 2, four_line_pre, w_p)
+					_cache_key_close = (ardha1_w, ardha2_w, jAti_name)
+					if _cache_key_close in self._jAti_ardha_cache:
+						_cc = self._jAti_ardha_cache[_cache_key_close]
+						pre_rescued1 = _cc['rescued1']
+						pre_rescued2 = _cc['rescued2']
+						pre_rescue1_notable = _cc['krama1_notable']
+						pre_rescue2_notable = _cc['krama2_notable']
+						ardha1_w_fixed = _cc['ardha1_w_kr']
+						ardha2_w_fixed = _cc['ardha2_w_kr']
+					else:
+						pre_rescue1_notable = []
+						pre_rescue2_notable = []
+						ardha1_w_fixed = ardha1_w
+						ardha2_w_fixed = ardha2_w
+						pre_rescued1 = (m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l'))
+						pre_rescued2 = (m2 == std_ardha[1] or (m2 == std_ardha[1] - 1 and ardha2_w[-1] == 'l'))
+						if not pre_rescued1 and m1 > std_ardha[0]:
+							ardha1_ganas_pre = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae_close)
+							err1_pre = _validate_jAti_gaNas(ardha1_ganas_pre, g6_ardha1, jAti_name, 1)
+							if err1_pre:
+								pre_rescued1, pre_rescue1_notable, ardha1_w_fixed = self._attempt_jAti_ardha_krama_rescue(
+									Vrs, ardha1_w, err1_pre[1], g6_ardha1, g8_morae_close, jAti_name, 1, four_line_pre, w_p)
+						if not pre_rescued2 and m2 > std_ardha[1]:
+							ardha2_ganas_pre = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae_close)
+							err2_pre = _validate_jAti_gaNas(ardha2_ganas_pre, g6_ardha2, jAti_name, 2)
+							if err2_pre:
+								pre_rescued2, pre_rescue2_notable, ardha2_w_fixed = self._attempt_jAti_ardha_krama_rescue(
+									Vrs, ardha2_w, err2_pre[1], g6_ardha2, g8_morae_close, jAti_name, 2, four_line_pre, w_p)
+						self._jAti_ardha_cache[_cache_key_close] = {
+							'ardha1_ganas': None, 'ardha2_ganas': None,
+							'err1': None, 'err2': None,
+							'rescued1': pre_rescued1, 'rescued2': pre_rescued2,
+							'krama1_notable': pre_rescue1_notable, 'krama2_notable': pre_rescue2_notable,
+							'ardha1_w_kr': ardha1_w_fixed, 'ardha2_w_kr': ardha2_w_fixed,
+						}
 					if pre_rescued1 and pre_rescued2:
 						# Step (c): check whether this candidate's pāda split matches
 						# quarter_morae for the rescued ardha weights.
@@ -1611,8 +1629,8 @@ class VerseTester(object):
 								Vrs.is_perfect = False
 								_names_imp = meter_patterns.mAtragaNa_names
 								_ga_imp = lambda gs: ' '.join(_names_imp.get(g, g) for g in gs)
-								_gf1 = _decompose_into_mAtragaNas(ardha1_w_fixed, g6_ardha1, g8_morae_pre)
-								_gf2 = _decompose_into_mAtragaNas(ardha2_w_fixed, g6_ardha2, g8_morae_pre)
+								_gf1 = _decompose_into_mAtragaNas(ardha1_w_fixed, g6_ardha1, g8_morae_close)
+								_gf2 = _decompose_into_mAtragaNas(ardha2_w_fixed, g6_ardha2, g8_morae_close)
 								if four_line_pre:
 									def _sp_imp(gs, n):
 										cur = 0
@@ -1646,8 +1664,8 @@ class VerseTester(object):
 							Vrs.meter_label = jAti_name
 							Vrs.identification_score = score
 							Vrs.is_perfect = True
-							ardha1_ganas_f = _decompose_into_mAtragaNas(ardha1_w_fixed, g6_ardha1, g8_morae_pre)
-							ardha2_ganas_f = _decompose_into_mAtragaNas(ardha2_w_fixed, g6_ardha2, g8_morae_pre)
+							ardha1_ganas_f = _decompose_into_mAtragaNas(ardha1_w_fixed, g6_ardha1, g8_morae_close)
+							ardha2_ganas_f = _decompose_into_mAtragaNas(ardha2_w_fixed, g6_ardha2, g8_morae_close)
 							names_pre = meter_patterns.mAtragaNa_names
 							def _ga(gs): return ' '.join(names_pre.get(g, g) for g in gs)
 							if four_line_pre:
@@ -1748,12 +1766,48 @@ class VerseTester(object):
 				continue
 
 			# Decompose each ardha into mātrā-gaṇas and validate against Hahn's rules.
+			# Cache keyed on (ardha weights, jāti name) — constant across wiggle candidates
+			# when resplit_keep_midpoint is True (ardhas never change, only cd split does).
 			g8_morae = 4 if jAti_name == 'āryāgīti' else 2
-			ardha1_ganas = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae)
-			ardha2_ganas = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae)
-
-			err1 = _validate_jAti_gaNas(ardha1_ganas, g6_ardha1, jAti_name, 1)
-			err2 = _validate_jAti_gaNas(ardha2_ganas, g6_ardha2, jAti_name, 2)
+			_cache_key = (ardha1_w, ardha2_w, jAti_name)
+			if _cache_key in self._jAti_ardha_cache:
+				_cached = self._jAti_ardha_cache[_cache_key]
+				ardha1_ganas = _cached['ardha1_ganas']
+				ardha2_ganas = _cached['ardha2_ganas']
+				err1 = _cached['err1']
+				err2 = _cached['err2']
+				rescued1 = _cached['rescued1']
+				rescued2 = _cached['rescued2']
+				krama1_notable = _cached['krama1_notable']
+				krama2_notable = _cached['krama2_notable']
+				ardha1_w_kr = _cached['ardha1_w_kr']
+				ardha2_w_kr = _cached['ardha2_w_kr']
+			else:
+				ardha1_ganas = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae)
+				ardha2_ganas = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae)
+				err1 = _validate_jAti_gaNas(ardha1_ganas, g6_ardha1, jAti_name, 1)
+				err2 = _validate_jAti_gaNas(ardha2_ganas, g6_ardha2, jAti_name, 2)
+				rescued1 = not err1
+				rescued2 = not err2
+				krama1_notable = []
+				krama2_notable = []
+				ardha1_w_kr = ardha1_w
+				ardha2_w_kr = ardha2_w
+				if err1 or err2:
+					four_line = len(w_p) >= 4
+					if err1:
+						rescued1, krama1_notable, ardha1_w_kr = self._attempt_jAti_ardha_krama_rescue(
+							Vrs, ardha1_w, err1[1], g6_ardha1, g8_morae, jAti_name, 1, four_line, w_p)
+					if err2:
+						rescued2, krama2_notable, ardha2_w_kr = self._attempt_jAti_ardha_krama_rescue(
+							Vrs, ardha2_w, err2[1], g6_ardha2, g8_morae, jAti_name, 2, four_line, w_p)
+				self._jAti_ardha_cache[_cache_key] = {
+					'ardha1_ganas': ardha1_ganas, 'ardha2_ganas': ardha2_ganas,
+					'err1': err1, 'err2': err2,
+					'rescued1': rescued1, 'rescued2': rescued2,
+					'krama1_notable': krama1_notable, 'krama2_notable': krama2_notable,
+					'ardha1_w_kr': ardha1_w_kr, 'ardha2_w_kr': ardha2_w_kr,
+				}
 
 			# Build mAtragaNa_abbreviations: per-pāda space-separated gaṇa names.
 			# Gaṇas spanning the pāda boundary stay with the pāda where they start.
@@ -1806,21 +1860,7 @@ class VerseTester(object):
 				return ok_a and ok_b
 
 			if err1 or err2:
-				# Attempt kramasaṃyoga rescue before reporting as imperfect.
 				four_line = len(w_p) >= 4
-				krama1_notable = []
-				krama2_notable = []
-				ardha1_w_kr = ardha1_w
-				ardha2_w_kr = ardha2_w
-				rescued1 = not err1
-				rescued2 = not err2
-				if err1:
-					rescued1, krama1_notable, ardha1_w_kr = self._attempt_jAti_ardha_krama_rescue(
-						Vrs, ardha1_w, err1[1], g6_ardha1, g8_morae, jAti_name, 1, four_line, w_p)
-				if err2:
-					rescued2, krama2_notable, ardha2_w_kr = self._attempt_jAti_ardha_krama_rescue(
-						Vrs, ardha2_w, err2[1], g6_ardha2, g8_morae, jAti_name, 2, four_line, w_p)
-
 				if rescued1 and rescued2:
 					# Step (c): check whether this candidate's pāda split matches quarter_morae.
 					if four_line:
@@ -2373,6 +2413,7 @@ class MeterIdentifier(object):
 		"""Returns a list for MeterIdentifier.Verses_found"""
 
 		self._anuzwuB_half_cache = {}
+		VrsTster._jAti_ardha_cache = {}
 		VrsTster._ardha_stash = []
 		VrsTster._vizama_stash = []
 		pos_iterators = {}
