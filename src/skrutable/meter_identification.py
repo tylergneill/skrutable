@@ -1874,21 +1874,7 @@ class VerseTester(object):
 				return ok_a and ok_b
 
 			if err1 or err2:
-				# Attempt kramasaṃyoga rescue before reporting as imperfect.
 				four_line = len(w_p) >= 4
-				krama1_notable = []
-				krama2_notable = []
-				ardha1_w_kr = ardha1_w
-				ardha2_w_kr = ardha2_w
-				rescued1 = not err1
-				rescued2 = not err2
-				if err1:
-					rescued1, krama1_notable, ardha1_w_kr = self._attempt_jAti_ardha_krama_rescue(
-						Vrs, ardha1_w, err1[1], g6_ardha1, g8_morae, jAti_name, 1, four_line, w_p)
-				if err2:
-					rescued2, krama2_notable, ardha2_w_kr = self._attempt_jAti_ardha_krama_rescue(
-						Vrs, ardha2_w, err2[1], g6_ardha2, g8_morae, jAti_name, 2, four_line, w_p)
-
 				if rescued1 and rescued2:
 					# Step (c): check whether this candidate's pāda split matches quarter_morae.
 					if four_line:
@@ -2441,6 +2427,7 @@ class MeterIdentifier(object):
 		"""Returns a list for MeterIdentifier.Verses_found"""
 
 		self._anuzwuB_half_cache = {}
+		VrsTster._jAti_ardha_cache = {}
 		VrsTster._ardha_stash = []
 		VrsTster._vizama_stash = []
 		pos_iterators = {}
