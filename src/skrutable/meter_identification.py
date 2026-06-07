@@ -50,7 +50,6 @@ _SCAN_KEYS = tuple(_SCAN_ABBREV)
 _ID_CASCADE_KEYS = tuple(_ID_CASCADE_ABBREV)
 _DEBUG_COUNT_KEYS = ('decompose_calls', 'decompose_cand1', 'decompose_cand2plus', 'jati_cache_hits', 'jati_cache_misses')
 _TIMING_KEYS = _SCAN_KEYS + _ID_CASCADE_KEYS + _DEBUG_COUNT_KEYS
-_JATI_CACHE_DISABLED = False  # set True in source to bypass cache; must be False before committing
 
 _ARDHASAMAVRTTA_NAMES = [
 	'aparavaktra', 'upacitra', 'puṣpitāgrā', 'viyoginī', 'vegavatī',
@@ -1589,9 +1588,9 @@ class VerseTester(object):
 					four_line_pre = len(w_p) >= 4
 					_cache_key_close = (ardha1_w, ardha2_w, jAti_name)
 					if _DEBUG_TIMING:
-						_k = 'jati_close_cache_hits' if (not _JATI_CACHE_DISABLED and _cache_key_close in self._jAti_ardha_cache) else 'jati_close_cache_misses'
+						_k = 'jati_close_cache_hits' if _cache_key_close in self._jAti_ardha_cache else 'jati_close_cache_misses'
 						_section_totals[_k] = _section_totals.get(_k, 0) + 1
-					if not _JATI_CACHE_DISABLED and _cache_key_close in self._jAti_ardha_cache:
+					if _cache_key_close in self._jAti_ardha_cache:
 						_cc = self._jAti_ardha_cache[_cache_key_close]
 						pre_rescued1 = _cc['rescued1']
 						pre_rescued2 = _cc['rescued2']
@@ -1794,9 +1793,9 @@ class VerseTester(object):
 			g8_morae = 4 if jAti_name == 'āryāgīti' else 2
 			_cache_key = (ardha1_w, ardha2_w, jAti_name)
 			if _DEBUG_TIMING:
-				_k = 'jati_cache_hits' if (not _JATI_CACHE_DISABLED and _cache_key in self._jAti_ardha_cache) else 'jati_cache_misses'
+				_k = 'jati_cache_hits' if _cache_key in self._jAti_ardha_cache else 'jati_cache_misses'
 				_section_totals[_k] = _section_totals.get(_k, 0) + 1
-			if not _JATI_CACHE_DISABLED and _cache_key in self._jAti_ardha_cache:
+			if _cache_key in self._jAti_ardha_cache:
 				_cached = self._jAti_ardha_cache[_cache_key]
 				ardha1_ganas = _cached['ardha1_ganas']
 				ardha2_ganas = _cached['ardha2_ganas']
@@ -2997,7 +2996,7 @@ class MeterIdentifier(object):
 				resplit_keep_midpoint=resplit_keep_midpoint, from_scheme=from_scheme)
 				for s in rw_strs]
 
-		args = [(s, resplit_option, resplit_keep_midpoint, from_scheme, _DEBUG_TIMING, _JATI_CACHE_DISABLED) for s in rw_strs]
+		args = [(s, resplit_option, resplit_keep_midpoint, from_scheme, _DEBUG_TIMING) for s in rw_strs]
 		with ProcessPoolExecutor(max_workers=BATCH_MAX_WORKERS) as executor:
 			results = list(executor.map(_identify_meter_worker, args))
 
@@ -3019,13 +3018,12 @@ class MeterIdentifier(object):
 
 def _identify_meter_worker(args):
 	"""Module-level worker function (must be picklable). One verse per call."""
-	rw_str, resplit_option, resplit_keep_midpoint, from_scheme, debug_timing, cache_disabled = args
-	import skrutable.meter_identification as _mi
+	rw_str, resplit_option, resplit_keep_midpoint, from_scheme, debug_timing = args
 	if debug_timing:
 		import skrutable.utils as _utils
 		_utils._DEBUG_TIMING = True
+		import skrutable.meter_identification as _mi
 		_mi._DEBUG_TIMING = True
-	_mi._JATI_CACHE_DISABLED = cache_disabled
 	MI = MeterIdentifier()
 	if debug_timing:
 		pre = {k: _section_totals.get(k, 0.0) for k in _TIMING_KEYS}
