@@ -48,7 +48,9 @@ _ID_CASCADE_ABBREV = {
 }
 _SCAN_KEYS = tuple(_SCAN_ABBREV)
 _ID_CASCADE_KEYS = tuple(_ID_CASCADE_ABBREV)
-_TIMING_KEYS = _SCAN_KEYS + _ID_CASCADE_KEYS
+_DEBUG_COUNT_KEYS = ('decompose_calls', 'decompose_cand1', 'decompose_cand2plus', 'jati_cache_hits', 'jati_cache_misses')
+_TIMING_KEYS = _SCAN_KEYS + _ID_CASCADE_KEYS + _DEBUG_COUNT_KEYS
+_JATI_CACHE_DISABLED = False  # set True in source to bypass cache; must be False before committing
 
 _ARDHASAMAVRTTA_NAMES = [
 	'aparavaktra', 'upacitra', 'puṣpitāgrā', 'viyoginī', 'vegavatī',
@@ -289,6 +291,10 @@ def _decompose_into_mAtragaNas(weights_str, gana_6_morae, gana_8_morae):
 	the syllable sequence diverges — making the specific problem visible to
 	validation. Gaṇa 8 takes all remaining syllables.
 	"""
+	if _DEBUG_TIMING:
+		_section_totals['decompose_calls'] = _section_totals.get('decompose_calls', 0) + 1
+		k = 'decompose_cand1' if _section_totals.get('_wiggle_candidate_num', 0) <= 1 else 'decompose_cand2plus'
+		_section_totals[k] = _section_totals.get(k, 0) + 1
 	ganas = []
 	i = 0
 	n = len(weights_str)
@@ -1534,6 +1540,9 @@ class VerseTester(object):
 		Returns 1 if identified, 0 if not.
 		"""
 
+		if not hasattr(self, '_jAti_ardha_cache'):
+			self._jAti_ardha_cache = {}
+
 		w_p = Vrs.syllable_weights.split('\n')
 		if len(w_p) < 2 or not w_p[0] or not w_p[1]:
 			return 0
@@ -1578,24 +1587,44 @@ class VerseTester(object):
 					# gaṇa validation, the ardha is rescued to perfect.
 					g8_morae_close = 4 if jAti_name == 'āryāgīti' else 2
 					four_line_pre = len(w_p) >= 4
-					pre_rescue1_notable = []
-					pre_rescue2_notable = []
-					ardha1_w_fixed = ardha1_w
-					ardha2_w_fixed = ardha2_w
-					pre_rescued1 = (m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l'))
-					pre_rescued2 = (m2 == std_ardha[1] or (m2 == std_ardha[1] - 1 and ardha2_w[-1] == 'l'))
-					if not pre_rescued1 and m1 > std_ardha[0]:
-						ardha1_ganas_pre = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae_close)
-						err1_pre = _validate_jAti_gaNas(ardha1_ganas_pre, g6_ardha1, jAti_name, 1)
-						if err1_pre:
-							pre_rescued1, pre_rescue1_notable, ardha1_w_fixed = self._attempt_jAti_ardha_krama_rescue(
-								Vrs, ardha1_w, err1_pre[1], g6_ardha1, g8_morae_close, jAti_name, 1, four_line_pre, w_p)
-					if not pre_rescued2 and m2 > std_ardha[1]:
-						ardha2_ganas_pre = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae_close)
-						err2_pre = _validate_jAti_gaNas(ardha2_ganas_pre, g6_ardha2, jAti_name, 2)
-						if err2_pre:
-							pre_rescued2, pre_rescue2_notable, ardha2_w_fixed = self._attempt_jAti_ardha_krama_rescue(
-								Vrs, ardha2_w, err2_pre[1], g6_ardha2, g8_morae_close, jAti_name, 2, four_line_pre, w_p)
+					_cache_key_close = (ardha1_w, ardha2_w, jAti_name)
+					if _DEBUG_TIMING:
+						_k = 'jati_close_cache_hits' if (not _JATI_CACHE_DISABLED and _cache_key_close in self._jAti_ardha_cache) else 'jati_close_cache_misses'
+						_section_totals[_k] = _section_totals.get(_k, 0) + 1
+					if not _JATI_CACHE_DISABLED and _cache_key_close in self._jAti_ardha_cache:
+						_cc = self._jAti_ardha_cache[_cache_key_close]
+						pre_rescued1 = _cc['rescued1']
+						pre_rescued2 = _cc['rescued2']
+						pre_rescue1_notable = _cc['krama1_notable']
+						pre_rescue2_notable = _cc['krama2_notable']
+						ardha1_w_fixed = _cc['ardha1_w_kr']
+						ardha2_w_fixed = _cc['ardha2_w_kr']
+					else:
+						pre_rescue1_notable = []
+						pre_rescue2_notable = []
+						ardha1_w_fixed = ardha1_w
+						ardha2_w_fixed = ardha2_w
+						pre_rescued1 = (m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l'))
+						pre_rescued2 = (m2 == std_ardha[1] or (m2 == std_ardha[1] - 1 and ardha2_w[-1] == 'l'))
+						if not pre_rescued1 and m1 > std_ardha[0]:
+							ardha1_ganas_pre = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae_close)
+							err1_pre = _validate_jAti_gaNas(ardha1_ganas_pre, g6_ardha1, jAti_name, 1)
+							if err1_pre:
+								pre_rescued1, pre_rescue1_notable, ardha1_w_fixed = self._attempt_jAti_ardha_krama_rescue(
+									Vrs, ardha1_w, err1_pre[1], g6_ardha1, g8_morae_close, jAti_name, 1, four_line_pre, w_p)
+						if not pre_rescued2 and m2 > std_ardha[1]:
+							ardha2_ganas_pre = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae_close)
+							err2_pre = _validate_jAti_gaNas(ardha2_ganas_pre, g6_ardha2, jAti_name, 2)
+							if err2_pre:
+								pre_rescued2, pre_rescue2_notable, ardha2_w_fixed = self._attempt_jAti_ardha_krama_rescue(
+									Vrs, ardha2_w, err2_pre[1], g6_ardha2, g8_morae_close, jAti_name, 2, four_line_pre, w_p)
+						self._jAti_ardha_cache[_cache_key_close] = {
+							'ardha1_ganas': None, 'ardha2_ganas': None,
+							'err1': None, 'err2': None,
+							'rescued1': pre_rescued1, 'rescued2': pre_rescued2,
+							'krama1_notable': pre_rescue1_notable, 'krama2_notable': pre_rescue2_notable,
+							'ardha1_w_kr': ardha1_w_fixed, 'ardha2_w_kr': ardha2_w_fixed,
+						}
 					if pre_rescued1 and pre_rescued2:
 						# Step (c): check whether this candidate's pāda split matches
 						# quarter_morae for the rescued ardha weights.
@@ -1763,11 +1792,48 @@ class VerseTester(object):
 
 			# Decompose each ardha into mātrā-gaṇas and validate against Hahn's rules.
 			g8_morae = 4 if jAti_name == 'āryāgīti' else 2
-			ardha1_ganas = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae)
-			ardha2_ganas = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae)
-
-			err1 = _validate_jAti_gaNas(ardha1_ganas, g6_ardha1, jAti_name, 1)
-			err2 = _validate_jAti_gaNas(ardha2_ganas, g6_ardha2, jAti_name, 2)
+			_cache_key = (ardha1_w, ardha2_w, jAti_name)
+			if _DEBUG_TIMING:
+				_k = 'jati_cache_hits' if (not _JATI_CACHE_DISABLED and _cache_key in self._jAti_ardha_cache) else 'jati_cache_misses'
+				_section_totals[_k] = _section_totals.get(_k, 0) + 1
+			if not _JATI_CACHE_DISABLED and _cache_key in self._jAti_ardha_cache:
+				_cached = self._jAti_ardha_cache[_cache_key]
+				ardha1_ganas = _cached['ardha1_ganas']
+				ardha2_ganas = _cached['ardha2_ganas']
+				err1 = _cached['err1']
+				err2 = _cached['err2']
+				rescued1 = _cached['rescued1']
+				rescued2 = _cached['rescued2']
+				krama1_notable = _cached['krama1_notable']
+				krama2_notable = _cached['krama2_notable']
+				ardha1_w_kr = _cached['ardha1_w_kr']
+				ardha2_w_kr = _cached['ardha2_w_kr']
+			else:
+				ardha1_ganas = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae)
+				ardha2_ganas = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae)
+				err1 = _validate_jAti_gaNas(ardha1_ganas, g6_ardha1, jAti_name, 1)
+				err2 = _validate_jAti_gaNas(ardha2_ganas, g6_ardha2, jAti_name, 2)
+				rescued1 = not err1
+				rescued2 = not err2
+				krama1_notable = []
+				krama2_notable = []
+				ardha1_w_kr = ardha1_w
+				ardha2_w_kr = ardha2_w
+				if err1 or err2:
+					four_line = len(w_p) >= 4
+					if err1:
+						rescued1, krama1_notable, ardha1_w_kr = self._attempt_jAti_ardha_krama_rescue(
+							Vrs, ardha1_w, err1[1], g6_ardha1, g8_morae, jAti_name, 1, four_line, w_p)
+					if err2:
+						rescued2, krama2_notable, ardha2_w_kr = self._attempt_jAti_ardha_krama_rescue(
+							Vrs, ardha2_w, err2[1], g6_ardha2, g8_morae, jAti_name, 2, four_line, w_p)
+				self._jAti_ardha_cache[_cache_key] = {
+					'ardha1_ganas': ardha1_ganas, 'ardha2_ganas': ardha2_ganas,
+					'err1': err1, 'err2': err2,
+					'rescued1': rescued1, 'rescued2': rescued2,
+					'krama1_notable': krama1_notable, 'krama2_notable': krama2_notable,
+					'ardha1_w_kr': ardha1_w_kr, 'ardha2_w_kr': ardha2_w_kr,
+				}
 
 			# Build mAtragaNa_abbreviations: per-pāda space-separated gaṇa names.
 			# Gaṇas spanning the pāda boundary stay with the pāda where they start.
@@ -2389,6 +2455,7 @@ class MeterIdentifier(object):
 		self._anuzwuB_half_cache = {}
 		VrsTster._ardha_stash = []
 		VrsTster._vizama_stash = []
+		if _DEBUG_TIMING: _section_totals['_wiggle_candidate_num'] = 0
 		pos_iterators = {}
 		for k in ['ab', 'bc', 'cd']:
 			if  (
@@ -2419,6 +2486,7 @@ class MeterIdentifier(object):
 
 						if _DEBUG_TIMING:
 							_section_totals['wiggle_count'] = _section_totals.get('wiggle_count', 0) + 1
+							_section_totals['_wiggle_candidate_num'] = _section_totals.get('_wiggle_candidate_num', 0) + 1
 
 						temp_V.syllable_weights = timed('scan_weights')(S.scan_syllable_weights)(
 							temp_V.text_syllabified)
@@ -2929,13 +2997,15 @@ class MeterIdentifier(object):
 				resplit_keep_midpoint=resplit_keep_midpoint, from_scheme=from_scheme)
 				for s in rw_strs]
 
-		args = [(s, resplit_option, resplit_keep_midpoint, from_scheme, _DEBUG_TIMING) for s in rw_strs]
+		args = [(s, resplit_option, resplit_keep_midpoint, from_scheme, _DEBUG_TIMING, _JATI_CACHE_DISABLED) for s in rw_strs]
 		with ProcessPoolExecutor(max_workers=BATCH_MAX_WORKERS) as executor:
 			results = list(executor.map(_identify_meter_worker, args))
 
 		if _DEBUG_TIMING:
 			for V, verse_times, cat in results:
 				_section_totals['wiggle_count'] = _section_totals.get('wiggle_count', 0) + verse_times.pop('wiggle_count', 0)
+				for _dk in _DEBUG_COUNT_KEYS:
+					_section_totals[_dk] = _section_totals.get(_dk, 0) + verse_times.pop(_dk, 0)
 				bucket = _category_totals.setdefault(cat, {})
 				for k, v in verse_times.items():
 					bucket[k] = bucket.get(k, 0.0) + v
@@ -2949,16 +3019,18 @@ class MeterIdentifier(object):
 
 def _identify_meter_worker(args):
 	"""Module-level worker function (must be picklable). One verse per call."""
-	rw_str, resplit_option, resplit_keep_midpoint, from_scheme, debug_timing = args
+	rw_str, resplit_option, resplit_keep_midpoint, from_scheme, debug_timing, cache_disabled = args
+	import skrutable.meter_identification as _mi
 	if debug_timing:
 		import skrutable.utils as _utils
 		_utils._DEBUG_TIMING = True
-		import skrutable.meter_identification as _mi
 		_mi._DEBUG_TIMING = True
+	_mi._JATI_CACHE_DISABLED = cache_disabled
 	MI = MeterIdentifier()
 	if debug_timing:
 		pre = {k: _section_totals.get(k, 0.0) for k in _TIMING_KEYS}
 		pre_wiggle = _section_totals.get('wiggle_count', 0)
+		pre_decompose = _section_totals.get('decompose_calls', 0)
 	V = MI.identify_meter(
 		rw_str,
 		resplit_option=resplit_option,
@@ -2969,6 +3041,7 @@ def _identify_meter_worker(args):
 		verse_times = {k: _section_totals.get(k, 0.0) - pre[k] for k in _TIMING_KEYS}
 		verse_times['scan'] = sum(verse_times[k] for k in _SCAN_KEYS)
 		verse_times['wiggle_count'] = _section_totals.get('wiggle_count', 0) - pre_wiggle
+		verse_times['decompose_calls'] = _section_totals.get('decompose_calls', 0) - pre_decompose
 		cat = _meter_label_to_category(V.meter_label)
 		return V, verse_times, cat
 	return V
