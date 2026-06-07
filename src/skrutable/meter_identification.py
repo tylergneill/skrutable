@@ -1,5 +1,7 @@
 from skrutable.scansion import Scanner as Sc
 from skrutable import meter_patterns
+from skrutable.phonemes import SLP_consonants_for_scansion_set
+from skrutable.transliteration import Transliterator as _Tr
 from skrutable.config import load_config_dict_from_json_file
 from skrutable.utils import _DEBUG_TIMING, _section_totals, timed
 import re
@@ -12,6 +14,16 @@ from typing import Optional
 
 BATCH_MAX_WORKERS = 5
 BATCH_PARALLEL_THRESHOLD = 100
+
+KRAMA_LABEL_SKT = 'padādau [puraḥsthita-saṃyogena] syāl laghutā [...] guroḥ (Vṛttaratn. 10)'
+KRAMA_LABEL_ENG = 'word-initial pr/br/kr/hr/kṣ can count as simple consonant (Vṛttaratn. 10)'
+
+_slp_to_iast = _Tr(from_scheme='SLP', to_scheme='IAST')
+
+def _krama_tag(notable_dict):
+	"""Build '(xyz kramasaṃyoga)' label from a {j: trigger_syl} dict (SLP values → IAST)."""
+	syls = ', '.join(_slp_to_iast.transliterate(notable_dict[j]) for j in sorted(notable_dict))
+	return f'({syls} kramasaṃyoga)'
 
 # load config variables
 config = load_config_dict_from_json_file()
@@ -97,8 +109,7 @@ def flush_profiling_report(write_file=False, wall_clock_secs=None, parallel_work
 
 	n_verses = sum(b.get('_count', 0) for b in _category_totals.values())
 	wiggle_count = _section_totals.get('wiggle_count', 0)
-	ardhatraya_gate_count = _section_totals.get('ardhatraya_gate_count', 0)
-	lines = [f'\n=== {n_verses} verses / {wiggle_count} resplit candidates / {ardhatraya_gate_count} ardhatraya gate hits ===']
+	lines = [f'\n=== {n_verses} verses / {wiggle_count} resplit candidates ===']
 	hdr = ('  ' + 'category'.ljust(col_cat_w)
 		+ 'perf'.rjust(count_w) + 'impf'.rjust(count_w)
 		+ 'total'.rjust(sub_w) + 'scan∑'.rjust(sub_w) + 'types∑'.rjust(sub_w)
@@ -161,11 +172,18 @@ class Diagnostic:
 	imperfect_label_english: Optional[dict] = None  # keyed by pada (1–4 or 'odd'/'even'); English only
 	problem_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); None if perfect
 	notable_syllables: Optional[dict] = None        # keyed by pada (1–4 or 'odd'/'even'); green-highlighted "interesting/ok" syllables
-	notable_label: Optional[dict] = None            # keyed by pada (1–4 or 'odd'/'even'); label for the notable feature (same string for skt/eng)
+	notable_label_sanskrit: Optional[dict] = None  # keyed by pada (1–4 or 'odd'/'even'); Sanskrit label for the notable feature
+	notable_label_english: Optional[dict] = None   # keyed by pada (1–4 or 'odd'/'even'); English label for the notable feature
 	canonical_gana: Optional[dict] = None           # keyed by pada (1–4); canonical gaṇa char string for Levenshtein-attributed length-deviant pādas
 
 	def perfect(self):
 		return self.perfect_id_label is not None
+
+	def krama_rescued(self):
+		"""True if all original problems were explained by kramasaṃyoga (no remaining problems, no imperfect label)."""
+		return (self.perfect_id_label is None
+		        and self.imperfect_label_sanskrit is None
+		        and self.notable_syllables is not None)
 
 	def length_error(self):
 		return (
@@ -516,7 +534,8 @@ class VerseTester(object):
 						result = Diagnostic(
 							perfect_id_label=label,
 							notable_syllables={'odd': [4, 5, 6]} if is_vipula else None,
-							notable_label={'odd': label} if is_vipula else None,
+							notable_label_sanskrit={'odd': label} if is_vipula else None,
+							notable_label_english={'odd': label} if is_vipula else None,
 						)
 						break
 				if result is None:
@@ -533,7 +552,8 @@ class VerseTester(object):
 								imperfect_label_english={'odd': code},
 								problem_syllables={'odd': problem_syls},
 								notable_syllables={'odd': [4, 5, 6]} if is_vipula else None,
-								notable_label={'odd': vipula_name} if vipula_name else None,
+								notable_label_sanskrit={'odd': vipula_name} if vipula_name else None,
+								notable_label_english={'odd': vipula_name} if vipula_name else None,
 							)
 							break
 				if result is None:
@@ -545,6 +565,78 @@ class VerseTester(object):
 
 		self._anuzwuB_half_cache[cache_key] = result
 		return result
+
+	def _apply_krama_to_anuzwuB_half(self, result, Vrs, odd_pada_num, even_pada_num):
+		"""
+		Post-cache krama rescue for one anuṣṭubh ardha.
+		For each half-key with problem_syllables, attempts check_kramasaMyoga using
+		the known expected weights for that position. If krama fully explains the
+		problems, returns a new Diagnostic with those syllables moved to notable_syllables.
+		"""
+		if result is None or not result.problem_syllables:
+			return result
+
+		new_problem = dict(result.problem_syllables)
+		new_notable = dict(result.notable_syllables) if result.notable_syllables else {}
+		new_nls = dict(result.notable_label_sanskrit) if result.notable_label_sanskrit else {}
+		new_nle = dict(result.notable_label_english) if result.notable_label_english else {}
+		new_ils = dict(result.imperfect_label_sanskrit) if result.imperfect_label_sanskrit else {}
+		new_ile = dict(result.imperfect_label_english) if result.imperfect_label_english else {}
+		changed = False
+
+		wbp = Vrs.syllable_weights.split('\n')
+		four_line = len(wbp) >= 4
+		for half_key, pada_num, expected_at_indices in [
+			('even', even_pada_num, {4: 'l', 5: 'g', 6: 'l'}),
+			('odd',  odd_pada_num,  {4: 'l', 5: 'l', 6: 'g'}),
+		]:
+			prob = new_problem.get(half_key)
+			if not prob:
+				continue
+			eng = new_ile.get(half_key, '')
+			if eng in ('hypermetric', 'hypometric'):
+				continue
+			if four_line:
+				line_num = pada_num - 1
+				syl_offset = 0
+			else:
+				line_num = (pada_num - 1) // 2
+				syl_offset = 0 if half_key == 'odd' else 8
+			full_line_weights = wbp[line_num]
+			pada_weights = full_line_weights[syl_offset:syl_offset + 8]
+			if len(pada_weights) != 8:
+				continue
+			# Filter to positions that are actually wrong given real weights
+			actual_bad = [j for j in prob if j < len(pada_weights) and
+			              pada_weights[j] != expected_at_indices.get(j, pada_weights[j])]
+			if not actual_bad:
+				continue
+			expected = {j: expected_at_indices[j] for j in actual_bad}
+			notable, remaining = self.check_kramasaMyoga(
+				Vrs, pada_num, pada_weights, expected, actual_bad,
+				line_num=line_num, syl_offset=syl_offset,
+			)
+			if notable is not None and not remaining:
+				del new_problem[half_key]
+				new_notable[half_key] = notable
+				new_nls[half_key] = KRAMA_LABEL_SKT
+				new_nle[half_key] = KRAMA_LABEL_ENG
+				new_ils.pop(half_key, None)
+				new_ile.pop(half_key, None)
+				changed = True
+
+		if not changed:
+			return result
+
+		return Diagnostic(
+			perfect_id_label=result.perfect_id_label if not new_ils else None,
+			imperfect_label_sanskrit=new_ils or None,
+			imperfect_label_english=new_ile or None,
+			problem_syllables=new_problem or None,
+			notable_syllables=new_notable or None,
+			notable_label_sanskrit=new_nls or None,
+			notable_label_english=new_nle or None,
+		)
 
 	def test_as_anuzwuB(self, Vrs):
 	# >> def test_as_zloka(self, Vrs):
@@ -564,7 +656,9 @@ class VerseTester(object):
 
 		# test each half independently
 		pAdas_ab_result = self.test_as_anuzwuB_half(w_p[0], w_p[1])
+		pAdas_ab_result = self._apply_krama_to_anuzwuB_half(pAdas_ab_result, Vrs, odd_pada_num=1, even_pada_num=2)
 		pAdas_cd_result = self.test_as_anuzwuB_half(w_p[2], w_p[3])
+		pAdas_cd_result = self._apply_krama_to_anuzwuB_half(pAdas_cd_result, Vrs, odd_pada_num=3, even_pada_num=4)
 
 		# if per-pāda split produced nothing, retry treating each ardha as a single unit
 		if pAdas_ab_result is None and pAdas_cd_result is None:
@@ -591,10 +685,17 @@ class VerseTester(object):
 		if pAdas_ab_result is None or pAdas_cd_result is None:
 			return None
 
-		# both halves perfect
+		def _half_label(r):
+			if r.perfect():
+				return r.perfect_id_label
+			merged = {j: s for d in r.notable_syllables.values() for j, s in d.items()}
+			syls = ', '.join(_slp_to_iast.transliterate(merged[j]) for j in sorted(merged))
+			return f'pathyā, {syls} kramasaṃyoga'
 
-		if pAdas_ab_result.perfect() and pAdas_cd_result.perfect():
-			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {pAdas_cd_result.perfect_id_label})"
+		# both halves perfect (or krama-rescued)
+
+		if (pAdas_ab_result.perfect() or pAdas_ab_result.krama_rescued()) and (pAdas_cd_result.perfect() or pAdas_cd_result.krama_rescued()):
+			Vrs.meter_label = f"anuṣṭubh (1,2: {_half_label(pAdas_ab_result)}; 3,4: {_half_label(pAdas_cd_result)})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, both halves perfect)"]
 			Vrs.is_perfect = True
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
@@ -602,16 +703,16 @@ class VerseTester(object):
 
 		# one half imperfect
 
-		elif pAdas_ab_result.imperfect() and pAdas_cd_result.perfect():
+		elif pAdas_ab_result.imperfect() and (pAdas_cd_result.perfect() or pAdas_cd_result.krama_rescued()):
 			ab_str = '; '.join(pAdas_ab_result.imperfect_label_sanskrit.values())
-			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {pAdas_cd_result.perfect_id_label})"
+			Vrs.meter_label = f"anuṣṭubh (1,2: {ab_str}; 3,4: {_half_label(pAdas_cd_result)})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
 			return pAdas_ab_result
-		elif pAdas_ab_result.perfect() and pAdas_cd_result.imperfect():
+		elif (pAdas_ab_result.perfect() or pAdas_ab_result.krama_rescued()) and pAdas_cd_result.imperfect():
 			cd_str = '; '.join(pAdas_cd_result.imperfect_label_sanskrit.values())
-			Vrs.meter_label = f"anuṣṭubh (1,2: {pAdas_ab_result.perfect_id_label}; 3,4: {cd_str})"
+			Vrs.meter_label = f"anuṣṭubh (1,2: {_half_label(pAdas_ab_result)}; 3,4: {cd_str})"
 			Vrs.identification_score = meter_scores["anuṣṭubh, full, one half perfect, one imperfect)"]
 			Vrs.is_perfect = False
 			Vrs.diagnostic = {'ab': pAdas_ab_result, 'cd': pAdas_cd_result}
@@ -761,6 +862,7 @@ class VerseTester(object):
 				Vrs.diagnostic = _diag
 			return
 
+		krama_notable = {}
 		for pada_num, w in enumerate(wbp[:4], start=1):
 			if w == canonical:
 				pass  # no entry → perfect for this pada
@@ -778,15 +880,23 @@ class VerseTester(object):
 				# correct length but wrong pattern; final anceps always matches so skip it
 				bad = [j for j in range(len(w) - 1) if w[j] != canonical[j]]
 				if bad:
-					problem_syllables[pada_num] = bad
-					per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
-					per_pada_english[pada_num] = f'does not match expected gaṇa pattern {canonical_pattern}'
+					self.set_problem_diagnostic(Vrs, pada_num, w, canonical, bad,
+					                            problem_syllables, per_pada_sanskrit, per_pada_english,
+					                            canonical_pattern, krama_notable)
 
 		has_any_error = bool(problem_syllables) or bool(per_pada_english)
 
 		if imperfect_note is None and not has_any_error:
-			# all four pādas match perfectly
-			diagnostic = Diagnostic(perfect_id_label=meter_label)
+			# all four pādas match perfectly (possibly with kramasaṃyoga licence)
+			if krama_notable:
+				merged = {j: s for d in krama_notable.values() for j, s in d.items()}
+				meter_label += ' ' + _krama_tag(merged)
+			diagnostic = Diagnostic(
+				perfect_id_label=meter_label,
+				notable_syllables=krama_notable or None,
+				notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
+				notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
+			)
 		elif imperfect_note is None:
 			# correct pāda count but some pādas have length or pattern errors
 			diagnostic = Diagnostic(
@@ -794,16 +904,33 @@ class VerseTester(object):
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
+				notable_syllables=krama_notable or None,
+				notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
+				notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
 			)
 		else:
 			# fewer than 4 matching pādas; append per-pāda notes to the meter_label
 			length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items()]
 			if length_notes:
 				meter_label += " (%s)" % "; ".join(length_notes)
+			if krama_notable:
+				krama_explained_count = len(krama_notable)
+				new_samatva = self.pAdasamatva_count + krama_explained_count
+				if new_samatva == 4:
+					imperfect_note = None
+					merged = {j: s for d in krama_notable.values() for j, s in d.items()}
+					meter_label = meter_label.split(' (')[0] + ' ' + _krama_tag(merged)
+					score = meter_scores["samavṛtta, perfect"]
+				elif new_samatva == 3:
+					score = meter_scores["samavṛtta, imperfect (3)"]
 			diagnostic = Diagnostic(
+				perfect_id_label=meter_label if imperfect_note is None else None,
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
+				notable_syllables=krama_notable or None,
+				notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
+				notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
 			)
 
 		# score arbitration: may tie with pre-existing result (e.g., upajāti)
@@ -825,6 +952,7 @@ class VerseTester(object):
 
 		wbp = Vrs.syllable_weights.split('\n')  # weights by pāda
 		tsyl = Vrs.text_syllabified
+		tslp = Vrs.text_SLP
 		gaRa = Vrs.gaRa_abbreviations
 		morae = Vrs.morae_per_line
 
@@ -843,7 +971,7 @@ class VerseTester(object):
 						<= ARDHASAMAVFTTA_EDIT_DISTANCE_THRESHOLD
 						for pada_num, w in enumerate(wbp[:4], start=1)
 					):
-						self._ardha_stash.append((wbp, meter_label, odd_canonical, even_canonical, tsyl, gaRa, morae))
+						self._ardha_stash.append((wbp, meter_label, odd_canonical, even_canonical, tsyl, tslp, gaRa, morae))
 					continue
 
 				# exact length: direct string comparison for perfect match (no Levenshtein needed)
@@ -860,7 +988,7 @@ class VerseTester(object):
 					self._ardha_stash = []  # perfect found; no need for imperfect pass
 					return
 				# same length but not perfect — stash without distance computation
-				self._ardha_stash.append((wbp, meter_label, odd_canonical, even_canonical, tsyl, gaRa, morae))
+				self._ardha_stash.append((wbp, meter_label, odd_canonical, even_canonical, tsyl, tslp, gaRa, morae))
 			return
 
 		# Imperfect pass: consume the stash built during perfect_only pass.
@@ -873,7 +1001,7 @@ class VerseTester(object):
 		# Run full Levenshtein on every stash entry to find minimum total distance.
 		best_total_dist = None
 		best_entry = None
-		for _stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_gaRa, _stash_morae in self._ardha_stash:
+		for _stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_tslp, _stash_gaRa, _stash_morae in self._ardha_stash:
 			total_dist = sum(
 				_levenshtein_align(w, _odd_can if pada_num in (1, 3) else _even_can)[0]
 				for pada_num, w in enumerate(_stash_wbp[:4], start=1)
@@ -881,42 +1009,59 @@ class VerseTester(object):
 			if total_dist <= ARDHASAMAVFTTA_EDIT_DISTANCE_THRESHOLD:
 				if best_total_dist is None or total_dist < best_total_dist:
 					best_total_dist = total_dist
-					best_entry = (_stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_gaRa, _stash_morae)
+					best_entry = (_stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_tslp, _stash_gaRa, _stash_morae)
 
 		if best_entry is None:
 			return
 
-		best_stash_wbp, best_label, best_odd_canonical, best_even_canonical, *_ = best_entry
+		best_stash_wbp, best_label, best_odd_canonical, best_even_canonical, best_stash_tsyl, best_stash_tslp, best_stash_gaRa, best_stash_morae = best_entry
 		score = meter_scores["ardhasamavṛtta, imperfect"] - (best_total_dist - 1)
 		if score <= 0:
 			return
 
+		ardha_Vrs = copy(self.Verses_found[0]) if self.Verses_found else copy(Vrs)
+		ardha_Vrs.text_syllabified = best_stash_tsyl
+		ardha_Vrs.text_SLP = best_stash_tslp
+		ardha_Vrs.syllable_weights = '\n'.join(best_stash_wbp)
+
 		problem_syllables = {}
 		per_pada_sanskrit = {}
 		per_pada_english = {}
+		krama_notable = {}
 		for pada_num, w in enumerate(best_stash_wbp[:4], start=1):
 			canonical = best_odd_canonical if pada_num in (1, 3) else best_even_canonical
 			dist, prob_indices = _levenshtein_align(w, canonical)
 			if dist == 0:
 				continue
-			problem_syllables[pada_num] = prob_indices
 			meter_name = best_label.split(' = ')[0]
 			if len(w) > len(canonical):
+				problem_syllables[pada_num] = prob_indices
 				per_pada_sanskrit[pada_num] = 'adhikākṣarā'
 				per_pada_english[pada_num] = 'hypermetric'
 			elif len(w) < len(canonical):
+				problem_syllables[pada_num] = prob_indices
 				per_pada_sanskrit[pada_num] = 'ūnākṣarā'
 				per_pada_english[pada_num] = 'hypometric'
 			else:
-				per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
-				per_pada_english[pada_num] = f'does not match expected gaṇa pattern for {meter_name}'
+				notable, remaining = self.check_kramasaMyoga(
+					ardha_Vrs, pada_num, w, {j: canonical[j] for j in prob_indices}, prob_indices,
+				)
+				if notable is not None and not remaining:
+					krama_notable[pada_num] = notable
+				else:
+					problem_syllables[pada_num] = prob_indices
+					per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
+					per_pada_english[pada_num] = f'does not match expected gaṇa pattern for {meter_name}'
 
 		sa_vals = list(per_pada_sanskrit.items())
 		if len(sa_vals) == 1:
 			suffix = f"asamīcīnā, pāda {sa_vals[0][0]}: {sa_vals[0][1]}"
-		else:
+		elif sa_vals:
 			suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in sa_vals)
-		imperfect_label = best_label + f" ({suffix})"
+		else:
+			suffix = None
+		krama_tag = (' ' + _krama_tag({j: s for d in krama_notable.values() for j, s in d.items()})) if krama_notable and not suffix else ''
+		imperfect_label = best_label + krama_tag + (f" ({suffix})" if suffix else '')
 
 		old_score = Vrs.identification_score
 		_diag = Diagnostic(
@@ -927,7 +1072,15 @@ class VerseTester(object):
 		)
 		self.combine_results(Vrs, new_label=imperfect_label, new_score=score, new_diagnostic=_diag)
 		if score >= old_score:
-			Vrs.diagnostic = _diag
+			Vrs.diagnostic = Diagnostic(
+				perfect_id_label=imperfect_label,
+				imperfect_label_sanskrit=per_pada_sanskrit or None,
+				imperfect_label_english=per_pada_english or None,
+				problem_syllables=problem_syllables or None,
+				notable_syllables=krama_notable or None,
+				notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
+				notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
+			)
 
 
 	def _upajAti_match_pada_exact(self, pada_len, gaRa_str):
@@ -1068,7 +1221,7 @@ class VerseTester(object):
 		any_ajnata = False
 		any_exact = False
 		vikrta_count = 0
-		vikrta_info = {}  # pada_index (0-based) → (orig_len, canonical_len, problem_indices)
+		vikrta_info = {}  # pada_index (0-based) → (orig_len, canonical_len, problem_indices, canonical_gaRa, dist, canonical_weights)
 		for i, g_to_id in enumerate(gs_to_id):
 			if wbp_lens[i] in family_lengths:
 				meter_label, is_ajnata = self._upajAti_match_pada_exact(wbp_lens[i], g_to_id)
@@ -1083,7 +1236,7 @@ class VerseTester(object):
 						meter_name, canonical_gaRa, canonical_weights, problem_indices, dist = lev_result
 						meter_label = '%s [%d: %s]' % (meter_name, len(canonical_weights), canonical_gaRa)
 						vikrta_count += 1
-						vikrta_info[i] = (wbp_lens[i], len(canonical_weights), problem_indices, canonical_gaRa, dist)
+						vikrta_info[i] = (wbp_lens[i], len(canonical_weights), problem_indices, canonical_gaRa, dist, canonical_weights)
 			else:
 				any_exact = True
 			meter_labels.append(meter_label)
@@ -1113,6 +1266,7 @@ class VerseTester(object):
 		per_pada_sanskrit = {}
 		per_pada_english = {}
 		canonical_gana = {}
+		krama_notable = {}
 		for pada_num in range(1, 5):
 			i = pada_num - 1
 			lbl = meter_labels[i] if i < len(meter_labels) else None
@@ -1124,7 +1278,7 @@ class VerseTester(object):
 				per_pada_sanskrit[pada_num] = 'adhikākṣarā' if hyper else 'ūnākṣarā'
 				per_pada_english[pada_num] = 'hypermetric' if hyper else 'hypometric'
 			elif i in vikrta_info:
-				orig_len, canonical_len, problem_indices, vikrta_canonical_gaRa, vikrta_dist = vikrta_info[i]
+				orig_len, canonical_len, problem_indices, vikrta_canonical_gaRa, vikrta_dist, vikrta_canonical_weights = vikrta_info[i]
 				if orig_len != canonical_len:
 					# length-deviant vikṛta: flag as hyper/hypometric
 					hyper = orig_len > canonical_len
@@ -1138,20 +1292,27 @@ class VerseTester(object):
 					else:
 						problem_syllables[pada_num] = list(range(orig_len))
 				elif problem_indices:
-					# same-length vikṛta: flag the specific mismatched positions
-					per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
-					per_pada_english[pada_num] = 'vikrtavrtta'
-					problem_syllables[pada_num] = list(problem_indices)
+					# same-length vikṛta: attempt krama rescue before flagging as problem
+					self.set_problem_diagnostic(Vrs, pada_num, wbp[i], vikrta_canonical_weights,
+					                            list(problem_indices),
+					                            problem_syllables, per_pada_sanskrit, per_pada_english,
+					                            vikrta_canonical_gaRa, krama_notable)
 
 		# Append per-pāda imperfect notes to label.
 		length_notes = [f"pāda {p} {v}" for p, v in per_pada_sanskrit.items()]
 		if length_notes:
 			overall_meter_label += " (%s)" % "; ".join(length_notes)
 
+		merged_notable_skt = {**(notable_label_dict or {}), **{p: KRAMA_LABEL_SKT for p in krama_notable}} or None
+		merged_notable_eng = {**(notable_label_dict or {}), **{p: KRAMA_LABEL_ENG for p in krama_notable}} or None
+		merged_notable_syl = {**krama_notable} or None
+
 		if not per_pada_english and not imperfect_note:
 			diagnostic = Diagnostic(
 				perfect_id_label=overall_meter_label,
-				notable_label=notable_label_dict or None,
+				notable_syllables=merged_notable_syl,
+				notable_label_sanskrit=merged_notable_skt,
+				notable_label_english=merged_notable_eng,
 			)
 		elif not imperfect_note:
 			diagnostic = Diagnostic(
@@ -1159,7 +1320,9 @@ class VerseTester(object):
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
-				notable_label=notable_label_dict or None,
+				notable_syllables=merged_notable_syl,
+				notable_label_sanskrit=merged_notable_skt,
+				notable_label_english=merged_notable_eng,
 				canonical_gana=canonical_gana or None,
 			)
 		else:
@@ -1167,7 +1330,9 @@ class VerseTester(object):
 				imperfect_label_sanskrit=per_pada_sanskrit or None,
 				imperfect_label_english=per_pada_english or None,
 				problem_syllables=problem_syllables or None,
-				notable_label=notable_label_dict or None,
+				notable_syllables=merged_notable_syl,
+				notable_label_sanskrit=merged_notable_skt,
+				notable_label_english=merged_notable_eng,
 				canonical_gana=canonical_gana or None,
 			)
 
@@ -1197,6 +1362,7 @@ class VerseTester(object):
 		gs_to_id = Vrs.gaRa_abbreviations.split('\n')
 		if len(gs_to_id) < 4: return False
 		tsyl = Vrs.text_syllabified
+		tslp = Vrs.text_SLP
 		gaRa = Vrs.gaRa_abbreviations
 		morae = Vrs.morae_per_line
 
@@ -1216,7 +1382,7 @@ class VerseTester(object):
 					abs(len(wbp[i]) - len(canonical_weights[i])) <= VIZAMAVFTTA_EDIT_DISTANCE_THRESHOLD
 					for i in range(4)
 				):
-					self._vizama_stash.append((wbp, meter_label, canonical_weights, tsyl, gaRa, morae))
+					self._vizama_stash.append((wbp, meter_label, canonical_weights, tsyl, tslp, gaRa, morae))
 			return False
 
 		# Imperfect pass: consume the stash.
@@ -1227,7 +1393,7 @@ class VerseTester(object):
 
 		best_total_dist = None
 		best_entry = None
-		for _wbp, _label, _canonical_weights, _tsyl, _gaRa, _morae in self._vizama_stash:
+		for _wbp, _label, _canonical_weights, _tsyl, _tslp, _gaRa, _morae in self._vizama_stash:
 			total_dist = sum(
 				_levenshtein_align(_wbp[i], _canonical_weights[i])[0]
 				for i in range(4)
@@ -1235,43 +1401,60 @@ class VerseTester(object):
 			if total_dist <= VIZAMAVFTTA_EDIT_DISTANCE_THRESHOLD:
 				if best_total_dist is None or total_dist < best_total_dist:
 					best_total_dist = total_dist
-					best_entry = (_wbp, _label, _canonical_weights, _tsyl, _gaRa, _morae)
+					best_entry = (_wbp, _label, _canonical_weights, _tsyl, _tslp, _gaRa, _morae)
 
 		if best_entry is None:
 			return False
 
-		best_wbp, best_label, best_canonical_weights, *_ = best_entry
+		best_wbp, best_label, best_canonical_weights, best_tsyl, best_tslp, best_gaRa, best_morae = best_entry
 		score = meter_scores["viṣamavṛtta, imperfect"] - (best_total_dist - 1)
 		if score <= 0:
 			return False
 
+		vizama_Vrs = copy(Vrs)
+		vizama_Vrs.text_syllabified = best_tsyl
+		vizama_Vrs.text_SLP = best_tslp
+		vizama_Vrs.syllable_weights = '\n'.join(best_wbp)
+
 		problem_syllables = {}
 		per_pada_sanskrit = {}
 		per_pada_english = {}
+		krama_notable = {}
 		for i, w in enumerate(best_wbp[:4]):
 			canonical = best_canonical_weights[i]
 			dist, prob_indices = _levenshtein_align(w, canonical)
 			if dist == 0:
 				continue
 			pada_num = i + 1
-			problem_syllables[pada_num] = prob_indices
 			meter_name = best_label.split(' = ')[0]
 			if len(w) > len(canonical):
+				problem_syllables[pada_num] = prob_indices
 				per_pada_sanskrit[pada_num] = 'adhikākṣarā'
 				per_pada_english[pada_num] = 'hypermetric'
 			elif len(w) < len(canonical):
+				problem_syllables[pada_num] = prob_indices
 				per_pada_sanskrit[pada_num] = 'ūnākṣarā'
 				per_pada_english[pada_num] = 'hypometric'
 			else:
-				per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
-				per_pada_english[pada_num] = f'does not match expected gaṇa pattern for {meter_name}'
+				notable, remaining = self.check_kramasaMyoga(
+					vizama_Vrs, pada_num, w, {j: canonical[j] for j in prob_indices}, prob_indices,
+				)
+				if notable is not None and not remaining:
+					krama_notable[pada_num] = notable
+				else:
+					problem_syllables[pada_num] = prob_indices
+					per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
+					per_pada_english[pada_num] = f'does not match expected gaṇa pattern for {meter_name}'
 
 		sa_vals = list(per_pada_sanskrit.items())
 		if len(sa_vals) == 1:
 			suffix = f"asamīcīnā, pāda {sa_vals[0][0]}: {sa_vals[0][1]}"
-		else:
+		elif sa_vals:
 			suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in sa_vals)
-		imperfect_label = best_label + f" ({suffix})"
+		else:
+			suffix = None
+		krama_tag = (' ' + _krama_tag({j: s for d in krama_notable.values() for j, s in d.items()})) if krama_notable and not suffix else ''
+		imperfect_label = best_label + krama_tag + (f" ({suffix})" if suffix else '')
 
 		old_score = Vrs.identification_score
 		_diag = Diagnostic(
@@ -1282,8 +1465,66 @@ class VerseTester(object):
 		)
 		self.combine_results(Vrs, new_label=imperfect_label, new_score=score, new_diagnostic=_diag)
 		if score >= old_score:
-			Vrs.diagnostic = _diag
+			Vrs.diagnostic = Diagnostic(
+				perfect_id_label=imperfect_label,
+				imperfect_label_sanskrit=per_pada_sanskrit or None,
+				imperfect_label_english=per_pada_english or None,
+				problem_syllables=problem_syllables or None,
+				notable_syllables=krama_notable or None,
+				notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
+				notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
+			)
 		return True
+
+	def _attempt_jAti_ardha_krama_rescue(self, Vrs, ardha_w, bad_indices, g6, g8_morae,
+	                                         jAti_name, ardha_num, four_line, w_p):
+		"""
+		Attempt kramasaṃyoga rescue for one jāti ardha.
+		Flips all confirmed krama candidates simultaneously, re-decomposes, re-validates.
+		Returns (rescued, notable_indices) where notable_indices are ardha-level offsets.
+		"""
+		# Only positions where ardha scans g but krama could make it l are candidates.
+		krama_candidates = []
+		for j in bad_indices:
+			if ardha_w[j] != 'g':
+				continue
+			# Map ardha offset j to pāda-level line_num and syl_offset for check_kramasaMyoga.
+			if four_line:
+				if j < len(w_p[ardha_num * 2 - 2]):
+					line_num = ardha_num * 2 - 2
+					syl_offset = 0
+					local_j = j
+				else:
+					line_num = ardha_num * 2 - 1
+					syl_offset = 0
+					local_j = j - len(w_p[ardha_num * 2 - 2])
+				pada_weights = w_p[line_num]
+			else:
+				line_num = ardha_num - 1
+				syl_offset = 0
+				local_j = j
+				pada_weights = ardha_w
+			notable, remaining = self.check_kramasaMyoga(
+				Vrs, ardha_num, pada_weights,
+				{local_j: 'l'}, [local_j],
+				line_num=line_num, syl_offset=syl_offset,
+			)
+			if notable is not None and not remaining:
+				krama_candidates.append(j)
+
+		if not krama_candidates:
+			return False, [], ardha_w
+
+		# Flip all candidates simultaneously and re-validate.
+		ardha_w_fixed = list(ardha_w)
+		for j in krama_candidates:
+			ardha_w_fixed[j] = 'l'
+		ardha_w_fixed = ''.join(ardha_w_fixed)
+		fixed_ganas = _decompose_into_mAtragaNas(ardha_w_fixed, g6, g8_morae)
+		err_fixed = _validate_jAti_gaNas(fixed_ganas, g6, jAti_name, ardha_num)
+		if err_fixed is not None:
+			return False, [], ardha_w
+		return True, krama_candidates, ardha_w_fixed
 
 	def test_as_jAti(self, Vrs):
 		"""
@@ -1292,6 +1533,9 @@ class VerseTester(object):
 		gates on ardha morae totals, then validates mātrā-gaṇa structure.
 		Returns 1 if identified, 0 if not.
 		"""
+
+		if not hasattr(self, '_jAti_ardha_cache'):
+			self._jAti_ardha_cache = {}
 
 		w_p = Vrs.syllable_weights.split('\n')
 		if len(w_p) < 2 or not w_p[0] or not w_p[1]:
@@ -1311,6 +1555,13 @@ class VerseTester(object):
 
 		for std_ardha, jAti_name, g6_ardha1, g6_ardha2, quarter_label, quarter_morae in meter_patterns.jAtis_by_ardha_morae:
 
+			def _pada_morae_ok(ardha_w, split, exp_a, exp_b):
+				ma = ardha_w[:split].count('l') + ardha_w[:split].count('g') * 2
+				mb = ardha_w[split:].count('l') + ardha_w[split:].count('g') * 2
+				ok_a = ma == exp_a or (ma == exp_a - 1 and ardha_w[split-1:split] == 'l')
+				ok_b = mb == exp_b or (mb == exp_b - 1 and ardha_w[-1:] == 'l')
+				return ok_a and ok_b
+
 			# ardha-level morae gate: the final syllable is anceps — a light final
 			# may stand for heavy, so one short is acceptable when the last is light.
 			ok1 = m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l')
@@ -1325,6 +1576,132 @@ class VerseTester(object):
 				close1 = abs(eff1 - std_ardha[0]) <= 1
 				close2 = abs(eff2 - std_ardha[1]) <= 1
 				if close1 and close2:
+					# Use cached step (b) results (decomposition + krama rescue).
+					g8_morae_close = 4 if jAti_name == 'āryāgīti' else 2
+					four_line_pre = len(w_p) >= 4
+					_cache_key_close = (ardha1_w, ardha2_w, jAti_name)
+					if _cache_key_close in self._jAti_ardha_cache:
+						_cc = self._jAti_ardha_cache[_cache_key_close]
+						pre_rescued1 = _cc['rescued1']
+						pre_rescued2 = _cc['rescued2']
+						pre_rescue1_notable = _cc['krama1_notable']
+						pre_rescue2_notable = _cc['krama2_notable']
+						ardha1_w_fixed = _cc['ardha1_w_kr']
+						ardha2_w_fixed = _cc['ardha2_w_kr']
+					else:
+						pre_rescue1_notable = []
+						pre_rescue2_notable = []
+						ardha1_w_fixed = ardha1_w
+						ardha2_w_fixed = ardha2_w
+						pre_rescued1 = (m1 == std_ardha[0] or (m1 == std_ardha[0] - 1 and ardha1_w[-1] == 'l'))
+						pre_rescued2 = (m2 == std_ardha[1] or (m2 == std_ardha[1] - 1 and ardha2_w[-1] == 'l'))
+						if not pre_rescued1 and m1 > std_ardha[0]:
+							ardha1_ganas_pre = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae_close)
+							err1_pre = _validate_jAti_gaNas(ardha1_ganas_pre, g6_ardha1, jAti_name, 1)
+							if err1_pre:
+								pre_rescued1, pre_rescue1_notable, ardha1_w_fixed = self._attempt_jAti_ardha_krama_rescue(
+									Vrs, ardha1_w, err1_pre[1], g6_ardha1, g8_morae_close, jAti_name, 1, four_line_pre, w_p)
+						if not pre_rescued2 and m2 > std_ardha[1]:
+							ardha2_ganas_pre = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae_close)
+							err2_pre = _validate_jAti_gaNas(ardha2_ganas_pre, g6_ardha2, jAti_name, 2)
+							if err2_pre:
+								pre_rescued2, pre_rescue2_notable, ardha2_w_fixed = self._attempt_jAti_ardha_krama_rescue(
+									Vrs, ardha2_w, err2_pre[1], g6_ardha2, g8_morae_close, jAti_name, 2, four_line_pre, w_p)
+						self._jAti_ardha_cache[_cache_key_close] = {
+							'ardha1_ganas': None, 'ardha2_ganas': None,
+							'err1': None, 'err2': None,
+							'rescued1': pre_rescued1, 'rescued2': pre_rescued2,
+							'krama1_notable': pre_rescue1_notable, 'krama2_notable': pre_rescue2_notable,
+							'ardha1_w_kr': ardha1_w_fixed, 'ardha2_w_kr': ardha2_w_fixed,
+						}
+					if pre_rescued1 and pre_rescued2:
+						# Step (c): check whether this candidate's pāda split matches
+						# quarter_morae for the rescued ardha weights.
+						if four_line_pre:
+							split_ok = (
+								_pada_morae_ok(ardha1_w_fixed, len(w_p[0]), quarter_morae[0], quarter_morae[1]) and
+								_pada_morae_ok(ardha2_w_fixed, len(w_p[2]), quarter_morae[2], quarter_morae[3])
+							)
+						else:
+							split_ok = True
+						if not split_ok:
+							score = meter_scores["jāti, imperfect"]
+							if score >= Vrs.identification_score:
+								# Label on first pāda of each ardha with a bad split.
+								per_pada_sanskrit = {}
+								per_pada_english = {}
+								ardha_pairs = [(1, 2, ardha1_w_fixed, quarter_morae[0], quarter_morae[1]),
+								               (3, 4, ardha2_w_fixed, quarter_morae[2], quarter_morae[3])]
+								for pa, pb, aw, exp_a, exp_b in ardha_pairs:
+									if not _pada_morae_ok(aw, len(w_p[pa - 1]) if four_line_pre else len(aw), exp_a, exp_b):
+										per_pada_sanskrit[pa] = 'asamīcīnapādaviccheda'
+										per_pada_english[pa] = 'pāda split does not match expected mora pattern'
+								ardha_parts = [per_pada_sanskrit[p] for p in sorted(per_pada_sanskrit)]
+								suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in per_pada_sanskrit.items())
+								Vrs.meter_label = jAti_name + f" ({suffix})"
+								Vrs.identification_score = score
+								Vrs.is_perfect = False
+								_names_imp = meter_patterns.mAtragaNa_names
+								_ga_imp = lambda gs: ' '.join(_names_imp.get(g, g) for g in gs)
+								_gf1 = _decompose_into_mAtragaNas(ardha1_w_fixed, g6_ardha1, g8_morae_close)
+								_gf2 = _decompose_into_mAtragaNas(ardha2_w_fixed, g6_ardha2, g8_morae_close)
+								if four_line_pre:
+									def _sp_imp(gs, n):
+										cur = 0
+										for i, g in enumerate(gs):
+											if cur >= n: return _ga_imp(gs[:i]), _ga_imp(gs[i:])
+											cur += len(g)
+										return _ga_imp(gs), ''
+									_p1a, _p1b = _sp_imp(_gf1, len(w_p[0]))
+									_p2a, _p2b = _sp_imp(_gf2, len(w_p[2]))
+									Vrs.mAtragaNa_abbreviations = '\n'.join([_p1a, _p1b, _p2a, _p2b])
+								else:
+									Vrs.mAtragaNa_abbreviations = '\n'.join([_ga_imp(_gf1), _ga_imp(_gf2)])
+								Vrs.diagnostic = Diagnostic(
+									imperfect_label_sanskrit=per_pada_sanskrit or None,
+									imperfect_label_english=per_pada_english or None,
+								)
+							return 1
+						notable_syllables = {}
+						pada1_len_pre = len(w_p[0]) if four_line_pre else 0
+						for j in pre_rescue1_notable:
+							pn = 1 if (not four_line_pre or j < pada1_len_pre) else 2
+							lj = j if (not four_line_pre or j < pada1_len_pre) else j - pada1_len_pre
+							notable_syllables.setdefault(pn, []).append(lj)
+						pada3_len_pre = len(w_p[2]) if four_line_pre else 0
+						for j in pre_rescue2_notable:
+							pn = 3 if (not four_line_pre or j < pada3_len_pre) else 4
+							lj = j if (not four_line_pre or j < pada3_len_pre) else j - pada3_len_pre
+							notable_syllables.setdefault(pn, []).append(lj)
+						score = meter_scores["jāti, perfect"]
+						if score >= Vrs.identification_score:
+							Vrs.meter_label = jAti_name
+							Vrs.identification_score = score
+							Vrs.is_perfect = True
+							ardha1_ganas_f = _decompose_into_mAtragaNas(ardha1_w_fixed, g6_ardha1, g8_morae_close)
+							ardha2_ganas_f = _decompose_into_mAtragaNas(ardha2_w_fixed, g6_ardha2, g8_morae_close)
+							names_pre = meter_patterns.mAtragaNa_names
+							def _ga(gs): return ' '.join(names_pre.get(g, g) for g in gs)
+							if four_line_pre:
+								def _sp(gs, n):
+									cur = 0
+									for i, g in enumerate(gs):
+										if cur >= n: return _ga(gs[:i]), _ga(gs[i:])
+										cur += len(g)
+									return _ga(gs), ''
+								p1a, p1b = _sp(ardha1_ganas_f, len(w_p[0]))
+								p2a, p2b = _sp(ardha2_ganas_f, len(w_p[2]))
+								Vrs.mAtragaNa_abbreviations = '\n'.join([p1a, p1b, p2a, p2b])
+							else:
+								Vrs.mAtragaNa_abbreviations = '\n'.join([_ga(ardha1_ganas_f), _ga(ardha2_ganas_f)])
+							Vrs.diagnostic = Diagnostic(
+								perfect_id_label=jAti_name,
+								notable_syllables=notable_syllables or None,
+								notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in notable_syllables} if notable_syllables else None,
+								notable_label_english={p: KRAMA_LABEL_ENG for p in notable_syllables} if notable_syllables else None,
+							)
+						continue
+
 					jati_label = jAti_name
 					likely_score = meter_scores["jāti, likely"]
 					if likely_score > Vrs.identification_score:
@@ -1403,12 +1780,48 @@ class VerseTester(object):
 				continue
 
 			# Decompose each ardha into mātrā-gaṇas and validate against Hahn's rules.
+			# Cache keyed on (ardha weights, jāti name) — constant across wiggle candidates
+			# when resplit_keep_midpoint is True (ardhas never change, only cd split does).
 			g8_morae = 4 if jAti_name == 'āryāgīti' else 2
-			ardha1_ganas = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae)
-			ardha2_ganas = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae)
-
-			err1 = _validate_jAti_gaNas(ardha1_ganas, g6_ardha1, jAti_name, 1)
-			err2 = _validate_jAti_gaNas(ardha2_ganas, g6_ardha2, jAti_name, 2)
+			_cache_key = (ardha1_w, ardha2_w, jAti_name)
+			if _cache_key in self._jAti_ardha_cache:
+				_cached = self._jAti_ardha_cache[_cache_key]
+				ardha1_ganas = _cached['ardha1_ganas']
+				ardha2_ganas = _cached['ardha2_ganas']
+				err1 = _cached['err1']
+				err2 = _cached['err2']
+				rescued1 = _cached['rescued1']
+				rescued2 = _cached['rescued2']
+				krama1_notable = _cached['krama1_notable']
+				krama2_notable = _cached['krama2_notable']
+				ardha1_w_kr = _cached['ardha1_w_kr']
+				ardha2_w_kr = _cached['ardha2_w_kr']
+			else:
+				ardha1_ganas = _decompose_into_mAtragaNas(ardha1_w, g6_ardha1, g8_morae)
+				ardha2_ganas = _decompose_into_mAtragaNas(ardha2_w, g6_ardha2, g8_morae)
+				err1 = _validate_jAti_gaNas(ardha1_ganas, g6_ardha1, jAti_name, 1)
+				err2 = _validate_jAti_gaNas(ardha2_ganas, g6_ardha2, jAti_name, 2)
+				rescued1 = not err1
+				rescued2 = not err2
+				krama1_notable = []
+				krama2_notable = []
+				ardha1_w_kr = ardha1_w
+				ardha2_w_kr = ardha2_w
+				if err1 or err2:
+					four_line = len(w_p) >= 4
+					if err1:
+						rescued1, krama1_notable, ardha1_w_kr = self._attempt_jAti_ardha_krama_rescue(
+							Vrs, ardha1_w, err1[1], g6_ardha1, g8_morae, jAti_name, 1, four_line, w_p)
+					if err2:
+						rescued2, krama2_notable, ardha2_w_kr = self._attempt_jAti_ardha_krama_rescue(
+							Vrs, ardha2_w, err2[1], g6_ardha2, g8_morae, jAti_name, 2, four_line, w_p)
+				self._jAti_ardha_cache[_cache_key] = {
+					'ardha1_ganas': ardha1_ganas, 'ardha2_ganas': ardha2_ganas,
+					'err1': err1, 'err2': err2,
+					'rescued1': rescued1, 'rescued2': rescued2,
+					'krama1_notable': krama1_notable, 'krama2_notable': krama2_notable,
+					'ardha1_w_kr': ardha1_w_kr, 'ardha2_w_kr': ardha2_w_kr,
+				}
 
 			# Build mAtragaNa_abbreviations: per-pāda space-separated gaṇa names.
 			# Gaṇas spanning the pāda boundary stay with the pāda where they start.
@@ -1461,6 +1874,78 @@ class VerseTester(object):
 				return ok_a and ok_b
 
 			if err1 or err2:
+				four_line = len(w_p) >= 4
+				if rescued1 and rescued2:
+					# Step (c): check whether this candidate's pāda split matches quarter_morae.
+					if four_line:
+						split_ok = (
+							_pada_morae_ok(ardha1_w_kr, len(w_p[0]), quarter_morae[0], quarter_morae[1]) and
+							_pada_morae_ok(ardha2_w_kr, len(w_p[2]), quarter_morae[2], quarter_morae[3])
+						)
+						if not split_ok:
+							score = meter_scores["jāti, imperfect"]
+							if score >= Vrs.identification_score:
+								per_pada_sanskrit = {}
+								per_pada_english = {}
+								ardha_pairs = [(1, 2, ardha1_w_kr, quarter_morae[0], quarter_morae[1]),
+								               (3, 4, ardha2_w_kr, quarter_morae[2], quarter_morae[3])]
+								for pa, pb, aw, exp_a, exp_b in ardha_pairs:
+									if not _pada_morae_ok(aw, len(w_p[pa - 1]) if four_line else len(aw), exp_a, exp_b):
+										per_pada_sanskrit[pa] = 'asamīcīnapādaviccheda'
+										per_pada_english[pa] = 'pāda split does not match expected mora pattern'
+								suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in per_pada_sanskrit.items())
+								Vrs.meter_label = jAti_name + f" ({suffix})"
+								Vrs.identification_score = score
+								Vrs.is_perfect = False
+								Vrs.mAtragaNa_abbreviations = mAtragaNa_abbrevs
+								Vrs.diagnostic = Diagnostic(
+									imperfect_label_sanskrit=per_pada_sanskrit or None,
+									imperfect_label_english=per_pada_english or None,
+								)
+							return 1
+					# All problems explained by krama — report as perfect with notable syllables.
+					# Map ardha-level notable offsets to pāda-level.
+					notable_syllables = {}
+					pada1_len = len(w_p[0]) if four_line else 0
+					for j in krama1_notable:
+						pada_num = 1 if (not four_line or j < pada1_len) else 2
+						local_j = j if (not four_line or j < pada1_len) else j - pada1_len
+						notable_syllables.setdefault(pada_num, []).append(local_j)
+					pada3_len = len(w_p[2]) if four_line else 0
+					for j in krama2_notable:
+						pada_num = 3 if (not four_line or j < pada3_len) else 4
+						local_j = j if (not four_line or j < pada3_len) else j - pada3_len
+						notable_syllables.setdefault(pada_num, []).append(local_j)
+					score = meter_scores["jāti, perfect"]
+					if score >= Vrs.identification_score:
+						Vrs.meter_label = jAti_name
+						Vrs.identification_score = score
+						Vrs.is_perfect = True
+						# Recompute gaṇa decomposition using krama-flipped ardha weights.
+						ardha1_ganas_kr = _decompose_into_mAtragaNas(ardha1_w_kr, g6_ardha1, g8_morae)
+						ardha2_ganas_kr = _decompose_into_mAtragaNas(ardha2_w_kr, g6_ardha2, g8_morae)
+						names_kr = meter_patterns.mAtragaNa_names
+						def _gak(gs): return ' '.join(names_kr.get(g, g) for g in gs)
+						if four_line:
+							def _spk(gs, n):
+								cur = 0
+								for i, g in enumerate(gs):
+									if cur >= n: return _gak(gs[:i]), _gak(gs[i:])
+									cur += len(g)
+								return _gak(gs), ''
+							p1a, p1b = _spk(ardha1_ganas_kr, len(w_p[0]))
+							p2a, p2b = _spk(ardha2_ganas_kr, len(w_p[2]))
+							Vrs.mAtragaNa_abbreviations = '\n'.join([p1a, p1b, p2a, p2b])
+						else:
+							Vrs.mAtragaNa_abbreviations = '\n'.join([_gak(ardha1_ganas_kr), _gak(ardha2_ganas_kr)])
+						Vrs.diagnostic = Diagnostic(
+							perfect_id_label=jAti_name,
+							notable_syllables=notable_syllables or None,
+							notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in notable_syllables} if notable_syllables else None,
+							notable_label_english={p: KRAMA_LABEL_ENG for p in notable_syllables} if notable_syllables else None,
+						)
+					return 1
+
 				# Gaṇa rules broken — report the specific violation.
 				# TODO: it is an open empirical question whether a pāda mora-count
 				# mismatch (Vrs.morae_per_line vs quarter_morae) ever occurs without
@@ -1630,6 +2115,80 @@ class VerseTester(object):
 			return 1
 
 		return 0
+
+	_KRAMA_CLUSTERS = {'pr', 'br', 'kr', 'hr', 'kz'}
+
+	def check_kramasaMyoga(self, Vrs, pada_num, pada_weights, expected_at_indices, bad_indices,
+	                       line_num=None, syl_offset=0):
+		"""
+		Checks whether bad_indices on a pāda are explained by kramasaṃyoga licence:
+		a heavy syllable before a word-initial pr/br/kr/hr/kṣ cluster may scan light.
+
+		expected_at_indices: dict {j: 'l'|'g'} — expected weight at each bad position.
+		Returns (notable_indices, remaining_bad). If no candidates, returns (None, bad_indices).
+
+		line_num: which line of text_syllabified to use (default: pada_num - 1).
+		syl_offset: syllable offset within that line where this pāda starts (default: 0).
+		  Used by anuṣṭubh where two pādas share one text line.
+		"""
+		if line_num is None:
+			line_num = pada_num - 1
+		pada_line = Vrs.text_syllabified.split('\n')[line_num]
+		all_line_syllables = [s for s in pada_line.split(scansion_syllable_separator) if s]
+		syllables = all_line_syllables[syl_offset:syl_offset + len(pada_weights)]
+
+		# absolute offset of this pāda's first syllable within the whole verse
+		verse_lines = Vrs.text_syllabified.split('\n')
+		line_abs_offset = sum(
+			len([s for s in verse_lines[i].split(scansion_syllable_separator) if s])
+			for i in range(line_num)
+		)
+		pada_abs_offset = line_abs_offset + syl_offset
+
+		word_initial_verse = Vrs.get_word_initial_syllables()
+		word_initial = {i - pada_abs_offset for i in word_initial_verse
+		                if pada_abs_offset <= i < pada_abs_offset + len(syllables)}
+
+		krama_candidates = {}  # j → trigger syllable text (SLP1)
+		for j in bad_indices:
+			if pada_weights[j] == 'g' and expected_at_indices.get(j) == 'l' and j + 1 < len(syllables):
+				next_syl = syllables[j + 1]
+				if (
+					(j + 1) in word_initial
+					and len(next_syl) >= 2
+					and next_syl[0] in SLP_consonants_for_scansion_set
+					and next_syl[1] in SLP_consonants_for_scansion_set
+					and next_syl[:2] in self._KRAMA_CLUSTERS
+				):
+					krama_candidates[j] = next_syl
+
+		if not krama_candidates:
+			return None, bad_indices
+
+		remaining_bad = [j for j in bad_indices if j not in krama_candidates]
+		if all(expected_at_indices.get(j) == 'l' for j in krama_candidates):
+			return krama_candidates, remaining_bad
+		return None, bad_indices
+
+	def set_problem_diagnostic(self, Vrs, pada_num, pada_weights, canonical, bad_indices,
+	                           problem_syllables, per_pada_sanskrit, per_pada_english,
+	                           canonical_pattern, krama_notable):
+		"""
+		Replaces the bare problem_syllables[pada_num] = bad assignment for same-length pādas.
+		Calls check_kramasaMyoga; if the bad positions are fully explained by kramasaṃyoga,
+		records them in krama_notable instead of problem_syllables.
+		"""
+		notable, remaining_bad = self.check_kramasaMyoga(
+			Vrs, pada_num, pada_weights,
+			{j: canonical[j] for j in bad_indices},
+			bad_indices,
+		)
+		if notable is not None and not remaining_bad:
+			krama_notable[pada_num] = notable
+		else:
+			problem_syllables[pada_num] = bad_indices
+			per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
+			per_pada_english[pada_num] = f'does not match expected gaṇa pattern {canonical_pattern}'
 
 	def attempt_identification(self, Vrs):
 		"""
@@ -1868,6 +2427,7 @@ class MeterIdentifier(object):
 		"""Returns a list for MeterIdentifier.Verses_found"""
 
 		self._anuzwuB_half_cache = {}
+		VrsTster._jAti_ardha_cache = {}
 		VrsTster._ardha_stash = []
 		VrsTster._vizama_stash = []
 		pos_iterators = {}
@@ -2197,8 +2757,6 @@ class MeterIdentifier(object):
 				if self.Verses_found else 0
 			)
 			_ardhatraya_gate = best_4pAda_score < meter_scores["max score"] and 44 <= total_syll_count <= 52
-			if _DEBUG_TIMING:
-				_section_totals['ardhatraya_gate_count'] = _section_totals.get('ardhatraya_gate_count', 0) + (1 if _ardhatraya_gate else 0)
 			if _ardhatraya_gate:
 				ardhatraya_found = timed('ardhatraya')(self.wiggle_identify_ardhatraya)(
 					V, syllable_list, VT,
@@ -2217,7 +2775,7 @@ class MeterIdentifier(object):
 				if meter_scores["ardhasamavṛtta, imperfect"] > best_current_score:
 					best_total_dist = None
 					best_entry = None
-					for _stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_gaRa, _stash_morae in ardha_stash:
+					for _stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_tslp, _stash_gaRa, _stash_morae in ardha_stash:
 						total_dist = sum(
 							_levenshtein_align(w, _odd_can if pada_num in (1, 3) else _even_can)[0]
 							for pada_num, w in enumerate(_stash_wbp[:4], start=1)
@@ -2225,39 +2783,52 @@ class MeterIdentifier(object):
 						if total_dist <= ARDHASAMAVFTTA_EDIT_DISTANCE_THRESHOLD:
 							if best_total_dist is None or total_dist < best_total_dist:
 								best_total_dist = total_dist
-								best_entry = (_stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_gaRa, _stash_morae)
+								best_entry = (_stash_wbp, _label, _odd_can, _even_can, _stash_tsyl, _stash_tslp, _stash_gaRa, _stash_morae)
 					if best_entry is not None:
 						ardha_score = meter_scores["ardhasamavṛtta, imperfect"] - (best_total_dist - meter_scores["levenshtein distance penalty"])
 						if ardha_score > best_current_score:
-							best_stash_wbp, best_label, best_odd_can, best_even_can, best_stash_tsyl, best_stash_gaRa, best_stash_morae = best_entry
+							best_stash_wbp, best_label, best_odd_can, best_even_can, best_stash_tsyl, best_stash_tslp, best_stash_gaRa, best_stash_morae = best_entry
 							problem_syllables = {}
 							per_pada_sanskrit = {}
 							per_pada_english = {}
+							krama_notable = {}
+							ardha_Vrs = copy(self.Verses_found[0]) if self.Verses_found else copy(V)
+							ardha_Vrs.text_syllabified = best_stash_tsyl
+							ardha_Vrs.text_SLP = best_stash_tslp
+							ardha_Vrs.syllable_weights = '\n'.join(best_stash_wbp)
 							for pada_num, w in enumerate(best_stash_wbp[:4], start=1):
 								canonical = best_odd_can if pada_num in (1, 3) else best_even_can
 								dist, prob_indices = _levenshtein_align(w, canonical)
 								if dist == 0:
 									continue
-								problem_syllables[pada_num] = prob_indices
 								meter_name = best_label.split(' = ')[0]
 								if len(w) > len(canonical):
+									problem_syllables[pada_num] = prob_indices
 									per_pada_sanskrit[pada_num] = 'adhikākṣarā'
 									per_pada_english[pada_num] = 'hypermetric'
 								elif len(w) < len(canonical):
+									problem_syllables[pada_num] = prob_indices
 									per_pada_sanskrit[pada_num] = 'ūnākṣarā'
 									per_pada_english[pada_num] = 'hypometric'
 								else:
-									per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
-									per_pada_english[pada_num] = f'does not match expected gaṇa pattern for {meter_name}'
+									notable, remaining = VT.check_kramasaMyoga(
+										ardha_Vrs, pada_num, w, {j: canonical[j] for j in prob_indices}, prob_indices,
+									)
+									if notable is not None and not remaining:
+										krama_notable[pada_num] = notable
+									else:
+										problem_syllables[pada_num] = prob_indices
+										per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
+										per_pada_english[pada_num] = f'does not match expected gaṇa pattern for {meter_name}'
 							sa_vals = list(per_pada_sanskrit.items())
 							if len(sa_vals) == 1:
 								suffix = f"asamīcīnā, pāda {sa_vals[0][0]}: {sa_vals[0][1]}"
-							else:
+							elif sa_vals:
 								suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in sa_vals)
-							imperfect_label = best_label + f" ({suffix})"
-							ardha_Vrs = copy(self.Verses_found[0]) if self.Verses_found else copy(V)
-							ardha_Vrs.text_syllabified = best_stash_tsyl
-							ardha_Vrs.syllable_weights = '\n'.join(best_stash_wbp)
+							else:
+								suffix = None
+							krama_tag = (' ' + _krama_tag({j: s for d in krama_notable.values() for j, s in d.items()})) if krama_notable and not suffix else ''
+							imperfect_label = best_label + krama_tag + (f" ({suffix})" if suffix else '')
 							ardha_Vrs.gaRa_abbreviations = best_stash_gaRa
 							ardha_Vrs.morae_per_line = best_stash_morae
 							ardha_Vrs.meter_label = imperfect_label
@@ -2267,6 +2838,9 @@ class MeterIdentifier(object):
 								imperfect_label_sanskrit=per_pada_sanskrit or None,
 								imperfect_label_english=per_pada_english or None,
 								problem_syllables=problem_syllables or None,
+								notable_syllables=krama_notable or None,
+								notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
+								notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
 							)
 							self.Verses_found.append(ardha_Vrs)
 			if _DEBUG_TIMING:
@@ -2283,7 +2857,7 @@ class MeterIdentifier(object):
 				if meter_scores["viṣamavṛtta, imperfect"] > best_current_score:
 					best_total_dist = None
 					best_entry = None
-					for _wbp, _label, _canonicals, _tsyl, _gaRa, _morae in vizama_stash:
+					for _wbp, _label, _canonicals, _tsyl, _tslp, _gaRa, _morae in vizama_stash:
 						total_dist = sum(
 							_levenshtein_align(_wbp[i], _canonicals[i])[0]
 							for i in range(4)
@@ -2291,40 +2865,53 @@ class MeterIdentifier(object):
 						if total_dist <= VIZAMAVFTTA_EDIT_DISTANCE_THRESHOLD:
 							if best_total_dist is None or total_dist < best_total_dist:
 								best_total_dist = total_dist
-								best_entry = (_wbp, _label, _canonicals, _tsyl, _gaRa, _morae)
+								best_entry = (_wbp, _label, _canonicals, _tsyl, _tslp, _gaRa, _morae)
 					if best_entry is not None:
 						vizama_score = meter_scores["viṣamavṛtta, imperfect"] - (best_total_dist - meter_scores["levenshtein distance penalty"])
 						if vizama_score > best_current_score:
-							best_wbp, best_label, best_canonicals, best_tsyl, best_gaRa, best_morae = best_entry
+							best_wbp, best_label, best_canonicals, best_tsyl, best_tslp, best_gaRa, best_morae = best_entry
 							problem_syllables = {}
 							per_pada_sanskrit = {}
 							per_pada_english = {}
+							krama_notable = {}
+							vizama_Vrs = copy(self.Verses_found[0]) if self.Verses_found else copy(V)
+							vizama_Vrs.text_syllabified = best_tsyl
+							vizama_Vrs.text_SLP = best_tslp
+							vizama_Vrs.syllable_weights = '\n'.join(best_wbp)
 							for i, w in enumerate(best_wbp[:4]):
 								canonical = best_canonicals[i]
 								dist, prob_indices = _levenshtein_align(w, canonical)
 								if dist == 0:
 									continue
 								pada_num = i + 1
-								problem_syllables[pada_num] = prob_indices
 								meter_name = best_label.split(' = ')[0]
 								if len(w) > len(canonical):
+									problem_syllables[pada_num] = prob_indices
 									per_pada_sanskrit[pada_num] = 'adhikākṣarā'
 									per_pada_english[pada_num] = 'hypermetric'
 								elif len(w) < len(canonical):
+									problem_syllables[pada_num] = prob_indices
 									per_pada_sanskrit[pada_num] = 'ūnākṣarā'
 									per_pada_english[pada_num] = 'hypometric'
 								else:
-									per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
-									per_pada_english[pada_num] = f'does not match expected gaṇa pattern for {meter_name}'
+									notable, remaining = VT.check_kramasaMyoga(
+										vizama_Vrs, pada_num, w, {j: canonical[j] for j in prob_indices}, prob_indices,
+									)
+									if notable is not None and not remaining:
+										krama_notable[pada_num] = notable
+									else:
+										problem_syllables[pada_num] = prob_indices
+										per_pada_sanskrit[pada_num] = 'vikṛtavṛtta'
+										per_pada_english[pada_num] = f'does not match expected gaṇa pattern for {meter_name}'
 							sa_vals = list(per_pada_sanskrit.items())
 							if len(sa_vals) == 1:
 								suffix = f"asamīcīnā, pāda {sa_vals[0][0]}: {sa_vals[0][1]}"
-							else:
+							elif sa_vals:
 								suffix = 'asamīcīnā, ' + '; '.join(f"pāda {p}: {v}" for p, v in sa_vals)
-							imperfect_label = best_label + f" ({suffix})"
-							vizama_Vrs = copy(self.Verses_found[0]) if self.Verses_found else copy(V)
-							vizama_Vrs.text_syllabified = best_tsyl
-							vizama_Vrs.syllable_weights = '\n'.join(best_wbp)
+							else:
+								suffix = None
+							krama_tag = (' ' + _krama_tag({j: s for d in krama_notable.values() for j, s in d.items()})) if krama_notable and not suffix else ''
+							imperfect_label = best_label + krama_tag + (f" ({suffix})" if suffix else '')
 							vizama_Vrs.gaRa_abbreviations = best_gaRa
 							vizama_Vrs.morae_per_line = best_morae
 							vizama_Vrs.meter_label = imperfect_label
@@ -2334,6 +2921,9 @@ class MeterIdentifier(object):
 								imperfect_label_sanskrit=per_pada_sanskrit or None,
 								imperfect_label_english=per_pada_english or None,
 								problem_syllables=problem_syllables or None,
+								notable_syllables=krama_notable or None,
+								notable_label_sanskrit={p: KRAMA_LABEL_SKT for p in krama_notable} if krama_notable else None,
+								notable_label_english={p: KRAMA_LABEL_ENG for p in krama_notable} if krama_notable else None,
 							)
 							self.Verses_found.append(vizama_Vrs)
 			if _DEBUG_TIMING:
