@@ -1,4 +1,4 @@
-.PHONY: examples tests build-scheme-detection-vectors test-scheme-detection-small test-scheme-detection-verbose test-scheme-detection-medium test-scheme-detection-medium-verbose test-scheme-detection-large test-scheme-detection-large-verbose
+.PHONY: examples tests build-scheme-detection-vectors test-scheme-detection-small test-scheme-detection-verbose test-scheme-detection-medium test-scheme-detection-medium-verbose test-scheme-detection-large test-scheme-detection-large-verbose profiling profiling-no-parallel
 
 examples:
 	python run_examples.py
@@ -28,3 +28,12 @@ test-scheme-detection-large:
 
 test-scheme-detection-large-verbose:
 	DETECTION_SEED=$(DETECTION_SEED) DETECTION_VERBOSE=1 pytest tests/unit_tests/test_scheme_detection.py -k large -s
+
+PROFILING_CORPUS ?= $(error PROFILING_CORPUS is not set. Usage: make profiling PROFILING_CORPUS=/path/to/corpus.txt)
+PROFILING_RUNS ?= 5
+
+profiling:
+	python -m skrutable.profiling_runner "$(PROFILING_CORPUS)" --runs $(PROFILING_RUNS)
+
+profiling-no-parallel:
+	python -m skrutable.profiling_runner "$(PROFILING_CORPUS)" --runs $(PROFILING_RUNS) --no-parallel
