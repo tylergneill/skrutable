@@ -48,8 +48,7 @@ _ID_CASCADE_ABBREV = {
 }
 _SCAN_KEYS = tuple(_SCAN_ABBREV)
 _ID_CASCADE_KEYS = tuple(_ID_CASCADE_ABBREV)
-_DEBUG_COUNT_KEYS = ('decompose_calls', 'decompose_cand1', 'decompose_cand2plus', 'jati_cache_hits', 'jati_cache_misses')
-_TIMING_KEYS = _SCAN_KEYS + _ID_CASCADE_KEYS + _DEBUG_COUNT_KEYS
+_TIMING_KEYS = _SCAN_KEYS + _ID_CASCADE_KEYS
 
 _ARDHASAMAVRTTA_NAMES = [
 	'aparavaktra', 'upacitra', 'puṣpitāgrā', 'viyoginī', 'vegavatī',
@@ -290,10 +289,6 @@ def _decompose_into_mAtragaNas(weights_str, gana_6_morae, gana_8_morae):
 	the syllable sequence diverges — making the specific problem visible to
 	validation. Gaṇa 8 takes all remaining syllables.
 	"""
-	if _DEBUG_TIMING:
-		_section_totals['decompose_calls'] = _section_totals.get('decompose_calls', 0) + 1
-		k = 'decompose_cand1' if _section_totals.get('_wiggle_candidate_num', 0) <= 1 else 'decompose_cand2plus'
-		_section_totals[k] = _section_totals.get(k, 0) + 1
 	ganas = []
 	i = 0
 	n = len(weights_str)
@@ -1587,9 +1582,6 @@ class VerseTester(object):
 					g8_morae_close = 4 if jAti_name == 'āryāgīti' else 2
 					four_line_pre = len(w_p) >= 4
 					_cache_key_close = (ardha1_w, ardha2_w, jAti_name)
-					if _DEBUG_TIMING:
-						_k = 'jati_close_cache_hits' if _cache_key_close in self._jAti_ardha_cache else 'jati_close_cache_misses'
-						_section_totals[_k] = _section_totals.get(_k, 0) + 1
 					if _cache_key_close in self._jAti_ardha_cache:
 						_cc = self._jAti_ardha_cache[_cache_key_close]
 						pre_rescued1 = _cc['rescued1']
@@ -1792,9 +1784,6 @@ class VerseTester(object):
 			# Decompose each ardha into mātrā-gaṇas and validate against Hahn's rules.
 			g8_morae = 4 if jAti_name == 'āryāgīti' else 2
 			_cache_key = (ardha1_w, ardha2_w, jAti_name)
-			if _DEBUG_TIMING:
-				_k = 'jati_cache_hits' if _cache_key in self._jAti_ardha_cache else 'jati_cache_misses'
-				_section_totals[_k] = _section_totals.get(_k, 0) + 1
 			if _cache_key in self._jAti_ardha_cache:
 				_cached = self._jAti_ardha_cache[_cache_key]
 				ardha1_ganas = _cached['ardha1_ganas']
@@ -2454,7 +2443,6 @@ class MeterIdentifier(object):
 		self._anuzwuB_half_cache = {}
 		VrsTster._ardha_stash = []
 		VrsTster._vizama_stash = []
-		if _DEBUG_TIMING: _section_totals['_wiggle_candidate_num'] = 0
 		pos_iterators = {}
 		for k in ['ab', 'bc', 'cd']:
 			if  (
@@ -2485,7 +2473,6 @@ class MeterIdentifier(object):
 
 						if _DEBUG_TIMING:
 							_section_totals['wiggle_count'] = _section_totals.get('wiggle_count', 0) + 1
-							_section_totals['_wiggle_candidate_num'] = _section_totals.get('_wiggle_candidate_num', 0) + 1
 
 						temp_V.syllable_weights = timed('scan_weights')(S.scan_syllable_weights)(
 							temp_V.text_syllabified)
@@ -3003,8 +2990,6 @@ class MeterIdentifier(object):
 		if _DEBUG_TIMING:
 			for V, verse_times, cat in results:
 				_section_totals['wiggle_count'] = _section_totals.get('wiggle_count', 0) + verse_times.pop('wiggle_count', 0)
-				for _dk in _DEBUG_COUNT_KEYS:
-					_section_totals[_dk] = _section_totals.get(_dk, 0) + verse_times.pop(_dk, 0)
 				bucket = _category_totals.setdefault(cat, {})
 				for k, v in verse_times.items():
 					bucket[k] = bucket.get(k, 0.0) + v
@@ -3028,7 +3013,6 @@ def _identify_meter_worker(args):
 	if debug_timing:
 		pre = {k: _section_totals.get(k, 0.0) for k in _TIMING_KEYS}
 		pre_wiggle = _section_totals.get('wiggle_count', 0)
-		pre_decompose = _section_totals.get('decompose_calls', 0)
 	V = MI.identify_meter(
 		rw_str,
 		resplit_option=resplit_option,
@@ -3039,7 +3023,6 @@ def _identify_meter_worker(args):
 		verse_times = {k: _section_totals.get(k, 0.0) - pre[k] for k in _TIMING_KEYS}
 		verse_times['scan'] = sum(verse_times[k] for k in _SCAN_KEYS)
 		verse_times['wiggle_count'] = _section_totals.get('wiggle_count', 0) - pre_wiggle
-		verse_times['decompose_calls'] = _section_totals.get('decompose_calls', 0) - pre_decompose
 		cat = _meter_label_to_category(V.meter_label)
 		return V, verse_times, cat
 	return V
