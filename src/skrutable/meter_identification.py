@@ -1576,7 +1576,9 @@ class VerseTester(object):
 				close1 = abs(eff1 - std_ardha[0]) <= 1
 				close2 = abs(eff2 - std_ardha[1]) <= 1
 				if close1 and close2:
-					# Use cached step (b) results (decomposition + krama rescue).
+					# For hypermetric ardhas (1 mora over), attempt krama rescue before
+					# reporting as imperfect. A g→l flip removes 1 mora; if it also passes
+					# gaṇa validation, the ardha is rescued to perfect.
 					g8_morae_close = 4 if jAti_name == 'āryāgīti' else 2
 					four_line_pre = len(w_p) >= 4
 					_cache_key_close = (ardha1_w, ardha2_w, jAti_name)
@@ -1780,8 +1782,6 @@ class VerseTester(object):
 				continue
 
 			# Decompose each ardha into mātrā-gaṇas and validate against Hahn's rules.
-			# Cache keyed on (ardha weights, jāti name) — constant across wiggle candidates
-			# when resplit_keep_midpoint is True (ardhas never change, only cd split does).
 			g8_morae = 4 if jAti_name == 'āryāgīti' else 2
 			_cache_key = (ardha1_w, ardha2_w, jAti_name)
 			if _cache_key in self._jAti_ardha_cache:
