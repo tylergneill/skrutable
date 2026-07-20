@@ -241,6 +241,7 @@ DEV_SLP = [
 ('य', 'y'),
 ('र', 'r'),
 ('ल', 'l'),
+('ळ', 'L'),
 ('व', 'v'),
 ('श', 'S'),
 ('ष', 'z'),
@@ -478,6 +479,7 @@ WX_SLP = [
 ('d','q'), # ḍ
 ('x','d'), # d
 ('L','x'), # ḷ
+('lY','L'), # ḻ
 # Transliteration 2: roundabout swaps to avoid bleeding/feeding
 # V not used in either scheme
 ('t','V'), # ṭ
@@ -873,7 +875,7 @@ SLP_VH = [
 
 SLP_WX = [
 # Transliteration 1: very careful ordering to avoid bleeding/feeding
-# start with what not used in SLP: L
+('L', 'ळ'), # ḻ
 ('x','L'), # ḷ
 # now progressively map to what is freed up
 ('d','x'), # d
@@ -897,7 +899,9 @@ SLP_WX = [
 ('W','V'), # ṭh
 ('T','W'), # th
 ('V','T'), # ṭh
-# Transliteration 3: simpler remaining mapping
+# Transliteration 3: finish up trickiest case
+('ळ','lY'), # ḻ
+# Transliteration 4: simpler remaining mapping
 ("'",'Z'),
 ]
 
