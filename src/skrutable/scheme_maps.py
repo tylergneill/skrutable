@@ -12,7 +12,7 @@ c ch j jh ñ				c C j J Y 				c ch j jh J
 ṭ ṭh ḍ ḍh ṇ				w W q Q R 				T Th D Dh N
 t th d dh n				t T d D n 				t th d dh n
 p ph b bh m				p P b B m 				p ph b bh m
-y r l v					y r l v 				y r l v
+y r l v ḻ				y r l v L				y r l v L
 ś ṣ s h ṃ ḥ '			S z s h M H '			z S s h M H '
 
 (IASTREDUCED: a a i i u u ... jh n t th d dh n t ... s s s h m h ')
@@ -25,7 +25,7 @@ DEV
 ट ठ ड ढ ण
 त थ द ध न
 प फ ब भ म
-य र ल व
+य र ल व ळ
 श ष स ह ं ः ऽ
 १ २ ३ ४ ५ ६ ७ ८ ९ ०
 
@@ -37,7 +37,7 @@ BENGALI
 ট ঠ ড ঢ ণ
 ত থ দ ধ ন
 প ফ ব ভ ম
-য র ল ব
+য র ল ব ল়
 শ ষ স হ ং ঃ ঽ
 ১ ২ ৩ ৪ ৫ ৬ ৭ ৮ ৯ ০
 
@@ -49,7 +49,7 @@ GUJARATI
 ટ ઠ ડ ઢ ણ
 ત થ દ ધ ન
 પ ફ બ ભ મ
-ય ર લ વ
+ય ર લ વ ળ
 શ ષ સ હ ં ઃ ઽ
 ૧ ૨ ૩ ૪ ૫ ૬ ૭ ૮ ૯ ૦
 
@@ -61,7 +61,7 @@ c ch j jh ~n			c C j J F
 .t .th .d .dh .n		t T d D N
 t th d dh n				w W x X n
 p ph b bh m				p P b B m
-y r l v					y r l v
+y r l v	.la				y r l v lY
 "s .s s h .m .h .a		S R s M H Z
 
 ITRANS
@@ -72,7 +72,7 @@ ch Ch j jh ~n
 T Th D Dh N
 t th d dh n
 p ph b bh m
-y r l v
+y r l v L
 sh Sh s h .m H .a
 
 CSX						REE						OAST
@@ -112,6 +112,7 @@ IAST_SLP = [
 ('ṭ','ṭ'), ('Ṭ','Ṭ'),
 ('ḍ','ḍ'), ('Ḍ','Ḍ'),
 ('ṇ','ṇ'), ('Ṇ','Ṇ'),
+('ḻ','ḻ'), ('Ḻ','Ḻ'),
 ('ś','ś'), ('Ś','Ś'),
 ('ṣ','ṣ'), ('Ṣ','Ṣ'),
 ('ḥ','ḥ'), ('Ḥ','Ḥ'),
@@ -127,7 +128,7 @@ IAST_SLP = [
 ('U','u'),('V','v'),('W','w'),('X','x'),('Y','y'),('Z','z'),
 ('Ā','ā'),('Ī','ī'),('Ū','ū'),('Ṛ','ṛ'), ('Ḷ','ḷ'),
 ('Ṅ','ṅ'),('Ñ','ñ'),('Ṭ','ṭ'),('Ḍ','ḍ'),('Ṇ','ṇ'),
-('Ś','ś'),('Ṣ','ṣ'),('Ḥ','ḥ'),('Ḫ','h'),('Ṃ','ṃ'),
+('Ḻ','ḻ'),('Ś','ś'),('Ṣ','ṣ'),('Ḥ','ḥ'),('Ḫ','h'),('Ṃ','ṃ'),
 # Transliteration 1: careful ordering to avoid bleeding/feeding
 ('ṭh','W'),
 ('ṭ','w'),
@@ -156,6 +157,7 @@ IAST_SLP = [
 ('dh','D'),
 ('ph','P'),
 ('bh','B'),
+('ḻ','L'),
 ('ś','S'),
 ('ṣ','z'),
 ('ṃ','M'),
@@ -241,6 +243,7 @@ DEV_SLP = [
 ('य', 'y'),
 ('र', 'r'),
 ('ल', 'l'),
+('ळ', 'L'),
 ('व', 'v'),
 ('श', 'S'),
 ('ष', 'z'),
@@ -318,6 +321,7 @@ BENGALI_SLP = [
 ('য', 'y'),
 ('র', 'r'),
 ('ল', 'l'),
+('ল়', 'L'),
 ('ব', 'v'),
 ('শ', 'S'),
 ('ষ', 'z'),
@@ -395,6 +399,7 @@ GUJARATI_SLP = [
 ('ય', 'y'),
 ('ર', 'r'),
 ('લ', 'l'),
+('ળ', 'L'),
 ('વ', 'v'),
 ('શ', 'S'),
 ('ષ', 'z'),
@@ -456,6 +461,7 @@ VH_SLP = [
 ('dh','D'),
 ('ph','P'),
 ('bh','B'),
+('.l','L'),
 ('"s','S'),
 ('.s','z'),
 ("’", "'"),
@@ -478,6 +484,7 @@ WX_SLP = [
 ('d','q'), # ḍ
 ('x','d'), # d
 ('L','x'), # ḷ
+('lY','L'), # ḻ
 # Transliteration 2: roundabout swaps to avoid bleeding/feeding
 # V not used in either scheme
 ('t','V'), # ṭ
@@ -608,6 +615,7 @@ SLP_IAST = [
 ('D','dh'),
 ('P','ph'),
 ('B','bh'),
+('L','ḻ'),
 ('S','ś'),
 ('z','ṣ'),
 # Remain the same: ...
@@ -690,6 +698,7 @@ SLP_DEV = [
 ('y', 'य'),
 ('r', 'र'),
 ('l', 'ल'),
+('L', 'ळ'),
 ('v', 'व'),
 ('S', 'श'),
 ('z', 'ष'),
@@ -755,6 +764,7 @@ SLP_BENGALI = [
 ('y', 'য'),
 ('r', 'র'),
 ('l', 'ল'),
+('L', 'ল়'),
 ('v', 'ব'),
 ('S', 'শ'),
 ('z', 'ষ'),
@@ -820,6 +830,7 @@ SLP_GUJARATI = [
 ('y', 'ય'),
 ('r', 'ર'),
 ('l', 'લ'),
+('L', 'ળ'),
 ('v', 'વ'),
 ('S', 'શ'),
 ('z', 'ષ'),
@@ -866,6 +877,7 @@ SLP_VH = [
 ('D','dh'),
 ('P','ph'),
 ('B','bh'),
+('L','.l'),
 ('S','"s'),
 ('z','.s'),
 ("'",'.a'),
@@ -873,7 +885,7 @@ SLP_VH = [
 
 SLP_WX = [
 # Transliteration 1: very careful ordering to avoid bleeding/feeding
-# start with what not used in SLP: L
+('L', 'ळ'), # ḻ
 ('x','L'), # ḷ
 # now progressively map to what is freed up
 ('d','x'), # d
@@ -897,7 +909,9 @@ SLP_WX = [
 ('W','V'), # ṭh
 ('T','W'), # th
 ('V','T'), # ṭh
-# Transliteration 3: simpler remaining mapping
+# Transliteration 3: finish up trickiest case
+('ळ','lY'), # ḻ
+# Transliteration 4: simpler remaining mapping
 ("'",'Z'),
 ]
 
@@ -996,6 +1010,7 @@ SLP_IASTREDUCED = [
 ('D','dh'),
 ('P','ph'),
 ('B','bh'),
+('L','l'),
 ('S','s'),
 ('z','s'),
 ]
