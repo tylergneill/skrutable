@@ -522,4 +522,18 @@ yadA kiYcitkiYcidbuDajana-sakASAdavagataM tadA mUrKo'smIti jvara iva mado me vya
         expect(result_keep.meterLabel).toBe("na kiṃcid adhyavasitam");
         expect(result_free.meterLabel.substring(0, 7)).toBe("anuṣṭup");
     });
+
+    test('test_identify_meter_single_anuzwuB_half_no_spurious_split', () => {
+        // regression: a lone anuṣṭup half-verse, given as a single line,
+        // must come back as a single line (no internal daṇḍa/line break),
+        // not split by resplit_max's artificial 4-way quarter split
+        const MI = new MeterIdentifier();
+        const input_string = "asmindeSe mahAkAyo virADo nihato mayA";
+        const object_result = MI.identify_meter(input_string, 'resplit_max', false, 'SLP');
+        expect(object_result.meterLabel).toContain("ardham eva");
+        expect(object_result.textSyllabified.split('\n').length).toBe(1);
+        expect(object_result.textSyllabified).toBe(
+            "a smi nde Se ma hA kA yo vi rA Do ni ha to ma yA"
+        );
+    });
 });
