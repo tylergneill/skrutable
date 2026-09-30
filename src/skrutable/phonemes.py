@@ -63,7 +63,7 @@ SLP_chars = ( [ c for c in Roman_upper if c not in ['V','Z'] ]
 
 IAST_chars = ( [c for c in Roman_lower if c not in ['f','q','w','x','z'] ]
         + ['ñ','ā','ī','ś','ū','ḍ','ḥ','ḷ','ḹ','ḻ','ṃ','ṅ','ṇ','ṛ','ṝ','ṣ','ṭ','ẖ','ḫ','ï','ü','ĕ','ŏ']
-		+ ['̄', '́', '̇', '̣', '̥', '̱', '̮', '̱', 'ṁ', 'ē', 'ō', '\u0303'] ) # also accept ISO etc. alternates
+		+ ['̄', '́', '̇', '̣', '̥', '̱', '̮', '̱', 'ṁ', 'ē', 'ō', '\u0303', '\u0310'] ) # also accept ISO etc. alternates
 		# need to add more in case of capital letters, etc.; see scheme_maps.IAST_SLP
 
 HK_chars = ( ['A','D','G','H','I','J','L','M','N','R','S','T','U']

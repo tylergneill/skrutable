@@ -56,15 +56,23 @@ def test_anunasika_dev_to_slp_to_bengali():
 		assert expected_normalize == out_normalize, f"input={input!r} expected={expected_normalize!r} got={out_normalize!r}"
 
 def test_anunasika_iast_to_slp_to_iast_preserve():
-	# IAST ã → SLP → IAST with preserve_anunasika=True (identity)
+	# IAST ã / am̐ / a~ → SLP → IAST with preserve_anunasika=True (→ m̐)
 	T = Transliterator()
 	for (input, expected_output) in [
-		('a\u0303', 'a\u0303'),
-		('ā\u0303', 'ā\u0303'),
-		('i\u0303', 'i\u0303'),
-		('ī\u0303', 'ī\u0303'),
-		('u\u0303', 'u\u0303'),
-		('ū\u0303', 'ū\u0303'),
+		('a\u0303', 'am\u0310'),
+		('ā\u0303', 'ām\u0310'),
+		('i\u0303', 'im\u0310'),
+		('ī\u0303', 'īm\u0310'),
+		('u\u0303', 'um\u0310'),
+		('ū\u0303', 'ūm\u0310'),
+		('ūm\u0310', 'ūm\u0310'),
+		('ū~', 'ūm\u0310'),
+		# nasalized semivowel: nasalization follows the l
+		('jñānavāl~loke', 'jñānavālm\u0310loke'),
+		('jñānavāl\u0303loke', 'jñānavālm\u0310loke'),
+		('jñānavālm\u0310loke', 'jñānavālm\u0310loke'),
+		# nasalized vowel: nasalization follows the ā
+		('jñānavām\u0310lloke', 'jñānavām\u0310lloke'),
 	]:
 		output = T.transliterate(input, from_scheme='IAST', to_scheme='IAST', preserve_anunasika=True)
 		assert expected_output == output, f"input={input!r} expected={expected_output!r} got={output!r}"
@@ -79,9 +87,20 @@ def test_anunasika_iast_to_slp_to_iast_normalize():
 		('ī\u0303', 'īṃ'),
 		('u\u0303', 'uṃ'),
 		('ū\u0303', 'ūṃ'),
+		('ūm\u0310', 'ūṃ'),
 	]:
 		output = T.transliterate(input, from_scheme='IAST', to_scheme='IAST', preserve_anunasika=False)
 		assert expected_output == output, f"input={input!r} expected={expected_output!r} got={output!r}"
+
+def test_iast_m_dot_above_is_anusvara():
+	# ṁ (precomposed or m + U+0307) is simply a variant of ṃ, never anunāsika
+	T = Transliterator()
+	for input in ['saṁskṛta', 'sam\u0307skṛta']:
+		for preserve in (True, False):
+			output = T.transliterate(input, from_scheme='IAST', to_scheme='IAST', preserve_anunasika=preserve)
+			assert 'saṃskṛta' == output, f"input={input!r} preserve={preserve} got={output!r}"
+	output = T.transliterate('jñānavāṁlloke', from_scheme='IAST', to_scheme='IAST', preserve_anunasika=True)
+	assert 'jñānavāṃlloke' == output, f"got={output!r}"
 
 def test_anunasika_dev_to_slp_to_hk():
 	# Devanagari ँ → SLP → HK (mandatory normalization to anusvāra)

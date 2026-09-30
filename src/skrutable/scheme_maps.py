@@ -85,7 +85,9 @@ to SLP   IAST_SLP, DEV_SLP, HK_SLP, VH_SLP, ITRANS_SLP
 from SLP  SLP_IAST, SLP_DEV, SLP_HK, SLP_VH, SLP_ITRANS
 """
 IAST_SLP = [
-# Normalization 0: anunāsika (candrabindu) — combining tilde above (U+0303) → SLP ~
+# Normalization 0: anunāsika — m + combining candrabindu (m̐, U+0310) or combining tilde (U+0303) → SLP ~
+# (attaches to whatever precedes: vowel, as in ūm̐, or semivowel, as in lm̐)
+('m\u0310','~'),
 ('\u0303','~'),
 # Normalization 1: ISO under-circles to under-dots (longs will feed into later rules_
 ('r̥','ṛ'),('R̥','ṛ'), # r ̥ -> ṛ
@@ -588,7 +590,7 @@ SLP_SLP = [
 
 SLP_IAST = [
 # Transliteration 1: all simple mappings
-('~','\u0303'), # anunāsika: combining tilde above onto preceding vowel
+('~','m\u0310'), # anunāsika: m̐ (m + combining candrabindu U+0310) after the nasalized vowel or semivowel
 ('A','ā'),
 ('I','ī'),
 ('U','ū'),
