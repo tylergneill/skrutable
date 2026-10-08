@@ -103,18 +103,47 @@ def test_iast_m_dot_above_is_anusvara():
 	assert 'jñānavāṃlloke' == output, f"got={output!r}"
 
 def test_anunasika_dev_to_slp_to_hk():
-	# Devanagari ँ → SLP → HK (mandatory normalization to anusvāra)
+	# Devanagari ँ → SLP → HK: HK has no anunāsika, so SLP ~ passes through unless flattening
 	T = Transliterator()
-	for (input, expected_output) in [
-		('अँ', 'aM'),
-		('आँ', 'AM'),
-		('इँ', 'iM'),
-		('ईँ', 'IM'),
-		('उँ', 'uM'),
-		('ऊँ', 'UM'),
+	for (input, expected_preserve, expected_normalize) in [
+		('अँ', 'a~', 'aM'),
+		('आँ', 'A~', 'AM'),
+		('इँ', 'i~', 'iM'),
+		('ईँ', 'I~', 'IM'),
+		('उँ', 'u~', 'uM'),
+		('ऊँ', 'U~', 'UM'),
+		('वाल्ँलोके', 'vAl~loke', 'vAMlloke'),
 	]:
-		output = T.transliterate(input, from_scheme='DEV', to_scheme='HK')
-		assert expected_output == output, f"input={input!r} expected={expected_output!r} got={output!r}"
+		out_preserve = T.transliterate(input, from_scheme='DEV', to_scheme='HK')
+		assert expected_preserve == out_preserve, f"input={input!r} expected={expected_preserve!r} got={out_preserve!r}"
+		out_normalize = T.transliterate(input, from_scheme='DEV', to_scheme='HK', preserve_anunasika=False)
+		assert expected_normalize == out_normalize, f"input={input!r} expected={expected_normalize!r} got={out_normalize!r}"
+
+def test_anunasika_semivowel():
+	# nasalized semivowel (y, l, v): preserved as m̐ after it, or flattened to ṃ before it
+	T = Transliterator()
+	for (input, from_scheme, expected_preserve, expected_normalize) in [
+		('jñānavālm\u0310loke', 'IAST', 'jñānavālm\u0310loke', 'jñānavāṃlloke'),
+		('jñānavāl~loke', 'IAST', 'jñānavālm\u0310loke', 'jñānavāṃlloke'),
+		('jñānavāl\u0303loke', 'IAST', 'jñānavālm\u0310loke', 'jñānavāṃlloke'),
+		('jñānavālṃloke', 'IAST', 'jñānavālm\u0310loke', 'jñānavāṃlloke'),
+		('ज्ञानवाल्ँलोके', 'DEV', 'jñānavālm\u0310loke', 'jñānavāṃlloke'),
+		('ज्ञानवाल्ंलोके', 'DEV', 'jñānavālm\u0310loke', 'jñānavāṃlloke'),
+		('saym\u0310yantā', 'IAST', 'saym\u0310yantā', 'saṃyyantā'),
+		('savm\u0310vatsaraḥ', 'IAST', 'savm\u0310vatsaraḥ', 'saṃvvatsaraḥ'),
+		# nasalized vowel before l is unaffected
+		('jñānavām\u0310lloke', 'IAST', 'jñānavām\u0310lloke', 'jñānavāṃlloke'),
+	]:
+		out_preserve = T.transliterate(input, from_scheme=from_scheme, to_scheme='IAST')
+		assert expected_preserve == out_preserve, f"input={input!r} expected={expected_preserve!r} got={out_preserve!r}"
+		out_normalize = T.transliterate(input, from_scheme=from_scheme, to_scheme='IAST', preserve_anunasika=False)
+		assert expected_normalize == out_normalize, f"input={input!r} expected={expected_normalize!r} got={out_normalize!r}"
+
+def test_anunasika_iastreduced_always_flattens():
+	T = Transliterator()
+	output = T.transliterate('jñānavālm\u0310loke', from_scheme='IAST', to_scheme='IASTREDUCED')
+	assert 'l' + 'm' + 'l' not in output, f"got={output!r}"
+	assert output == T.transliterate('jñānavāṃlloke', from_scheme='IAST', to_scheme='IASTREDUCED')
 
 # def ():
 # 	assert expected_output == output

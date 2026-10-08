@@ -418,7 +418,8 @@ class Scanner(object):
 		T.scheme_out = 'SLP'
 
 		V.text_cleaned = self.clean_input(V.text_raw, V.original_scheme)
-		V.text_SLP = timed('scan_translit')(T.transliterate)(V.text_cleaned)
+		# anunāsika flattened to anusvāra for scansion (l~ → Ml keeps syllable count)
+		V.text_SLP = timed('scan_translit')(T.transliterate)(V.text_cleaned, preserve_anunasika=False)
 		V.text_syllabified = self.syllabify_text(V.text_SLP)
 		V.syllable_weights = self.scan_syllable_weights(V.text_syllabified)
 		V.morae_per_line = self.count_morae(V.syllable_weights)
