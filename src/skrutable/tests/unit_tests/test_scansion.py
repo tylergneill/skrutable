@@ -38,3 +38,16 @@ kim akurvata sañjaya //"""
 
 # def ():
 # 	assert expected_output == output
+
+
+def test_scan_anunasika_flattened():
+	# nasalized semivowel or vowel scans like anusvāra, with no extra syllable
+	S = Scanner()
+	for (input, from_scheme) in [
+		('jñānavālm\u0310loke', 'IAST'),
+		('jñānavām\u0310lloke', 'IAST'),
+		('jñānavāṃlloke', 'IAST'),
+		('ज्ञानवाल्ँलोके', 'DEV'),
+	]:
+		V = S.scan(input, from_scheme=from_scheme)
+		assert V.syllable_weights == 'glggg', f"input={input!r} got={V.syllable_weights!r} syls={V.text_syllabified!r}"

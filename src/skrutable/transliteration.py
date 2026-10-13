@@ -13,6 +13,15 @@ DEFAULT_SCHEME_OUT = config["default_scheme_out"] # e.g. "IAST"
 AVOID_VIRAMA_INDIC_SCRIPTS_DEFAULT = config["avoid_virama_indic_scripts"] # e.g. True
 AVOID_VIRAMA_NON_INDIC_SCRIPTS_DEFAULT = config["avoid_virama_non_indic_scripts"] # e.g. False
 
+# Nasalized semivowel (y, l, v), e.g. the first l of devān + loke.
+# Phonetically the nasalization belongs to the semivowel (strict SLP devAl~loke),
+# but IAST, ISO 15919, and Indic scripts all write the sign on the preceding vowel
+# (devām̐lloke, देवाँल्लोके). skrutable follows that practice, also internally:
+# its SLP ~ means "candrabindu as written", so the parked form is devA~lloke.
+# Any sign found on the semivowel itself (l~, l̃, lm̐, ल्ँ, also anusvāra lṃ, ल्ं)
+# is therefore moved to before the semivowel.
+_re_nasal_sign_on_semivowel = re.compile(r'([ylv])[~M]')
+
 
 class Transliterator():
 	"""
@@ -141,13 +150,15 @@ class Transliterator():
 		"""
 		Internal method.
 
-		Normalizes SLP ~ (anunāsika) to M (anusvāra) when required:
-		- Always for HK, VH, WX (no anunāsika representation)
-		- For IAST, ISO 15919, ITRANS when preserve_anunasika is False
+		Normalizes SLP ~ (anunāsika) to M (anusvāra)
+		when preserve_anunasika is False, and always for IASTREDUCED.
+		Schemes without an anunāsika representation (HK, VH, WX)
+		otherwise just pass SLP ~ through.
+
+		The sign is always already on the vowel by this point
+		(see _re_nasal_sign_on_semivowel), so this is a plain substitution (A~ → AM).
 		"""
-		always_normalize = ['HK', 'VH', 'WX', 'IASTREDUCED']
-		conditionally_normalize = ['IAST', 'ITRANS', 'SLP', 'DEV', 'BENGALI', 'GUJARATI']
-		if to_scheme in always_normalize or (to_scheme in conditionally_normalize and not preserve_anunasika):
+		if to_scheme == 'IASTREDUCED' or not preserve_anunasika:
 			self.contents = self.contents.replace('~', 'M')
 
 	def transliterate(
@@ -157,7 +168,7 @@ class Transliterator():
 			to_scheme=None,
 			avoid_virama_indic_scripts: bool = AVOID_VIRAMA_INDIC_SCRIPTS_DEFAULT,
 			avoid_virama_non_indic_scripts: bool = AVOID_VIRAMA_NON_INDIC_SCRIPTS_DEFAULT,
-			preserve_anunasika: bool = False,
+			preserve_anunasika: bool = True,
 	):
 		"""
 		User-facing method.
@@ -170,6 +181,17 @@ class Transliterator():
 
 		Executes transliteration via SLP,
 		including linear preprocessing in case of DEV.
+
+		Anunāsika (candrabindu): preserved by default,
+		or flattened to anusvāra if preserve_anunasika is False.
+		IAST output uses m̐, which is two codepoints:
+		m (U+006D) + combining candrabindu (U+0310).
+		IAST input also accepts any letter + tilde (ã, l̃),
+		combining (U+0303) or precomposed.
+		The sign is always written after the vowel, as in practice:
+		devān + loke is devām̐lloke / देवाँल्लोके (SLP devA~lloke),
+		and a sign given on the semivowel itself
+		(devāl̃loke, devālm̐loke, strict SLP devAl~loke) is moved there.
 
 		Result returned via updated self.contents
 		and also directly as string.
@@ -195,8 +217,10 @@ class Transliterator():
 		# transliterate first to hub scheme SLP
 		self.linear_preprocessing(self.scheme_in, 'SLP')
 		self.map_replace(self.scheme_in, 'SLP')
+		# park any nasal sign written on a semivowel onto the preceding vowel (Al~l → A~ll)
+		self.contents = _re_nasal_sign_on_semivowel.sub(r'~\1', self.contents)
 
-		# normalize anunāsika (~) to anusvāra (M) when target scheme cannot represent it
+		# normalize anunāsika (~) to anusvāra (M) unless preserving
 		self.normalize_anunasika(self.scheme_out, preserve_anunasika)
 
 		# avoid undesirable virāmas specified in virāma_avoidance.py

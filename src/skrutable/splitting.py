@@ -246,8 +246,9 @@ class Splitter(object):
         """
 
         # transliterate input to IAST (auto-detects if from_scheme is None)
+        # anunāsika flattened to anusvāra, which the splitter model expects
         T = Transliterator()
-        text = T.transliterate(text, from_scheme=from_scheme, to_scheme='IAST')
+        text = T.transliterate(text, from_scheme=from_scheme, to_scheme='IAST', preserve_anunasika=False)
 
         # save original punctuation
         sentences: List[str]

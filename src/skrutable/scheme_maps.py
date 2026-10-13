@@ -85,7 +85,26 @@ to SLP   IAST_SLP, DEV_SLP, HK_SLP, VH_SLP, ITRANS_SLP
 from SLP  SLP_IAST, SLP_DEV, SLP_HK, SLP_VH, SLP_ITRANS
 """
 IAST_SLP = [
-# Normalization 0: anunāsika (candrabindu) — combining tilde above (U+0303) → SLP ~
+# Normalization 0: anunāsika → SLP ~
+# Standard form is m̐, which is TWO codepoints: m (U+006D) + combining candrabindu (U+0310).
+# Also accepted: any letter + combining tilde (U+0303), e.g. ã or l̃,
+# whether typed as base + U+0303 or as a single precomposed codepoint (ã U+00E3, ỹ U+1EF9, etc.).
+# Position is taken as written here; a mark on a semivowel (l̃, lm̐)
+# is moved onto the preceding vowel later, in Transliterator.transliterate().
+# 0a: decomposed ñ (n + U+0303) is the palatal nasal, not a nasalized n
+('n\u0303','\u00f1'),('N\u0303','\u00f1'),
+# 0b: precomposed tilde letters → base + combining tilde
+('\u00e3','a\u0303'),('\u00c3','a\u0303'), # a-tilde
+('\u0129','i\u0303'),('\u0128','i\u0303'), # i-tilde
+('\u0169','u\u0303'),('\u0168','u\u0303'), # u-tilde
+('\u1ebd','e\u0303'),('\u1ebc','e\u0303'), # e-tilde
+('\u00f5','o\u0303'),('\u00d5','o\u0303'), # o-tilde
+('\u1ef9','y\u0303'),('\u1ef8','y\u0303'), # y-tilde
+('\u1e7d','v\u0303'),('\u1e7c','v\u0303'), # v-tilde
+# 0c: tilde typed before macron → macron first, so the long vowel can merge below
+('\u0303\u0304','\u0304\u0303'),
+# 0d: the anunāsika signs themselves
+('m\u0310','~'),('M\u0310','~'),
 ('\u0303','~'),
 # Normalization 1: ISO under-circles to under-dots (longs will feed into later rules_
 ('r̥','ṛ'),('R̥','ṛ'), # r ̥ -> ṛ
@@ -588,7 +607,7 @@ SLP_SLP = [
 
 SLP_IAST = [
 # Transliteration 1: all simple mappings
-('~','\u0303'), # anunāsika: combining tilde above onto preceding vowel
+('~','m\u0310'), # anunāsika: m̐ (m + combining candrabindu U+0310)
 ('A','ā'),
 ('I','ī'),
 ('U','ū'),
