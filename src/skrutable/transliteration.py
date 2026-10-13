@@ -13,10 +13,14 @@ DEFAULT_SCHEME_OUT = config["default_scheme_out"] # e.g. "IAST"
 AVOID_VIRAMA_INDIC_SCRIPTS_DEFAULT = config["avoid_virama_indic_scripts"] # e.g. True
 AVOID_VIRAMA_NON_INDIC_SCRIPTS_DEFAULT = config["avoid_virama_non_indic_scripts"] # e.g. False
 
-# anunāsika can attach to the semivowels y, l, v (e.g. vAl~loke)
-_re_nasalized_semivowel = re.compile(r'([ylv])~')
-# anusvāra directly after a semivowel (lṃ, ल्ं) can only mean a nasalized semivowel
-_re_anusvara_after_semivowel = re.compile(r'([ylv])M')
+# Nasalized semivowel (y, l, v), e.g. the first l of devān + loke.
+# Phonetically the nasalization belongs to the semivowel (strict SLP devAl~loke),
+# but IAST, ISO 15919, and Indic scripts all write the sign on the preceding vowel
+# (devām̐lloke, देवाँल्लोके). skrutable follows that practice, also internally:
+# its SLP ~ means "candrabindu as written", so the parked form is devA~lloke.
+# Any sign found on the semivowel itself (l~, l̃, lm̐, ल्ँ, also anusvāra lṃ, ल्ं)
+# is therefore moved to before the semivowel.
+_re_nasal_sign_on_semivowel = re.compile(r'([ylv])[~M]')
 
 
 class Transliterator():
@@ -151,11 +155,10 @@ class Transliterator():
 		Schemes without an anunāsika representation (HK, VH, WX)
 		otherwise just pass SLP ~ through.
 
-		Nasalized semivowel becomes anusvāra before the semivowel (l~ → Ml);
-		nasalized vowel becomes vowel + anusvāra (A~ → AM).
+		The sign is always already on the vowel by this point
+		(see _re_nasal_sign_on_semivowel), so this is a plain substitution (A~ → AM).
 		"""
 		if to_scheme == 'IASTREDUCED' or not preserve_anunasika:
-			self.contents = _re_nasalized_semivowel.sub(r'M\1', self.contents)
 			self.contents = self.contents.replace('~', 'M')
 
 	def transliterate(
@@ -178,6 +181,17 @@ class Transliterator():
 
 		Executes transliteration via SLP,
 		including linear preprocessing in case of DEV.
+
+		Anunāsika (candrabindu): preserved by default,
+		or flattened to anusvāra if preserve_anunasika is False.
+		IAST output uses m̐, which is two codepoints:
+		m (U+006D) + combining candrabindu (U+0310).
+		IAST input also accepts any letter + tilde (ã, l̃),
+		combining (U+0303) or precomposed.
+		The sign is always written after the vowel, as in practice:
+		devān + loke is devām̐lloke / देवाँल्लोके (SLP devA~lloke),
+		and a sign given on the semivowel itself
+		(devāl̃loke, devālm̐loke, strict SLP devAl~loke) is moved there.
 
 		Result returned via updated self.contents
 		and also directly as string.
@@ -203,7 +217,8 @@ class Transliterator():
 		# transliterate first to hub scheme SLP
 		self.linear_preprocessing(self.scheme_in, 'SLP')
 		self.map_replace(self.scheme_in, 'SLP')
-		self.contents = _re_anusvara_after_semivowel.sub(r'\1~', self.contents)
+		# park any nasal sign written on a semivowel onto the preceding vowel (Al~l → A~ll)
+		self.contents = _re_nasal_sign_on_semivowel.sub(r'~\1', self.contents)
 
 		# normalize anunāsika (~) to anusvāra (M) unless preserving
 		self.normalize_anunasika(self.scheme_out, preserve_anunasika)
