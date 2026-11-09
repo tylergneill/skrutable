@@ -234,6 +234,7 @@ class Splitter(object):
             splitter_model: str='dharmamitra_2024_sept',
             preserve_compound_hyphens: bool = PRESERVE_COMPOUND_HYPHENS_DEFAULT,
             preserve_punctuation: bool=PRESERVE_PUNCTUATION_DEFAULT,
+            preserve_dandas: bool = False,
     ) -> str:
         """
         Splits sandhi and compounds of multi-line Sanskrit string,
@@ -243,12 +244,17 @@ class Splitter(object):
         from_scheme: input transliteration scheme (None = auto-detect).
         to_scheme:   output transliteration scheme (None = IAST, the hub scheme).
         Processing always happens in IAST; transliteration wraps the call if needed.
+        preserve_dandas: passed to the output transliteration when to_scheme is set,
+                     so roman output gets | and || unless True (Indic output keeps । and ॥).
+                     Dandas are always kept through splitting itself,
+                     so with to_scheme None the output keeps whatever dandas came in.
         """
 
         # transliterate input to IAST (auto-detects if from_scheme is None)
         # anunāsika flattened to anusvāra, which the splitter model expects
+        # dandas kept as is (handled as punctuation below)
         T = Transliterator()
-        text = T.transliterate(text, from_scheme=from_scheme, to_scheme='IAST', preserve_anunasika=False)
+        text = T.transliterate(text, from_scheme=from_scheme, to_scheme='IAST', preserve_anunasika=False, preserve_dandas=True)
 
         # save original punctuation
         sentences: List[str]
@@ -297,6 +303,6 @@ class Splitter(object):
 
         # transliterate output from IAST if requested
         if to_scheme is not None and to_scheme.upper() != 'IAST':
-            final_results = T.transliterate(final_results, from_scheme='IAST', to_scheme=to_scheme)
+            final_results = T.transliterate(final_results, from_scheme='IAST', to_scheme=to_scheme, preserve_dandas=preserve_dandas)
 
         return final_results

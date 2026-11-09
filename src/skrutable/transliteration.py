@@ -161,6 +161,17 @@ class Transliterator():
 		if to_scheme == 'IASTREDUCED' or not preserve_anunasika:
 			self.contents = self.contents.replace('~', 'M')
 
+	def normalize_dandas(self, to_scheme, preserve_dandas):
+		"""
+		Internal method.
+
+		Converts Unicode dandas (। U+0964, ॥ U+0965) to | and ||
+		for non-Indic (roman) output schemes, unless preserve_dandas is True.
+		"""
+		if to_scheme in scheme_maps.indic_schemes or preserve_dandas:
+			return
+		self.contents = self.contents.replace('\u0965', '||').replace('\u0964', '|')
+
 	def transliterate(
 			self,
 			cntnts,
@@ -169,6 +180,7 @@ class Transliterator():
 			avoid_virama_indic_scripts: bool = AVOID_VIRAMA_INDIC_SCRIPTS_DEFAULT,
 			avoid_virama_non_indic_scripts: bool = AVOID_VIRAMA_NON_INDIC_SCRIPTS_DEFAULT,
 			preserve_anunasika: bool = True,
+			preserve_dandas: bool = False,
 	):
 		"""
 		User-facing method.
@@ -192,6 +204,11 @@ class Transliterator():
 		devān + loke is devām̐lloke / देवाँल्लोके (SLP devA~lloke),
 		and a sign given on the semivowel itself
 		(devāl̃loke, devālm̐loke, strict SLP devAl~loke) is moved there.
+
+		Dandas: for non-Indic (roman) output, Unicode । and ॥
+		are converted to | and || by default,
+		or left as is if preserve_dandas is True.
+		Indic-script output always keeps them as is.
 
 		Result returned via updated self.contents
 		and also directly as string.
@@ -235,5 +252,8 @@ class Transliterator():
 		# then transliterate to desired scheme
 		self.linear_preprocessing('SLP', self.scheme_out)
 		self.map_replace('SLP', self.scheme_out)
+
+		# convert Unicode dandas to ASCII pipes for roman output unless preserving
+		self.normalize_dandas(self.scheme_out, preserve_dandas)
 
 		return self.contents

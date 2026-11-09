@@ -202,5 +202,28 @@ def test_iast_decomposed_n_tilde_is_palatal_nasal():
 		assert 'jYAna' == T.transliterate(input, from_scheme='IAST', to_scheme='SLP'), f"input={input!r}"
 		assert 'j\u00f1\u0101na' == T.transliterate(input, from_scheme='IAST', to_scheme='IAST'), f"input={input!r}"
 
+# danda tests
+
+def test_dandas_to_pipes_for_roman_output():
+	T = Transliterator()
+	input = 'धर्मक्षेत्रे कुरुक्षेत्रे । समवेता युयुत्सवः ॥ १ ॥'
+	for (to_scheme, expected) in [
+		('IAST', 'dharmakṣetre kurukṣetre | samavetā yuyutsavaḥ || 1 ||'),
+		('SLP', 'Darmakzetre kurukzetre | samavetA yuyutsavaH || 1 ||'),
+		('HK', 'dharmakSetre kurukSetre | samavetA yuyutsavaH || 1 ||'),
+	]:
+		output = T.transliterate(input, from_scheme='DEV', to_scheme=to_scheme)
+		assert expected == output, f"to={to_scheme} expected={expected!r} got={output!r}"
+
+def test_dandas_preserved_on_request():
+	T = Transliterator()
+	output = T.transliterate('rāmaḥ । sītā ॥', from_scheme='IAST', to_scheme='IAST', preserve_dandas=True)
+	assert 'rāmaḥ । sītā ॥' == output
+
+def test_dandas_kept_for_indic_output():
+	T = Transliterator()
+	output = T.transliterate('rāmaḥ । sītā ॥', from_scheme='IAST', to_scheme='DEV')
+	assert 'रामः । सीता ॥' == output
+
 # def ():
 # 	assert expected_output == output
