@@ -153,6 +153,8 @@ Which file a user gets depends on how they load the package:
 - **`import` in a browser bundler or an ESM CDN** (esm.sh): `dist/skrutable.esm.js`, an ES module with the JSON data inlined.
 - **`import` or `require` in Node**: `src/index.js`, the unbundled source (`import` needs Node 20.10 or later for its JSON imports; `require` needs Node 22.12 or later).
 
+npm has no test registry like TestPyPI. Instead, before publishing, run `make smoke-test-npm-package` from the repo root: it packs the package exactly as `npm publish` would, installs it in a scratch folder, and checks that it loads through Node `import`, Node `require`, the ES module bundle and the UMD bundle. It publishes nothing.
+
 ```bash
 npm whoami                # confirm you're logged in as tylergneill
 npm publish --dry-run     # preview what will be packed

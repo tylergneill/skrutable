@@ -1,4 +1,4 @@
-.PHONY: test test-python test-js clean-old-builds create-new-build build-test-pypi-package build-official-pypi-package
+.PHONY: test test-python test-js smoke-test-npm-package clean-old-builds create-new-build build-test-pypi-package build-official-pypi-package
 
 clean-old-builds:
 	rm -rf dist build
@@ -24,3 +24,9 @@ test-python:
 # Installs the JS dev dependencies on first run.
 test-js:
 	cd js && ([ -d node_modules ] || npm ci) && npm test
+
+# Pack the JS library exactly as `npm publish` would, install it in a
+# scratch folder and check that it loads (npm has no test registry like
+# TestPyPI). Publishes nothing.
+smoke-test-npm-package:
+	cd js && ([ -d node_modules ] || npm ci) && ./scripts/smoke_test_package.sh
