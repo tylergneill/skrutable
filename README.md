@@ -20,7 +20,8 @@ Run the tests with `make test-python`.
 See [manual.md](https://github.com/tylergneill/skrutable/blob/main/src/skrutable/manual.md) for instructions.
 
 A JavaScript port of the library ([npm](https://www.npmjs.com/package/skrutable-js) package `skrutable-js`)
-also lives here, in [js/](https://github.com/tylergneill/skrutable/tree/main/js). It follows the Python version for version.
+also lives here, in [js/](https://github.com/tylergneill/skrutable/tree/main/js). It follows the Python library
+and may lag behind its latest release.
 `make test` runs both test suites.
 
 A browser extension for Chrome and Firefox, built on the JavaScript port, offers the same tools
