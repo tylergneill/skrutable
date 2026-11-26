@@ -19,6 +19,8 @@ Programmers in any language can also query API endpoints. See [below](#using-the
 
 There is also a JavaScript port of the library (npm package `skrutable-js`), which follows the Python library version for version. See [js/README.md](https://github.com/tylergneill/skrutable/blob/main/js/README.md).
 
+A browser extension for Chrome and Firefox, built on the JavaScript port, offers the same tools (transliteration, scansion, meter identification and splitting) in a side panel on any web page, from the toolbar icon or by right-clicking selected text. It lives with the web app in [skrutable_front_end](https://github.com/tylergneill/skrutable_front_end).
+
 
 # transliteration
 

@@ -23,6 +23,10 @@ A JavaScript port of the library ([npm](https://www.npmjs.com/package/skrutable-
 also lives here, in [js/](https://github.com/tylergneill/skrutable/tree/main/js). It follows the Python version for version.
 `make test` runs both test suites.
 
+A browser extension for Chrome and Firefox, built on the JavaScript port, offers the same tools
+(transliteration, scansion, meter identification and splitting) in a side panel on any web page, from the toolbar icon or by right-clicking selected text.
+It lives with the web app in [skrutable_front_end](https://github.com/tylergneill/skrutable_front_end).
+
 Feedback welcome!
 My name is Tyler 
 ([Academia](https://uni-leipzig1.academia.edu/TylerNeill),
