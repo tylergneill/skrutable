@@ -16,6 +16,8 @@ pip install -e .
 
 This ensures tests and scripts use the local source instead of any installed version.
 
+A JavaScript port of the library (npm package `skrutable-js`) lives in [js/](js/).
+
 See [manual.md](https://github.com/tylergneill/skrutable/blob/main/src/skrutable/manual.md) for instructions.
 
 Feedback welcome!

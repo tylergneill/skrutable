@@ -151,7 +151,7 @@ npm test             # run all tests (Jest + Babel)
 
 ### Publishing the npm package
 
-The package is published to npm as `skrutable-js` under the `tylergneill` account. The package logic and version number are kept in sync with the upstream Python [skrutable](https://github.com/tylergneill/skrutable) library.
+The package is published to npm as `skrutable-js` under the `tylergneill` account. The package logic and version number are kept in sync with the Python skrutable library in this same repository.
 
 The `files` field in `package.json` controls what's included in the npm package: `src/`, `dist/skrutable.bundle.js`, `README.md`, and `LICENSE.md`.
 
@@ -195,6 +195,8 @@ Licensed under [Creative Commons Attribution-ShareAlike 4.0 International](https
 
 ## Credits
 
-The original Python [skrutable](https://github.com/tylergneill/skrutable) library — including all core logic, meter patterns, and transliteration tables — was created by [Tyler Neill](https://github.com/tylergneill).
+This JavaScript library is maintained by [Tyler Neill](https://github.com/tylergneill) in the [skrutable](https://github.com/tylergneill/skrutable) repository, alongside the Python library it ports. Please report issues there.
 
-This JavaScript port was created by [Antariksh Bothale](https://github.com/linguistrix) using [Claude Code](https://claude.ai/code), with subsequent fixes and refinements by [Antariksh Bothale](https://github.com/linguistrix) and [Tyler Neill](https://github.com/tylergneill).
+The original Python skrutable library, including all core logic, meter patterns, and transliteration tables, was created by Tyler Neill.
+
+The JavaScript port was first created by [Antariksh Bothale](https://github.com/linguistrix) using [Claude Code](https://claude.ai/code), with later fixes and refinements by Antariksh Bothale and Tyler Neill.

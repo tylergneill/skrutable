@@ -1,4 +1,4 @@
-.PHONY: clean-old-builds create-new-build build-test-pypi-package build-official-pypi-package
+.PHONY: test test-python test-js clean-old-builds create-new-build build-test-pypi-package build-official-pypi-package
 
 clean-old-builds:
 	rm -rf dist build
@@ -14,3 +14,13 @@ build-test-pypi-package: clean-old-builds create-new-build
 
 build-official-pypi-package: clean-old-builds create-new-build
 	twine upload dist/* -u __token__ -p $$PYPI_TOKEN
+
+# Run both test suites: the Python library (src/) and the JS library (js/).
+test: test-python test-js
+
+test-python:
+	cd src && pytest skrutable/tests/
+
+# Installs the JS dev dependencies on first run.
+test-js:
+	cd js && ([ -d node_modules ] || npm ci) && npm test
