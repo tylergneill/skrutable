@@ -13,9 +13,11 @@ The online web app at [skrutable.info](https://www.skrutable.info/) provides eas
 
 See [skrutable.info/help](https://www.skrutable.info/help) for more instructions.
 
-For Python programmers, `skrutable` is also importable as a library. Just `pip install skrutable` and see [below](#using-the-code).
+For Python programmers, `skrutable` is also importable as a library. Just `pip install skrutable` and see [below](#python-library).
 
 Programmers in any language can also query API endpoints. See [below](#using-the-api).
+
+There is also a JavaScript port of the library (npm package `skrutable-js`), which follows the Python library version for version. See [js/README.md](https://github.com/tylergneill/skrutable/blob/main/js/README.md).
 
 
 # transliteration
