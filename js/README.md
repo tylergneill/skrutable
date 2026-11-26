@@ -1,14 +1,6 @@
 # Skrutable JavaScript Library
 
-A comprehensive JavaScript library for Sanskrit text processing, including transliteration, scansion, meter identification, and word splitting.
-
-## Features
-
-- **Transliteration**: Convert between multiple Sanskrit schemes (Devanagari, IAST, Harvard-Kyoto, SLP1, ITRANS, Velthuis, Bengali, Gujarati)
-- **Scansion**: Syllabification and weight analysis of Sanskrit verses
-- **Meter Identification**: Automatic identification of 20+ Sanskrit meters including anuṣṭubh, indravajrā, vasantatilakā, śārdūlavikrīḍita, āryā, and more
-- **Word Splitting**: Sandhi and compound splitting via external API (Dharmamitra 2024 ByT5 or 2018 model)
-- **Client-side**: Runs entirely in the browser with no server dependencies (except word splitting)
+A JavaScript port of the [Skrutable](https://github.com/tylergneill/skrutable) Python library, so that it can run in the browser. It is downstream of the Python: the Python library is the reference, and this port replicates its functionality (transliteration, scansion, meter identification and splitting). It may lag behind the latest Python release.
 
 ## Quick Start
 
@@ -187,7 +179,7 @@ js/
 
 ## Browser Extension
 
-A browser extension built on this library (Chrome and Firefox) lives in the [skrutable_front_end](https://github.com/tylergneill/skrutable_front_end) repository, alongside the Skrutable web app.
+A browser extension built on this library lives in the [skrutable_front_end](https://github.com/tylergneill/skrutable_front_end) repository, alongside the Skrutable web app. Install it from the [Chrome Web Store](https://chromewebstore.google.com/detail/skrutable-sanskrit-tools/mgkkdjpbbpalpombplgeecggakdglfnp).
 
 ## License
 
