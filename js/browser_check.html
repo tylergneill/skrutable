@@ -1,0 +1,40 @@
+<!doctype html>
+<!--
+  Browser check for skrutable-js.
+  Run `make browser-check-js` from the repo root, then open
+  http://localhost:8000/browser_check.html. It loads the built library
+  two ways (UMD script tag and ES module import) and runs the same
+  transliteration checks on each; every line should say PASS.
+  Not part of the npm package (see "files" in package.json).
+-->
+<meta charset="utf-8">
+<title>skrutable-js browser check</title>
+<pre id="out"></pre>
+
+<!-- 1. UMD bundle: the file jsDelivr and unpkg serve; sets window.Skrutable -->
+<script src="dist/skrutable.bundle.js"></script>
+<script>
+  // Runs the same checks against whichever copy of the library it is given
+  function check(label, lib) {
+    const T = new lib.Transliterator();
+    const cases = [
+      ['plain IAST', 'kṛṣṇa', 'IAST', 'DEV', 'कृष्ण'],
+      ['decomposed IAST (fork #2)', 'kṛṣṇārjunau śṛṇuta ḍhakkā'.normalize('NFD'), 'IAST', 'DEV', 'कृष्णार्जुनौ शृणुत ढक्का'],
+      ['curly apostrophe', 'rAmo’pi', 'HK', 'IAST', "rāmo'pi"],
+      ['auto-detect (bundled scheme data)', 'dharmakSetre kurukSetre samavetA yuyutsavaH', 'auto', 'IAST', 'dharmakṣetre kurukṣetre samavetā yuyutsavaḥ'],
+    ];
+    const lines = [`${label}: version ${lib.version}`];
+    for (const [name, input, from, to, want] of cases) {
+      const got = T.transliterate(input, from, to);
+      lines.push(`  ${got === want ? 'PASS' : 'FAIL'} ${name}: ${got}`);
+    }
+    document.getElementById('out').textContent += lines.join('\n') + '\n';
+  }
+  check('UMD <script>', window.Skrutable);
+</script>
+
+<!-- 2. ESM bundle: what bundlers and ESM CDNs get (fork #1) -->
+<script type="module">
+  import * as lib from './dist/skrutable.esm.js';
+  check('ESM import', lib);
+</script>

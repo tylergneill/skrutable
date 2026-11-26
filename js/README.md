@@ -155,6 +155,8 @@ Which file a user gets depends on how they load the package:
 
 npm has no test registry like TestPyPI. Instead, before publishing, run `make smoke-test-npm-package` from the repo root: it packs the package exactly as `npm publish` would, installs it in a scratch folder, and checks that it loads through Node `import`, Node `require`, the ES module bundle and the UMD bundle. It publishes nothing.
 
+To check the bundles in a real browser, run `make browser-check-js` from the repo root and open http://localhost:8000/browser_check.html. The page loads the library through a `<script>` tag and through an ES module import and runs the same transliteration checks on each; every line should say PASS.
+
 ```bash
 npm whoami                # confirm you're logged in as tylergneill
 npm publish --dry-run     # preview what will be packed

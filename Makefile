@@ -1,4 +1,4 @@
-.PHONY: test test-python test-js smoke-test-npm-package clean-old-builds create-new-build build-test-pypi-package build-official-pypi-package
+.PHONY: test test-python test-js smoke-test-npm-package browser-check-js clean-old-builds create-new-build build-test-pypi-package build-official-pypi-package
 
 clean-old-builds:
 	rm -rf dist build
@@ -30,3 +30,11 @@ test-js:
 # TestPyPI). Publishes nothing.
 smoke-test-npm-package:
 	cd js && ([ -d node_modules ] || npm ci) && ./scripts/smoke_test_package.sh
+
+# Build the JS bundles and serve js/ locally so js/browser_check.html can be
+# opened in a real browser (module scripts don't load from file:// pages).
+# Stop the server with Ctrl-C.
+browser-check-js:
+	cd js && ([ -d node_modules ] || npm ci) && npm run build && \
+	echo "Open http://localhost:8000/browser_check.html (Ctrl-C to stop)" && \
+	python3 -m http.server 8000 --bind 127.0.0.1
