@@ -115,4 +115,28 @@ describe('Transliteration', () => {
         }
     });
 
+    // Decomposed (NFD) input: combining diacritics must be merged before
+    // transliteration, as in the Python library's IAST_SLP map.
+    // Expected outputs checked against Python skrutable.
+
+    test('test_nfd_iast_input_matches_nfc', () => {
+        const T = new Transliterator();
+        const cases = [
+            ['Aṣṭottara', 'अष्टोत्तर'],
+            ['kṛṣṇārjunau śṛṇuta ḍhakkā', 'कृष्णार्जुनौ शृणुत ढक्का'],
+        ];
+        for (const [nfc, expected] of cases) {
+            const nfd = nfc.normalize('NFD');
+            expect(nfd).not.toBe(nfc);
+            expect(T.transliterate(nfc, 'IAST', 'DEV')).toBe(expected);
+            expect(T.transliterate(nfd, 'IAST', 'DEV')).toBe(expected);
+        }
+    });
+
+    test('test_curly_apostrophe_avagraha', () => {
+        // U+2019 is normalized to a straight apostrophe (avagraha), as in Python.
+        const T = new Transliterator();
+        expect(T.transliterate('rAmo’pi', 'HK', 'IAST')).toBe("rāmo'pi");
+    });
+
 });
