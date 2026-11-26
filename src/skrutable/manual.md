@@ -13,7 +13,11 @@ The online web app at [skrutable.info](https://www.skrutable.info/) provides eas
 
 See [skrutable.info/help](https://www.skrutable.info/help) for more instructions.
 
-For Python programmers, `skrutable` is also importable as a library. Just `pip install skrutable` and see [below](#using-the-code).
+For Python programmers, `skrutable` is also importable as a library. Just `pip install skrutable` and see [below](#python-library).
+
+There is also a JavaScript port of the library (npm package `skrutable-js`), which follows the Python library and may lag behind its latest release. See [js/README.md](https://github.com/tylergneill/skrutable/blob/main/js/README.md).
+
+A browser extension for Chrome and Firefox, built on the JavaScript port, offers the same tools (transliteration, scansion, meter identification and splitting) in a side panel on any web page, from the toolbar icon or by right-clicking selected text. It lives with the web app in [skrutable_front_end](https://github.com/tylergneill/skrutable_front_end).
 
 Programmers in any language can also query API endpoints. See [below](#using-the-api).
 

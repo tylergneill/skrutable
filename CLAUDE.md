@@ -10,11 +10,14 @@ This file provides guidance to Claude Code when working with code in this reposi
 - `transliteration.py` — scheme conversion (IAST, HK, SLP, Devanāgarī, etc.)
 - `meter_patterns.py` — pattern dictionaries for all supported meters
 
+The JavaScript port lives in `js/` (npm package `skrutable-js`) and has its own `js/CLAUDE.md`. Python leads; the JS follows it, version for version.
+
 ## Running Tests
 
 ```bash
-cd src
-pytest skrutable/tests/
+make test          # both: Python (pytest) and JS (jest)
+make test-python   # same as: cd src && pytest skrutable/tests/
+make test-js       # same as: cd js && npm test
 ```
 
 ## Scan Timing Profiling
