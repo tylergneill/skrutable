@@ -17,9 +17,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "build": "rollup -c",
-    "dev": "rollup -c -w",
-    "build:extension:chrome": "node extension/build.cjs chrome",
-    "build:extension:firefox": "node extension/build.cjs firefox"
+    "dev": "rollup -c -w"
   },
   "keywords": [
     "sanskrit",
@@ -41,7 +39,8 @@
   "license": "CC-BY-SA-4.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/linguistrix/skrutable-js"
+    "url": "https://github.com/tylergneill/skrutable",
+    "directory": "js"
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",
