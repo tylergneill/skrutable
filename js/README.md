@@ -136,16 +136,22 @@ Pass `null` as `fromScheme` to trigger auto-detection.
 
 ```bash
 npm install          # install dependencies
-npm run build        # build dist/skrutable.bundle.js via Rollup
+npm run build        # build both bundles in dist/ via Rollup
 npm run dev          # build in watch mode
 npm test             # run all tests (Jest + Babel)
 ```
 
 ### Publishing the npm package
 
-The package is published to npm as `skrutable-js` under the `tylergneill` account. The package logic and version number are kept in sync with the Python skrutable library in this same repository.
+The package is published to npm as `skrutable-js` under the `tylergneill` account. It follows the Python skrutable library in this same repository and may lag behind it.
 
-The `files` field in `package.json` controls what's included in the npm package: `src/`, `dist/skrutable.bundle.js`, `README.md`, and `LICENSE.md`.
+The `files` field in `package.json` controls what's included in the npm package: `src/`, `dist/skrutable.bundle.js`, `dist/skrutable.esm.js`, `README.md`, and `LICENSE.md`.
+
+Which file a user gets depends on how they load the package:
+
+- **`<script>` tag or a bare CDN link** (jsDelivr, unpkg): `dist/skrutable.bundle.js`, a UMD build that defines a global `Skrutable`.
+- **`import` in a browser bundler or an ESM CDN** (esm.sh): `dist/skrutable.esm.js`, an ES module with the JSON data inlined.
+- **`import` or `require` in Node**: `src/index.js`, the unbundled source (`import` needs Node 20.10 or later for its JSON imports; `require` needs Node 22.12 or later).
 
 ```bash
 npm whoami                # confirm you're logged in as tylergneill
@@ -170,7 +176,8 @@ js/
 │   ├── virAma_avoidance.js   # Indic script rules
 │   └── config.js             # Configuration
 ├── dist/
-│   └── skrutable.bundle.js   # Pre-built bundle (use this in your HTML)
+│   ├── skrutable.bundle.js   # UMD bundle (use this in your HTML)
+│   └── skrutable.esm.js      # ES module bundle (for import)
 ├── tests/
 │   └── unit_tests/
 │       └── meter_identification.test.js

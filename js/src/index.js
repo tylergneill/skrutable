@@ -84,5 +84,8 @@ import { Scanner, Verse } from './scansion.js';
 import { MeterIdentifier } from './meter_identification.js';
 import { Splitter } from './splitting.js';
 import { meter_melodies } from './meter_patterns.js';
-import { version } from '../package.json';
+// Read the version from package.json. Named imports from JSON aren't
+// allowed in native ES modules, so import the whole object.
+import pkg from '../package.json' with { type: 'json' };
+const version = pkg.version;
 export { Transliterator, Scanner, Verse, MeterIdentifier, Splitter, meter_melodies, version };

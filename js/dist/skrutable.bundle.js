@@ -15017,7 +15017,9 @@
     }
   }
 
-  var version = "2.1.6";
+  var version$1 = "2.1.6";
+  var pkg = {
+  	version: version$1};
 
   // Main entry point for the skrutable JavaScript library
   // Sanskrit text processing toolkit for transliteration, scansion, and meter identification
@@ -15098,6 +15100,7 @@
       return verse.summarize(showWeights, showMorae, showGaRas, showAlignment, showLabel);
     }
   }
+  const version = pkg.version;
 
   exports.MeterIdentifier = MeterIdentifier;
   exports.Scanner = Scanner;

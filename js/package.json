@@ -4,12 +4,20 @@
   "description": "JavaScript toolkit for Sanskrit text transliteration, scansion, meter identification, and word splitting",
   "main": "src/index.js",
   "type": "module",
+  "browser": "dist/skrutable.esm.js",
+  "unpkg": "dist/skrutable.bundle.js",
+  "jsdelivr": "dist/skrutable.bundle.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": {
+      "browser": "./dist/skrutable.esm.js",
+      "default": "./src/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "src/",
     "dist/skrutable.bundle.js",
+    "dist/skrutable.esm.js",
     "README.md",
     "LICENSE.md"
   ],
