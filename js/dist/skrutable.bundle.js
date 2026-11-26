@@ -13992,6 +13992,18 @@
       if (pAdas_ab_combined !== null) {
         Vrs.meterLabel = `anuṣṭup (ardham eva: ${pAdas_ab_combined})`;
         Vrs.identificationScore = meter_scores["anuṣṭup, half, single half perfect"];
+
+        // resplit_max always forces an artificial 4-way split (quarter-length
+        // breaks), but a lone half-verse is conventionally printed as a single
+        // unbroken line (no daṇḍa within a half, only at its end). Re-merge
+        // all four quarters back into that one line so textSyllabified etc.
+        // no longer carry bogus internal pāda breaks.
+        Vrs.textSyllabified = Vrs.textSyllabified.split('\n').join(scansion_syllable_separator);
+        Vrs.syllableWeights = w_p.join('');
+        Vrs.moraePerLine = [Vrs.moraePerLine.reduce((a, b) => a + b, 0)];
+        const S = new Scanner();
+        Vrs.gaRaAbbreviations = S.gaRaAbbreviate(Vrs.syllableWeights);
+
         return 1;
       }
 
@@ -15005,7 +15017,7 @@
     }
   }
 
-  var version = "2.1.5";
+  var version = "2.1.6";
 
   // Main entry point for the skrutable JavaScript library
   // Sanskrit text processing toolkit for transliteration, scansion, and meter identification

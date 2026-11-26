@@ -1,6 +1,6 @@
 {
   "name": "skrutable-js",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "description": "JavaScript toolkit for Sanskrit text transliteration, scansion, meter identification, and word splitting",
   "main": "src/index.js",
   "type": "module",
@@ -66,6 +66,5 @@
       "^.+scheme_vectors\\.json$": "<rootDir>/src/scheme_vectors.json",
       "^.+impossible_bigrams\\.json$": "<rootDir>/src/impossible_bigrams.json"
     }
-
   }
 }
