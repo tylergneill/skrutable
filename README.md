@@ -6,9 +6,18 @@ as well access to powerful sandhi and compound splitting.
 
 Web-app interface live online at [skrutable.info](https://www.skrutable.info).
 
-Install package from [PyPi](https://pypi.org/project/skrutable/) with `pip install skrutable`.
+skrutable comes in two languages, kept in sync in this repository:
 
-For local development, install in editable mode from the repo root:
+- **Python** ([src/skrutable/](https://github.com/tylergneill/skrutable/tree/main/src/skrutable)): the library behind the web app. Install from [PyPI](https://pypi.org/project/skrutable/) with `pip install skrutable`. See [manual.md](https://github.com/tylergneill/skrutable/blob/main/src/skrutable/manual.md) for instructions.
+- **JavaScript** ([js/](https://github.com/tylergneill/skrutable/tree/main/js)): a port that runs entirely in the browser (word splitting aside). Install from [npm](https://www.npmjs.com/package/skrutable-js) with `npm install skrutable-js`. See [js/README.md](https://github.com/tylergneill/skrutable/blob/main/js/README.md) for instructions.
+
+Python leads development, and the JavaScript follows it, version for version.
+A browser extension built on the JavaScript library lives with the web app in
+[skrutable_front_end](https://github.com/tylergneill/skrutable_front_end).
+
+## Development
+
+For the Python, install in editable mode from the repo root:
 
 ```bash
 pip install -e .
@@ -16,9 +25,14 @@ pip install -e .
 
 This ensures tests and scripts use the local source instead of any installed version.
 
-A JavaScript port of the library (npm package `skrutable-js`) lives in [js/](js/).
+For the JavaScript, install its dev dependencies:
 
-See [manual.md](https://github.com/tylergneill/skrutable/blob/main/src/skrutable/manual.md) for instructions.
+```bash
+cd js && npm install
+```
+
+Run both test suites from the repo root with `make test`
+(or one at a time with `make test-python` and `make test-js`).
 
 Feedback welcome!
 My name is Tyler 
