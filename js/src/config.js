@@ -1,4 +1,11 @@
-// Configuration settings for skrutable-js
+// Configuration settings for skrutable-js.
+//
+// Defaults mirror the Python library's src/skrutable/config.json. Two of them
+// differ from earlier skrutable-js releases, which used "IAST" and
+// "resplit_max":
+//   default_scheme_in: "auto"            -> input scheme is detected, not assumed
+//   default_resplit_option: "resplit_lite"
+// To get the old behavior, pass the scheme or resplit option explicitly.
 export const config = {
   "default_scheme_in": "auto",
   "default_scheme_out": "IAST",
