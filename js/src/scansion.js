@@ -379,6 +379,9 @@ export class Scanner {
 
     // set up Transliterator and schemes
     const T = new Transliterator(); // default settings
+    // setDetectedScheme() below reads T.contents, which starts out null,
+    // so the text must be loaded first or auto-detection has nothing to read.
+    // (Same as the Python scan().)
     T.contents = cntnts;
     if (fromScheme !== null) {
       fromScheme = fromScheme.toUpperCase();
